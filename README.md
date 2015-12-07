@@ -2,14 +2,13 @@
 
 MarkdownIME is a "plugin" for the rich editors on web pages.
 
+![](http://laobubu.github.io/MarkdownIME/demo.gif)
 
 
 
 ## Quickstart
 
-```
-MarkdownIME.scan(window)
-```
+Please visit http://laobubu.github.io/MarkdownIME/ 
 
 ## Features
 

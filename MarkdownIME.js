@@ -238,17 +238,44 @@ function duang(window, wrapper, text) {
 /**
  * Scan the window and modify the editors by calling `prepare()`. This will also affect child-frame.
  * @param {window} window
+ * @return {array} editors
  */
 function scan(window){
 	var doc = window.document;
-	Array.prototype.forEach.call(doc.querySelectorAll('iframe'), function(i){scan(i.contentWindow)});
-	Array.prototype.forEach.call(doc.querySelectorAll('[contenteditable]'), function(i){prepare(window, i)});
+	var editors = []
+	Array.prototype.forEach.call(
+		doc.querySelectorAll('iframe'), 
+		function(i){
+			var result = scan(i.contentWindow);
+			if (result.length)
+				editors = editors.concat(result);
+		}
+	);
+	Array.prototype.forEach.call(
+		doc.querySelectorAll('[contenteditable]'), 
+		function(i){
+			editors.push(i); 
+			prepare(window, i);
+		}
+	);
+	return editors;
+}
+
+/**
+ * This is designed for bookmarklet.
+ * @param {window} window
+ */
+function bookmarklet(window) {
+	//TODO add some beautiful animation.
+	var editors;
+	editors = scan(window);
 }
 
 return {
 	config: config,
 	scan: scan,
-	prepare: prepare
+	prepare: prepare,
+	bookmarklet: bookmarklet
 }
 
 })();

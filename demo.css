@@ -1,0 +1,99 @@
+@charset "utf-8";
+
+body {
+	background: #B7A980;
+	font-family: 'DejaVu Serif', 'Times New Roman', Times, serif;
+	max-width: 800px;
+	margin: 10pt auto;
+}
+
+a {
+	color: #04c;
+}
+
+header {
+	color: #fff;
+	text-align: center;
+	text-shadow: 0 2px 5pt rgba(0, 0, 0, 0.8);
+	margin-bottom: 2em;
+}
+
+section {
+	background: #E0FFAA;
+	padding: 10pt 20pt;
+	border-radius: 5pt;
+	margin-top: 5pt;
+	margin-bottom: 10pt;
+}
+
+section h2 {
+	position: relative;
+}
+section h2:before {
+	display: block;
+	background: #333;
+	content: ' ';
+	position: absolute;
+	right: 100%;
+	top: -.2em;
+	height: 1.4em;
+	width: 10pt;
+	margin-right: 10pt;
+}
+
+#bookmarklet {
+	display: inline-block;
+	text-decoration: none;
+	color: #f33535;
+	font-size: 0;
+	background: #f33535;
+	padding: 10pt 20pt;
+	border-radius: 10pt;
+	cursor: move;
+	transition: box-shadow .5s ease;
+}
+#bookmarklet:after {
+	content: 'Magic Bookmarklet';
+	color: #fff;
+	display: block;
+	font-size: 16pt;
+}
+#bookmarklet:active, #bookmarklet:hover {
+	box-shadow: 0 5px 15pt rgba(0, 0, 0, 0.3);
+}
+
+hr {
+	outline: none;
+	border: none;
+	border-top: 2px solid rgba(0, 0, 0, 0.5);
+}
+
+code, pre {
+	padding: 3px 5px;
+	margin: 0 3px;
+	background: #FEFEFE;
+	color: #333;
+	font-family: 'DejaVu Sans Mono', Consolas, 'Courier New', Courier, monospace;
+	font-size: .8em;
+	border-radius: 5px;
+}
+
+.editor, .mce-tinymce {
+	box-sizing: border-box;
+	border-radius: 5pt;
+	background: #FFD;
+	padding: 10pt 20pt;
+	margin-top: 5pt;
+	margin-bottom: 10pt;
+	transition: box-shadow .5s ease;
+}
+
+.editor {
+	resize: vertical;
+	overflow: auto;
+}
+
+.editor:focus, .mce-tinymce:active {
+	outline: none;
+	box-shadow: 0 5px 20pt rgba(0, 0, 0, 0.3);
+}

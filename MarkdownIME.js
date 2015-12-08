@@ -5,6 +5,25 @@ var config = {
 };
 
 /**
+ * Move the cursor to the end of one element.
+ * @param {Node} ele
+ */
+function move_cursor_to_end(ele) {
+	var selection = ele.ownerDocument.defaultView.getSelection();
+	var range = ele.ownerDocument.createRange();
+	var focusNode = ele;
+	while (focusNode.nodeType == 1) {
+		var t = focusNode.childNodes[focusNode.childNodes.length - 1];
+		if (!t) break;
+		focusNode = t;
+	}
+	range.selectNode(focusNode);
+	range.collapse(true);
+	selection.removeAllRanges();
+	selection.addRange(range);
+}
+
+/**
  * Check if one node is a container for text line
  * @param {Node} node
  * @returns bool
@@ -122,7 +141,6 @@ function enhance(editor){
 			var _tagName = config.wrapper || 'div';
 			var _dummyNode = document.createElement(_tagName);
 			_dummyNode.innerHTML = '<br>';
-			var focusNode = _dummyNode.childNodes[0];
 			
 			if (parent_tree[0].nodeName == "BR")
 				parent_tree.shift();
@@ -136,12 +154,7 @@ function enhance(editor){
 				_dummyPrevSibling = _t;
 			}
 			_dummyPrevSibling.parentNode.insertBefore(_dummyNode, _dummyPrevSibling.nextSibling);
-			
-			range = document.createRange();
-			range.selectNode(focusNode);
-			range.collapse(true);
-			selection.removeAllRanges();
-			selection.addRange(range);
+			move_cursor_to_end(_dummyNode);
 			return;
 		}
 		
@@ -168,14 +181,9 @@ function enhance(editor){
 		var _dummyNode = document.createElement(_tagName);
 		_dummyNode.innerHTML = '<br>';
 		wrapper.parentNode.insertBefore(_dummyNode, wrapper.nextSibling);
-		var focusNode = _dummyNode.childNodes[0];
+		move_cursor_to_end(_dummyNode);
 		ev.preventDefault();
 		
-		range = document.createRange();
-		range.selectNode(focusNode);
-		range.collapse(true);
-		selection.removeAllRanges();
-		selection.addRange(range);
 		return;
 	}
 	editor.addEventListener('keydown', keyHandler, false);
@@ -284,12 +292,12 @@ function bookmarklet(window) {
 		notifier.setAttribute("style", 
 			"\
 			position: absolute; \
-			font-size: 12pt; \
+			font-size: 9pt; \
 			color: #363; \
 			border: 1px solid #363; \
 			background: #CFC; \
-			padding: 8pt 12pt; \
-			border-radius: 5pt; \
+			padding: 1pt 5pt; \
+			border-radius: 0 0 5pt 0; \
 			z-index: 32760; \
 			transition: opacity .3s ease; \
 			opacity: 0; \
@@ -298,8 +306,8 @@ function bookmarklet(window) {
 		editor.parentElement.appendChild(notifier);
 		editor.style.boxShadow = "#cfc 0 0 20pt inset , " + shadowOld;
 		
-		notifier.style.top = (editor.offsetTop + 10) + "px";
-		notifier.style.left = (editor.offsetLeft + 10) + "px";
+		notifier.style.top =  (editor.offsetTop ) + "px";
+		notifier.style.left = (editor.offsetLeft) + "px";
 		
 		setTimeout(function(){
 			notifier.style.opacity = 1;
@@ -319,7 +327,9 @@ return {
 	scan: scan,
 	enhance: enhance,
 	prepare: enhance,
-	bookmarklet: bookmarklet
+	bookmarklet: bookmarklet,
+	
+	move_cursor_to_end: move_cursor_to_end
 }
 
 })();

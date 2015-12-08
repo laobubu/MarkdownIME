@@ -39,15 +39,15 @@ function is_line_container(node) {
  * @returns bool
  */
 function is_line_container_clean(wrapper) {
-	var ci = wrapper.childNodes.length;
-	if (ci == 1 && wrapper.childNodes[0].nodeType == 1) {
+	var children = [].filter.call(wrapper.childNodes, function(node){ return !(node.nodeType == 1 && node.nodeName == "BR") });
+	var ci = children.length;
+	if (ci == 1 && children[0].nodeType == 1) {
 		//cracking nuts like <p><i><b>LEGACY</b></i></p>
-		return is_line_container_clean(wrapper.childNodes[0]);
+		return is_line_container_clean(children[0]);
 	}
 	while (ci--) {
-		var node = wrapper.childNodes[ci];
+		var node = children[ci];
 		if (node.nodeType == 3) continue;	//textNode pass
-		if (node.nodeType == 1 && node.nodeName == "BR") continue; //BR pass
 		return false;
 	}
 	return true;
@@ -94,6 +94,10 @@ function enhance(editor){
 			// 	node = node.parentNode;
 			// 	console.log(' - UpSearch', node);
 			// }
+			while (node.parentNode != editor && !is_line_container(node))
+			{
+				node = node.parentNode;
+			}
 			var _node = node.previousSibling;
 			if (!_node || _node.nodeName == "UL" || _node.nodeName == "OL") {
 				//TinyMCE solved the end of List! Good Job!
@@ -101,6 +105,9 @@ function enhance(editor){
 			}
 			tinyMCE_remove = node;
 			node = _node.childNodes[_node.childNodes.length-1];
+			while (node.nodeType != 3 && node.childNodes.length) {
+				node = node.childNodes[node.childNodes.length-1];
+			}
 			console.log('modified to', node);
 		} else if (range.startOffset < node.textContent.trim().length){
 			//avoid working with half-break line

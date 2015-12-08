@@ -253,6 +253,10 @@ function duang(wrapper, text) {
 function scan(window){
 	var doc = window.document;
 	var editors;
+	
+	editors = [].slice.call(doc.querySelectorAll('[contenteditable]'));
+	enhance(editors);
+	
 	[].forEach.call(
 		doc.querySelectorAll('iframe'), 
 		function(i){
@@ -261,8 +265,7 @@ function scan(window){
 				editors = editors.concat(result);
 		}
 	);
-	editors = doc.querySelectorAll('[contenteditable]');
-	enhance(editors);
+	
 	return editors;
 }
 

@@ -35,14 +35,23 @@ function is_line_container_clean(wrapper) {
 }
 
 /**
- * Enhance one content-editable object
- * @param window
- * @param editor
+ * Enhance content-editable object(s)
+ * @param {HTMLElement} editor The content-editable object
  */
-function prepare(window, editor){
+function enhance(editor){
+	//Handle array to enhance multi editors.
+	if (typeof editor['length'] == "number") {
+		[].forEach.call(editor, enhance);
+		return;
+	}
+	
+	//Skip bad items
+	if (!editor.hasAttribute('contenteditable')) return;
 	if (editor.hasAttribute('mdime-enhanced')) return;
+	
+	var window = editor.ownerDocument.defaultView;
+	var document = editor.ownerDocument;
 	var selection = window.getSelection();
-	var document = window.document;
 	var keyHandler = function(ev){
 		var keyCode = ev.keyCode || ev.which;
 		if (keyCode != 13) return;
@@ -139,7 +148,7 @@ function prepare(window, editor){
 		console.log('Handle', wrapper, parent_tree);
 		
 		//process the text node
-		wrapper = duang(window, wrapper, wrapper.textContent);
+		wrapper = duang(wrapper, wrapper.textContent);
 		
 		//remove tinyMCE bogus node
 		if (tinyMCE_remove)
@@ -175,51 +184,52 @@ function prepare(window, editor){
 
 /**
  * Duang the text wrapper!
- * @param window 	The context.
  * @param wrapper 	The original wrapper, which might be replaced/modified.
  * @param text		The text to be procceed.
  * @returns wrapper The new wrapper
  */
-function duang(window, wrapper, text) {
+function duang(wrapper, text) {
+	var window = wrapper.ownerDocument.defaultView;
+	var document = wrapper.ownerDocument;
 	var r1, r2;
 	var new_wrapper;
 	//HR Line
 	r1 = (text+'   ').match(/^\s*(-\s*|=\s*|\*\s*)(\1{2,})\s*$/);
 	if (r1) {
-		new_wrapper = window.document.createElement('hr');
+		new_wrapper = document.createElement('hr');
 		wrapper.parentNode.replaceChild(new_wrapper, wrapper);
 		return new_wrapper;
 	}
 	//Title replacement
 	r1 = text.match(/^(#+)\s*(.+?)\s*\1?$/);
 	if (r1) {
-		new_wrapper = window.document.createElement('h'+r1[1].length);
+		new_wrapper = document.createElement('h'+r1[1].length);
 		wrapper.parentNode.replaceChild(new_wrapper, wrapper);
-		return duang(window, new_wrapper, r1[2]);
+		return duang(new_wrapper, r1[2]);
 	}
 	//List replacement
 	r1 = text.match(/^\s*[-\*]\s+(.+)$/);
 	if (r1) {
-		new_wrapper = window.document.createElement('li');
+		new_wrapper = document.createElement('li');
 		wrapper.parentNode.replaceChild(new_wrapper, wrapper);
 		if (new_wrapper.parentNode.nodeName != "UL") {
-			r2 = window.document.createElement("ul");
+			r2 = document.createElement("ul");
 			new_wrapper.parentNode.replaceChild(r2, new_wrapper);
 			r2.appendChild(new_wrapper);
 		}
-		return duang(window, new_wrapper, r1[1]);
+		return duang(new_wrapper, r1[1]);
 	}
 	//List(with index) replacement
 	r1 = text.match(/^\s*\d+\.\s*(.+)$/);
 	if (r1) {
-		new_wrapper = window.document.createElement('li');
+		new_wrapper = document.createElement('li');
 		wrapper.parentNode.replaceChild(new_wrapper, wrapper);
 		if (new_wrapper.parentNode.nodeName != "OL") {
-			r2 = window.document.createElement("ol");
+			r2 = document.createElement("ol");
 			new_wrapper.parentNode.replaceChild(r2, new_wrapper);
 			r2.appendChild(new_wrapper);
 		}
-		return duang(window, new_wrapper, r1[1]);
+		return duang(new_wrapper, r1[1]);
 	}
 	//TODO: special input mode entry... like tables and code block
 	//Basic replacement
@@ -236,14 +246,14 @@ function duang(window, wrapper, text) {
 }
 
 /**
- * Scan the window and modify the editors by calling `prepare()`. This will also affect child-frame.
+ * Scan the window and modify the editors by calling `enhance()`. This will also affect child-frame.
  * @param {window} window
  * @return {array} editors
  */
 function scan(window){
 	var doc = window.document;
-	var editors = []
-	Array.prototype.forEach.call(
+	var editors;
+	[].forEach.call(
 		doc.querySelectorAll('iframe'), 
 		function(i){
 			var result = scan(i.contentWindow);
@@ -251,30 +261,61 @@ function scan(window){
 				editors = editors.concat(result);
 		}
 	);
-	Array.prototype.forEach.call(
-		doc.querySelectorAll('[contenteditable]'), 
-		function(i){
-			editors.push(i); 
-			prepare(window, i);
-		}
-	);
+	editors = doc.querySelectorAll('[contenteditable]');
+	enhance(editors);
 	return editors;
 }
 
 /**
+ * Enhance every editor and play a animation.
  * This is designed for bookmarklet.
  * @param {window} window
  */
 function bookmarklet(window) {
-	//TODO add some beautiful animation.
 	var editors;
 	editors = scan(window);
+	[].forEach.call(editors, function(editor) {
+		var notifier = editor.ownerDocument.createElement("div");
+		var shadowOld = editor.style.boxShadow;
+		notifier.textContent = "MarkdownIME Actived!";
+		notifier.setAttribute("style", 
+			"\
+			position: absolute; \
+			font-size: 12pt; \
+			color: #363; \
+			border: 1px solid #363; \
+			background: #CFC; \
+			padding: 8pt 12pt; \
+			border-radius: 5pt; \
+			z-index: 32760; \
+			transition: opacity .3s ease; \
+			opacity: 0; \
+			pointer-events: none; \
+			");
+		editor.parentElement.appendChild(notifier);
+		editor.style.boxShadow = "#cfc 0 0 20pt inset , " + shadowOld;
+		
+		notifier.style.top = (editor.offsetTop + 10) + "px";
+		notifier.style.left = (editor.offsetLeft + 10) + "px";
+		
+		setTimeout(function(){
+			notifier.style.opacity = 1;
+			setTimeout(function() {
+				notifier.style.opacity = 0;
+				editor.style.boxShadow = shadowOld;
+				setTimeout(function() {
+					notifier.parentNode.removeChild(notifier);
+				}, 500);
+			}, 1000);
+		}, 100);
+	});
 }
 
 return {
 	config: config,
 	scan: scan,
-	prepare: prepare,
+	enhance: enhance,
+	prepare: enhance,
 	bookmarklet: bookmarklet
 }
 

@@ -144,16 +144,21 @@ function enhance(editor){
 			
 			if (parent_tree[0].nodeName == "BR")
 				parent_tree.shift();
-			var _dummyPrevSibling = parent_tree.shift();
-			if (_dummyPrevSibling.parentNode.nodeName == "OL" || _dummyPrevSibling.parentNode.nodeName == "UL") {
-				//special process for list
-				var _t = _dummyPrevSibling.parentNode;
-				//sometimes tinyXXX has already removed the blank line
-				if (!_dummyPrevSibling.textContent.length)
-					_t.removeChild(_dummyPrevSibling);
-				_dummyPrevSibling = _t;
+			if (parent_tree.length == 1) {
+				//the container's first plain line!
+				editor.appendChild(_dummyNode);
+			} else {
+				var _dummyPrevSibling = parent_tree.shift();
+				if (_dummyPrevSibling.parentNode.nodeName == "OL" || _dummyPrevSibling.parentNode.nodeName == "UL") {
+					//special process for list
+					var _t = _dummyPrevSibling.parentNode;
+					//sometimes tinyXXX has already removed the blank line
+					if (!_dummyPrevSibling.textContent.length)
+						_t.removeChild(_dummyPrevSibling);
+					_dummyPrevSibling = _t;
+				}
+				_dummyPrevSibling.parentNode.insertBefore(_dummyNode, _dummyPrevSibling.nextSibling);
 			}
-			_dummyPrevSibling.parentNode.insertBefore(_dummyNode, _dummyPrevSibling.nextSibling);
 			move_cursor_to_end(_dummyNode);
 			return;
 		}

@@ -152,7 +152,7 @@ export function Render(node : HTMLElement) : HTMLElement {
 	Pattern.blockquote.lastIndex = 0;
 	match_result = Pattern.blockquote.exec(html);
 	if (match_result) {
-		big_block = node.ownerDocument.createElement("blockquote");
+		big_block = Utils.get_or_create_prev_block(node, "blockquote");
 		Utils.wrap(big_block, node);
 		
 		html = match_result[2];

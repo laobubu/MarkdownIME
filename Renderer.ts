@@ -53,6 +53,8 @@ namespace Pattern {
 		}
 	];
 	
+	export var hr = /^\s*([\-\=\*])(\s*\1){2,}\s*$/g;
+	
 	export var header = /^(#+)\s*(.+?)\s*\1?$/g;
 	
 	export var ul = /^ ?( *)[\*\+\-]\s+(.*)$/g;
@@ -88,6 +90,15 @@ export function Render(node : HTMLElement) : HTMLElement {
 	var big_block : Node;
 	
 	console.log("Render", node, html);
+	
+	// hr 
+	Pattern.hr.lastIndex = 0;
+	match_result = Pattern.hr.exec(html);
+	if (match_result) {
+		new_node = node.ownerDocument.createElement("hr");
+		node.parentNode.replaceChild(new_node, node);
+		return new_node;
+	}
 	
 	// header 
 	Pattern.header.lastIndex = 0;

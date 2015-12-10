@@ -74,6 +74,7 @@ export class Editor {
 			while (Utils.Pattern.NodeName.list.test(node.nodeName)) {
 				node = node.lastChild.lastChild; // this will get the text in li, or another nested ul/ol object.
 			}
+			tinymce_node.parentNode.removeChild(tinymce_node);
 		}
 		
 		//normalize the node object, if the node is 
@@ -166,9 +167,10 @@ export class Editor {
 			//so we create one new line without format.
 			if (
 				Utils.Pattern.NodeName.line.test(node.nodeName) ||
-				Utils.Pattern.NodeName.hr.test(node.nodeName)
+				Utils.Pattern.NodeName.hr.test(node.nodeName) ||
+				Utils.Pattern.NodeName.li.test(node.nodeName)
 			) {
-				_dummynode = this.GenerateEmptyLine();
+				_dummynode = this.GenerateEmptyLine(Utils.Pattern.NodeName.li.test(node.nodeName)?"li":null);
 				node.parentNode.insertBefore(_dummynode, node.nextSibling);
 				node = _dummynode;
 				Utils.move_cursor_to_end(node);
@@ -186,6 +188,7 @@ export class Editor {
 			}
 			
 			//let browser deal with other strange things
+			console.error("MarkdownIME Cannot Handle Line Creating");
 			Utils.move_cursor_to_end(node);
 		}
 		

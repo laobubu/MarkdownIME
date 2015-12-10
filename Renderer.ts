@@ -27,7 +27,7 @@ namespace Pattern {
 		},
 		{
 			name: "img with title",
-			regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])?\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
+			regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])?\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|"|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
 			replacement: '$1<img alt="$2" src="$3" title="$5">'
 		},
 		{
@@ -37,7 +37,7 @@ namespace Pattern {
 		},
 		{
 			name: "link with title",
-			regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
+			regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|"|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
 			replacement: '$1<a href="$3" title="$5">$2</a>'
 		},
 		{
@@ -50,6 +50,12 @@ namespace Pattern {
 			name: "escaping",
 			regex: /\\([\*`\(\)\[\]])/g,
 			replacement: "$1"
+		},
+		{
+			//NOTE put this on the tail!
+			name: "&nbsp convert",
+			regex: /  /g,
+			replacement: " &nbsp;"
 		}
 	];
 	
@@ -65,6 +71,8 @@ namespace Pattern {
 
 /**
  * Render inline objects, HTML in HTML out
+ * @note Remove redundant space and convert '&nbsp;' to ' ' before use this function. 
+ * @note This function will turn ' ' into '&nbsp;' when return.
  */
 export function RenderInlineHTML(html : string) : string {
 	var rtn = html;
@@ -84,7 +92,7 @@ export function RenderInlineHTML(html : string) : string {
  * Make one Block Node beautiful!
  */
 export function Render(node : HTMLElement) : HTMLElement {
-	var html = node.innerHTML.trim();
+	var html = node.innerHTML.trim().replace(/\s{2,}/g,' ').replace('&nbsp;',' ');
 	var match_result : Array<string>;
 	var new_node : HTMLElement;
 	var big_block : Node;

@@ -61,6 +61,9 @@ export class Editor {
 		
 		if (this.isTinyMCE) {
 			//according to test, node will become <sth><br bogus="true"></sth>
+			//if this is half-break, then return
+			if (!(node.childNodes.length == 1 && node.firstChild.nodeName == "BR"))
+				return;
 			//so we get rid of it.
 			tinymce_node = node;
 			while (!Utils.is_node_block(tinymce_node)) {
@@ -74,15 +77,16 @@ export class Editor {
 		// 1. editor > #text , then create one wrapper and use the wrapper.
 		// 2. blockwrapper > [wrapper >] #text , then use the blockwrapper.
 		// 3. editor , which means editor is empty. then f**k user.
+		//cond 3
 		if (node == this.editor) {
 			ev.preventDefault();
 			return;
 		}
-		
+		//cond 2
 		while (!Utils.is_node_block(node) && node.parentNode != this.editor) {
 			node = node.parentNode;
 		}
-		// cond 1
+		//cond 1
 		if (!Utils.is_node_block(node) && node.parentNode == this.editor) {
 			_dummynode = this.document.createElement(config.wrapper || "div");
 			Utils.wrap(_dummynode, node);

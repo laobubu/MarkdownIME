@@ -7,7 +7,7 @@ namespace MarkdownIME.Utils {
 		var range = ele.ownerDocument.createRange();
 		var focusNode = ele;
 		while (focusNode.nodeType == 1) {
-			var children = [].filter.call(focusNode.childNodes, is_node_not_empty);
+			var children = get_real_children(focusNode);
 			var t = children[children.length - 1];
 			if (!t) break;
 			focusNode = t;
@@ -46,7 +46,7 @@ namespace MarkdownIME.Utils {
 	 * Check if one line container can be processed.
 	 */
 	export function is_line_container_clean(wrapper : Node) {
-		var children : Array<Node> = [].filter.call(wrapper.childNodes, is_node_not_empty);
+		var children = get_real_children(wrapper);
 		var ci : number = children.length;
 		if (ci == 1 && children[0].nodeType == 1) {
 			//cracking nuts like <p><i><b>LEGACY</b></i></p>
@@ -58,6 +58,13 @@ namespace MarkdownIME.Utils {
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Find all non-empty children
+	 */
+	export function get_real_children(node : Node) : Array<Node> {
+		return [].filter.call(node.childNodes, is_node_not_empty);
 	}
 	
 	/**

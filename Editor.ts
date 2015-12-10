@@ -156,6 +156,15 @@ export class Editor {
 				return;
 			}
 			
+			//as for the <pre>, do not create new line
+			if (
+				Utils.Pattern.NodeName.pre.test(node.nodeName)
+			) {
+				Utils.move_cursor_to_end(node);
+				ev.preventDefault();
+				return;
+			}
+			
 			//let browser deal with other strange things
 			Utils.move_cursor_to_end(node);
 		}

@@ -145,7 +145,8 @@ export class Editor {
 				var text = node.lastChild.textContent;
 				if (text == '```') {
 					node.removeChild(node.lastChild);
-					node.removeChild(node.lastChild);
+					if (node.lastChild && node.lastChild.nodeName == "BR") 
+						node.appendChild(this.document.createElement('br'));	//extra br
 					_dummynode = this.GenerateEmptyLine();
 					node.parentNode.insertBefore(_dummynode, node.nextSibling);
 					Utils.move_cursor_to_end(_dummynode);

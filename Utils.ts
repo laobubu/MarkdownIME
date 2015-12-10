@@ -61,6 +61,19 @@ namespace MarkdownIME.Utils {
 	}
 	
 	/**
+	 * Get the previousSibling big block wrapper or create one.
+	 * @note every char in blockTagName shall be upper, like "BLOCKQUOTE"
+	 */
+	export function get_or_create_prev_block(node : Node, blockTagName : string) : Node {
+		var rtn : Node = node.previousSibling;
+		if (!rtn || rtn.nodeName != blockTagName) {
+			rtn = node.ownerDocument.createElement(blockTagName);
+			node.parentNode.insertBefore(rtn, node);
+		}
+		return rtn;
+	}
+	
+	/**
 	 * Find all non-empty children
 	 */
 	export function get_real_children(node : Node) : Array<Node> {

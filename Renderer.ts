@@ -12,6 +12,11 @@ namespace Pattern {
 	
 	export var header = /^(#+)\s*(.+?)\s*\1?$/g;
 	
+	export var ul = /^ ?( *)[\*\+\-]\s+(.*)$/g;
+	export var ol = /^ ?( *)\d+\.\s*(.*)$/g;
+	
+	export var blockquote = /^(\>*)\s*(.*)$/g;
+	
 	export var escaping = /\\([\*`])/g;
 }
 
@@ -34,16 +39,49 @@ export function RenderInlineHTML(html : string) : string {
 export function Render(node : HTMLElement) : HTMLElement {
 	var html = node.innerHTML.trim();
 	var match_result : Array<string>;
-	var rtn : HTMLElement;
+	var new_node : HTMLElement;
+	var big_block : Node;
+	
+	console.log("Render", node, html);
 	
 	// header 
+	Pattern.header.lastIndex = 0;
 	match_result = Pattern.header.exec(html);
 	if (match_result) {
-		rtn = node.ownerDocument.createElement("h" + match_result[1].length);
-		rtn.innerHTML = RenderInlineHTML(match_result[2]);
-		node.parentNode.replaceChild(rtn, node);
+		new_node = node.ownerDocument.createElement("h" + match_result[1].length);
+		new_node.innerHTML = RenderInlineHTML(match_result[2]);
+		node.parentNode.replaceChild(new_node, node);
+		return new_node;
+	}
+	
+	// ul
+	Pattern.ul.lastIndex = 0;
+	match_result = Pattern.ul.exec(html);
+	if (match_result) {
+		new_node = node.ownerDocument.createElement("li");
+		new_node.innerHTML = RenderInlineHTML(match_result[2]);
+		node.parentNode.insertBefore(new_node, node);
 		
-		return rtn;
+		big_block = Utils.get_or_create_prev_block(new_node, "UL");
+		Utils.wrap(big_block, new_node);
+		
+		node.parentNode.removeChild(node);
+		return new_node;
+	}
+	
+	// ol
+	Pattern.ol.lastIndex = 0;
+	match_result = Pattern.ol.exec(html);
+	if (match_result) {
+		new_node = node.ownerDocument.createElement("li");
+		new_node.innerHTML = RenderInlineHTML(match_result[2]);
+		node.parentNode.insertBefore(new_node, node);
+		
+		big_block = Utils.get_or_create_prev_block(new_node, "OL");
+		Utils.wrap(big_block, new_node);
+		
+		node.parentNode.removeChild(node);
+		return new_node;
 	}
 	
 	node.innerHTML = RenderInlineHTML(html);

@@ -110,7 +110,7 @@ export class Editor {
 		if (Utils.is_line_empty(<HTMLElement> node)) {
 			//ouch. it is an empty line.
 			console.log("Ouch! empty line.");
-			if (node.nodeName == "LI") {
+			if (/^UL|OL$/.test(node.parentNode.nodeName)) {
 				//it's an empty list item
 				//which means it's time to end the list
 				node.parentNode.removeChild(node);

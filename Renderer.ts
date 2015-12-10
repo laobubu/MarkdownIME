@@ -67,6 +67,8 @@ namespace Pattern {
 	export var ol = /^ ?( *)\d+\.\s*(.*)$/g;
 	
 	export var blockquote = /^(\>|&gt;)\s*(.*)$/g;
+	
+	export var codeblock = /^```\s*(\S*)\s*$/g;
 }
 
 /**
@@ -156,6 +158,25 @@ export function Render(node : HTMLElement) : HTMLElement {
 		Utils.wrap(big_block, node);
 		
 		html = match_result[2];
+	}
+	
+	//codeblock
+	Pattern.codeblock.lastIndex = 0;
+	match_result = Pattern.codeblock.exec(html);
+	if (match_result) {
+		big_block = node.ownerDocument.createElement('pre');
+		
+		if (match_result[1].length) {
+			//language is told
+			var typ = node.ownerDocument.createAttribute("lang");
+			typ.value = match_result[1];
+			big_block.attributes.setNamedItem(typ);
+		}
+		
+		(<HTMLElement>big_block).innerHTML = "<br>";
+		node.parentNode.replaceChild(big_block, node);
+		
+		return (<HTMLElement>big_block);
 	}
 	
 	node.innerHTML = RenderInlineHTML(html);

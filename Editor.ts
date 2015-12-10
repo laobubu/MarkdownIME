@@ -140,6 +140,25 @@ export class Editor {
 			ev.preventDefault();
 		} else {
 			console.log("Renderer on", node);
+			//for <pre> block, special work is needed.
+			if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
+				var text = node.lastChild.textContent;
+				if (text == '```') {
+					node.removeChild(node.lastChild);
+					node.removeChild(node.lastChild);
+					_dummynode = this.GenerateEmptyLine();
+					node.parentNode.insertBefore(_dummynode, node.nextSibling);
+					Utils.move_cursor_to_end(_dummynode);
+				} else {
+					if (!node.lastChild || node.lastChild.nodeName != "BR") 
+						node.appendChild(this.document.createElement('br'));	//extra br
+					node.appendChild(this.document.createElement('br'));
+					Utils.move_cursor_to_end(node);
+				}
+				ev.preventDefault();
+				return;
+			}
+			
 			node = Renderer.Render(<HTMLElement> node);
 			
 			//using browser way to create new line will get dirty format

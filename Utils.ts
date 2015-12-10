@@ -2,8 +2,8 @@ namespace MarkdownIME.Utils {
 	
 	export namespace Pattern {
 		export namespace NodeName {
-			export var list = /^(UL)|(OL)$/;
-			export var line = /^(P)|(DIV)$/;
+			export var list = /^(UL|OL)$/;
+			export var line = /^(P|DIV)$/;
 			export var blockquote = /^BLOCKQUOTE$/;
 			export var pre = /^PRE$/;
 			export var hr = /^HR$/;
@@ -50,7 +50,7 @@ namespace MarkdownIME.Utils {
 	 */
 	export function is_node_block(node : Node) {
 		if (node.nodeType != 1) return false;
-		return (/^(P|DIV|LI|H\d)$/.test(node.nodeName));
+		return (/^(P|DIV|PRE|LI|H\d)$/.test(node.nodeName));
 	}
 	
 	/**

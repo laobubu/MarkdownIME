@@ -10,7 +10,9 @@ namespace Pattern {
 	export var italy = /([^\\]|^)\*((?:\\\*|[^\*])*[^\\])\*/g;
 	export var code = /([^\\]|^)`((?:\\`|[^`])*[^\\])`/g;
 	
-	export var header = /^(#+)\s*(.+?)\s*\1?$/; 
+	export var header = /^(#+)\s*(.+?)\s*\1?$/g;
+	
+	export var escaping = /\\([\*`])/g;
 }
 
 /**
@@ -21,6 +23,8 @@ export function RenderInlineHTML(html : string) : string {
 	rtn = rtn.replace(Pattern.bold, "$1<b>$2</b>");
 	rtn = rtn.replace(Pattern.italy, "$1<i>$2</i>");
 	rtn = rtn.replace(Pattern.code, "$1<code>$2</code>");
+	
+	rtn = rtn.replace(Pattern.escaping, '$1');
 	return rtn;
 }
 

@@ -71,6 +71,9 @@ export class Editor {
 			}
 			//the we get the real and normalized node.
 			node = tinymce_node.previousSibling;
+			while (/^UL|OL$/.test(node.nodeName)) {
+				node = node.lastChild.lastChild; // this will get the text in li, or another nested ul/ol object.
+			}
 		}
 		
 		//normalize the node object, if the node is 
@@ -103,11 +106,46 @@ export class Editor {
 		while (!Utils.is_node_block(node)) 
 			node = parent_tree.shift();
 		
-		console.log("Renderer on", node);
+		//finally start processing
+		if (Utils.is_line_empty(<HTMLElement> node)) {
+			//ouch. it is an empty line.
+			console.log("Ouch! empty line.");
+			if (node.nodeName == "LI") {
+				//it's an empty list item
+				//which means it's time to end the list
+				node.parentNode.removeChild(node);
+				// get the list object
+				node = parent_tree.shift();
+				//create empty line
+				if (/^UL|OL$/.test(node.parentNode.nodeName)) {
+					//ouch! nested list!
+					_dummynode = this.GenerateEmptyLine("li");
+				} else {
+					//free! create one new line after the list
+					_dummynode = this.GenerateEmptyLine();
+				}
+				//and insert after the list
+				node.parentNode.insertBefore(_dummynode, node.nextSibling);
+				node = _dummynode;
+				//then focus on the line.
+			} else
+			{
+				//it's just one normal line.
+				//create one new line without format.
+				_dummynode = this.GenerateEmptyLine();
+				node.parentNode.insertBefore(_dummynode, node.nextSibling);
+				node = _dummynode;
+			}
+			Utils.move_cursor_to_end(node);
+			ev.preventDefault();
+		} else {
+			console.log("Renderer on", node);
+			node = Renderer.Render(<HTMLElement> node);
+			Utils.move_cursor_to_end(node);
+			//using browser way to create new line will get dirty format
+			//so we create one new line without format.
+		}
 		
-		node = Renderer.Render(<HTMLElement> node);
-		
-		Utils.move_cursor_to_end(node);
 	}
 	
 	/**
@@ -134,6 +172,16 @@ export class Editor {
 			if (text_before.length < 2) return; //too young, too simple
 			if (text_before.charAt(text_before.length - 2) == "\\") return; //escaping. run faster than others. 
 		}
+	}
+	
+	/**
+	 * Generate Empty Line
+	 */
+	GenerateEmptyLine(tagName : string = null) : HTMLElement {
+		var rtn : HTMLElement;
+		rtn = this.document.createElement(tagName || config.wrapper || "div");
+		rtn.innerHTML = '<br data-mdime-bogus="true">';
+		return rtn;
 	}
 }
 

@@ -61,6 +61,15 @@ namespace MarkdownIME.Utils {
 	}
 	
 	/**
+	 * Check if one line is empty
+	 */
+	export function is_line_empty(line : HTMLElement) : boolean {
+		if (line.textContent.length != 0) return false;
+		if (line.innerHTML.indexOf('<img ') >= 0) return false;
+		return true;
+	}
+	
+	/**
 	 * Get the previousSibling big block wrapper or create one.
 	 * @note every char in blockTagName shall be upper, like "BLOCKQUOTE"
 	 */

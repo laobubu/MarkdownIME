@@ -71,7 +71,7 @@ export class Editor {
 			}
 			//the we get the real and normalized node.
 			node = tinymce_node.previousSibling;
-			while (/^UL|OL$/.test(node.nodeName)) {
+			while (Utils.Pattern.NodeName.list.test(node.nodeName)) {
 				node = node.lastChild.lastChild; // this will get the text in li, or another nested ul/ol object.
 			}
 		}
@@ -110,40 +110,54 @@ export class Editor {
 		if (Utils.is_line_empty(<HTMLElement> node)) {
 			//ouch. it is an empty line.
 			console.log("Ouch! empty line.");
-			if (/^UL|OL$/.test(node.parentNode.nodeName)) {
+			//create one empty line without format.
+			_dummynode = this.GenerateEmptyLine();
+			if (Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
 				//it's an empty list item
 				//which means it's time to end the list
 				node.parentNode.removeChild(node);
 				// get the list object
 				node = parent_tree.shift();
 				//create empty line
-				if (/^UL|OL$/.test(node.parentNode.nodeName)) {
+				if (Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
 					//ouch! nested list!
 					_dummynode = this.GenerateEmptyLine("li");
-				} else {
-					//free! create one new line after the list
-					_dummynode = this.GenerateEmptyLine();
 				}
-				//and insert after the list
-				node.parentNode.insertBefore(_dummynode, node.nextSibling);
-				node = _dummynode;
-				//then focus on the line.
+			} else
+			if (Utils.Pattern.NodeName.blockquote.test(node.parentNode.nodeName)) {
+				//empty line inside a blockquote
+				//end the blockquote
+				node.parentNode.removeChild(node);
+				//get the blockquote object
+				node = parent_tree.shift(); 
 			} else
 			{
 				//it's just one normal line.
 				//create one new line without format.
-				_dummynode = this.GenerateEmptyLine();
-				node.parentNode.insertBefore(_dummynode, node.nextSibling);
-				node = _dummynode;
 			}
-			Utils.move_cursor_to_end(node);
+			node.parentNode.insertBefore(_dummynode, node.nextSibling);
+			Utils.move_cursor_to_end(_dummynode);
 			ev.preventDefault();
 		} else {
 			console.log("Renderer on", node);
 			node = Renderer.Render(<HTMLElement> node);
-			Utils.move_cursor_to_end(node);
+			
 			//using browser way to create new line will get dirty format
 			//so we create one new line without format.
+			if (
+				Utils.Pattern.NodeName.line.test(node.nodeName) ||
+				Utils.Pattern.NodeName.hr.test(node.nodeName)
+			) {
+				_dummynode = this.GenerateEmptyLine();
+				node.parentNode.insertBefore(_dummynode, node.nextSibling);
+				node = _dummynode;
+				Utils.move_cursor_to_end(node);
+				ev.preventDefault();
+				return;
+			}
+			
+			//let browser deal with other strange things
+			Utils.move_cursor_to_end(node);
 		}
 		
 	}

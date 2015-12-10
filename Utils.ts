@@ -1,4 +1,14 @@
 namespace MarkdownIME.Utils {
+	
+	export namespace Pattern {
+		export namespace NodeName {
+			export var list = /^UL|OL$/;
+			export var line = /^P|DIV$/;
+			export var blockquote = /^BLOCKQUOTE$/;
+			export var hr = /^HR$/;
+		}
+	}
+	
 	/**
 	 * Move the cursor to the end of one element.
 	 */

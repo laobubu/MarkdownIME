@@ -66,7 +66,7 @@ namespace Pattern {
 	export var ul = /^ ?( *)[\*\+\-]\s+(.*)$/g;
 	export var ol = /^ ?( *)\d+\.\s*(.*)$/g;
 	
-	export var blockquote = /^(\>*)\s*(.*)$/g;
+	export var blockquote = /^(\>|&gt;)\s*(.*)$/g;
 }
 
 /**
@@ -146,6 +146,16 @@ export function Render(node : HTMLElement) : HTMLElement {
 		
 		node.parentNode.removeChild(node);
 		return new_node;
+	}
+	
+	//blockquote
+	Pattern.blockquote.lastIndex = 0;
+	match_result = Pattern.blockquote.exec(html);
+	if (match_result) {
+		big_block = node.ownerDocument.createElement("blockquote");
+		Utils.wrap(big_block, node);
+		
+		html = match_result[2];
 	}
 	
 	node.innerHTML = RenderInlineHTML(html);

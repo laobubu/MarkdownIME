@@ -3,12 +3,55 @@
 namespace MarkdownIME.Renderer{
 
 namespace Pattern {
-	//NOTE process bold first, then italy.
-	//$1 is something strange
-	//$2 is the text
-	export var bold = /([^\\]|^)\*\*((?:\\\*|[^\*])*[^\\])\*\*/g;
-	export var italy = /([^\\]|^)\*((?:\\\*|[^\*])*[^\\])\*/g;
-	export var code = /([^\\]|^)`((?:\\`|[^`])*[^\\])`/g;
+	export var InlineElement = [
+		//NOTE process bold first, then italy.
+		//NOTE safe way to get payload:
+		//		((?:\\\_|[^\_])*[^\\])
+		//		in which _ is the right bracer
+		//$1 is something strange
+		//$2 is the text
+		{
+			name: "bold",
+			regex: /([^\\]|^)\*\*((?:\\\*|[^\*])*[^\\])\*\*/g,
+			replacement: "$1<b>$2</b>"
+		},
+		{
+			name: "italy",
+			regex: /([^\\]|^)\*((?:\\\*|[^\*])*[^\\])\*/g,
+			replacement: "$1<i>$2</i>"
+		},
+		{
+			name: "code",
+			regex: /([^\\]|^)`((?:\\`|[^`])*[^\\])`/g,
+			replacement: "$1<code>$2</code>"
+		},
+		{
+			name: "img with title",
+			regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
+			replacement: '$1<img alt="$2" src="$3" title="$5">'
+		},
+		{
+			name: "img",
+			regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\\)|[^\)])*[^\\])\)/g,
+			replacement: '$1<img alt="$2" src="$3">'
+		},
+		{
+			name: "link with title",
+			regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|)((?:\\\)|[^\)])*[^\\])\4\)/g, //$4 is used to check &quot; for title
+			replacement: '$1<a href="$3" title="$5">$2</a>'
+		},
+		{
+			name: "link",
+			regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\\)|[^\)])*[^\\])\)/g,
+			replacement: '$1<a src="$3">$2</a>'
+		},
+		{
+			//NOTE put this on the tail!
+			name: "escaping",
+			regex: /\\([\*`\(\)\[\]])/g,
+			replacement: "$1"
+		}
+	];
 	
 	export var header = /^(#+)\s*(.+?)\s*\1?$/g;
 	
@@ -16,8 +59,6 @@ namespace Pattern {
 	export var ol = /^ ?( *)\d+\.\s*(.*)$/g;
 	
 	export var blockquote = /^(\>*)\s*(.*)$/g;
-	
-	export var escaping = /\\([\*`])/g;
 }
 
 /**
@@ -25,11 +66,15 @@ namespace Pattern {
  */
 export function RenderInlineHTML(html : string) : string {
 	var rtn = html;
-	rtn = rtn.replace(Pattern.bold, "$1<b>$2</b>");
-	rtn = rtn.replace(Pattern.italy, "$1<i>$2</i>");
-	rtn = rtn.replace(Pattern.code, "$1<code>$2</code>");
-	
-	rtn = rtn.replace(Pattern.escaping, '$1');
+	var i, rule;
+	for (i = 0; i< Pattern.InlineElement.length; i++) {
+		rule = Pattern.InlineElement[i];
+		if ((typeof rule.method) == "function") {
+			rtn = rule.method(rtn);
+		} else {
+			rtn = rtn.replace(rule.regex, rule.replacement);
+		}
+	}
 	return rtn;
 }
 

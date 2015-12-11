@@ -11,6 +11,11 @@ namespace Pattern {
 		//$1 is something strange
 		//$2 is the text
 		{
+			name: "strikethrough",
+			regex: /([^\\]|^)\~\~((?:\\\~|[^\~])*[^\\])\~\~/g,
+			replacement: "$1<del>$2</del>"
+		},
+		{
 			name: "bold",
 			regex: /([^\\]|^)\*\*((?:\\\*|[^\*])*[^\\])\*\*/g,
 			replacement: "$1<b>$2</b>"
@@ -48,7 +53,7 @@ namespace Pattern {
 		{
 			//NOTE put this on the tail!
 			name: "escaping",
-			regex: /\\([\*`\(\)\[\]])/g,
+			regex: /\\([\*`\(\)\[\]\~])/g,
 			replacement: "$1"
 		},
 		{

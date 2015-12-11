@@ -1,3 +1,9 @@
+/*!@preserve 
+	[MarkdownIME](https://github.com/laobubu/MarkdownIME)
+	Copyright 2016 laobubu
+	Open the link to obtain the license info. 
+*/
+
 /// <reference path="Utils.ts" />
 /// <reference path="Editor.ts" />
 

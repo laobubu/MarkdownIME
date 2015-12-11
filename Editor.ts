@@ -215,6 +215,13 @@ export class Editor {
 			ev.preventDefault();
 		} else 
 		{
+			if (node.lastChild.attributes && (
+					node.lastChild.attributes.getNamedItem("data-mdime-bogus") ||
+					node.lastChild.attributes.getNamedItem("data-mce-bogus")
+				)
+			)
+				node.removeChild(node.lastChild);
+			
 			console.log("Renderer on", node);
 			
 			node = Renderer.Render(<HTMLElement> node);

@@ -74,7 +74,6 @@ export class Editor {
 			while (Utils.Pattern.NodeName.list.test(node.nodeName)) {
 				node = node.lastChild; // this will get the li, or another nested ul/ol object.
 			}
-			tinymce_node.parentNode.removeChild(tinymce_node);
 		}
 		
 		//normalize the node object, if the node is 
@@ -141,10 +140,12 @@ export class Editor {
 			ev.preventDefault();
 		} else {
 			console.log("Renderer on", node);
+			
 			//for <pre> block, special work is needed.
 			if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
 				var text = node.lastChild.textContent;
 				if (text == '```') {
+					//end the code block
 					node.removeChild(node.lastChild);
 					if (node.lastChild && node.lastChild.nodeName == "BR") 
 						node.appendChild(this.document.createElement('br'));	//extra br
@@ -152,46 +153,60 @@ export class Editor {
 					node.parentNode.insertBefore(_dummynode, node.nextSibling);
 					Utils.move_cursor_to_end(_dummynode);
 				} else {
+					//insert another line
 					if (!node.lastChild || node.lastChild.nodeName != "BR") 
 						node.appendChild(this.document.createElement('br'));	//extra br
 					node.appendChild(this.document.createElement('br'));
 					Utils.move_cursor_to_end(node);
 				}
 				ev.preventDefault();
-				return;
+				return true;
 			}
 			
 			node = Renderer.Render(<HTMLElement> node);
 			
-			//using browser way to create new line will get dirty format
-			//so we create one new line without format.
-			if (
-				Utils.Pattern.NodeName.line.test(node.nodeName) ||
-				Utils.Pattern.NodeName.hr.test(node.nodeName) ||
-				Utils.Pattern.NodeName.li.test(node.nodeName)
-			) {
-				_dummynode = this.GenerateEmptyLine(Utils.Pattern.NodeName.li.test(node.nodeName)?"li":null);
-				node.parentNode.insertBefore(_dummynode, node.nextSibling);
-				node = _dummynode;
-				Utils.move_cursor_to_end(node);
+			//Create another line after one node and move cursor to it.
+			if (this.CreateNewLine(node)) {
 				ev.preventDefault();
-				return;
+				tinymce_node && tinymce_node.parentNode.removeChild(tinymce_node);
+			} else {
+				//let browser deal with strange things
+				console.error("MarkdownIME Cannot Handle Line Creating");
+				Utils.move_cursor_to_end(tinymce_node || node);
 			}
-			
-			//as for the <pre>, do not create new line
-			if (
-				Utils.Pattern.NodeName.pre.test(node.nodeName)
-			) {
-				Utils.move_cursor_to_end(node);
-				ev.preventDefault();
-				return;
-			}
-			
-			//let browser deal with other strange things
-			console.error("MarkdownIME Cannot Handle Line Creating");
-			Utils.move_cursor_to_end(node);
+		}
+	}
+	
+	/**
+	 * Create new line after one node and move cursor to it.
+	 * return false if not successful.
+	 */
+	CreateNewLine(node : Node) : boolean {
+		var _dummynode : Node;
+		
+		//using browser way to create new line will get dirty format
+		//so we create one new line without format.
+		if (
+			Utils.Pattern.NodeName.line.test(node.nodeName) ||
+			Utils.Pattern.NodeName.hr.test(node.nodeName) ||
+			Utils.Pattern.NodeName.li.test(node.nodeName)
+		) {
+			var tagName = Utils.Pattern.NodeName.li.test(node.nodeName) ? "li" : null;
+			_dummynode = this.GenerateEmptyLine(tagName);
+			node.parentNode.insertBefore(_dummynode, node.nextSibling);
+			Utils.move_cursor_to_end(_dummynode);
+			return true;
 		}
 		
+		//as for a new <pre>, do not create new line
+		if (
+			Utils.Pattern.NodeName.pre.test(node.nodeName)
+		) {
+			Utils.move_cursor_to_end(node);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**

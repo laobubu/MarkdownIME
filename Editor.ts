@@ -5,6 +5,7 @@ namespace MarkdownIME{
 
 export var config = {
 	"wrapper": "p",	// the default wrapper for plain text line
+	"code_block_max_empty_lines": 5, // if there are so many continous empty lines, end the code block 
 };
 
 export class Editor {
@@ -144,6 +145,21 @@ export class Editor {
 			//for <pre> block, special work is needed.
 			if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
 				var text = node.lastChild.textContent;
+				if (node.childNodes.length > config.code_block_max_empty_lines) {
+					//find continous empty lines
+					for (var i = 1; i <= config.code_block_max_empty_lines; i++) {
+						if (node.childNodes[node.childNodes.length - i].nodeName != "BR")
+							break;
+					}
+					if (i > config.code_block_max_empty_lines) {
+						//user is anxious and input many empty lines
+						//which means the user wants to leave
+						for (var i = 1; i <= config.code_block_max_empty_lines - 1; i++) {
+							node.removeChild(node.lastChild);
+						}
+						text = '```';
+					}
+				}
 				if (text == '```') {
 					//end the code block
 					node.removeChild(node.lastChild);

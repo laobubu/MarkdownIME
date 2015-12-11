@@ -19,7 +19,7 @@ namespace MarkdownIME.Utils {
 		var range = ele.ownerDocument.createRange();
 		var focusNode = ele;
 		while (focusNode.nodeType == 1) {
-			var children = get_real_children(focusNode);
+			var children = focusNode.childNodes;
 			var t = children[children.length - 1];
 			if (!t) break;
 			focusNode = t;
@@ -101,6 +101,19 @@ namespace MarkdownIME.Utils {
 	 */
 	export function get_real_children(node : Node) : Array<Node> {
 		return [].filter.call(node.childNodes, is_node_not_empty);
+	}
+	
+	/**
+	 * Get all nodes on the same line. 
+	 * This is for lines like <br>...<br>. it is recommended to use TextNode as the anchor. 
+	 * If the anchor is <br>, nodes before it will be in return.
+	 */
+	export function get_line_nodes(anchor : Node, wrapper : Node) : Array<Node> {
+		var rtn = [];
+		var tmp : Node;
+		tmp = anchor.previousSibling;
+		//...
+		return rtn;
 	}
 	
 	/**

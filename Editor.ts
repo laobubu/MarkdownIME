@@ -60,6 +60,28 @@ export class Editor {
 		// 3. the cursor was set by some script. (eg. tinymce)
 		var node = range.startContainer;
 		
+		if (node.nodeType == 3 && range.startOffset != node.textContent.length) {
+			_dummynode = node;
+			while (!Utils.is_node_block(_dummynode)) _dummynode = _dummynode.parentNode;
+			if (Utils.Pattern.NodeName.pre.test(_dummynode.nodeName)) {
+				//safe insert <br> for <pre>, for browser always screw up
+				//insert right half text
+				node.parentNode.insertBefore(this.document.createTextNode(node.textContent.substr(range.startOffset)), node.nextSibling);
+				_dummynode = this.document.createElement('br');
+				node.parentNode.insertBefore(_dummynode, node.nextSibling);
+				node.textContent = node.textContent.substr(0, range.startOffset);
+				
+				range.selectNode(_dummynode.nextSibling);
+				range.collapse(true);
+				this.selection.removeAllRanges();
+				this.selection.addRange(range);
+				
+				ev.preventDefault();
+			}
+			return;
+		}
+		//if (node != node.parentNode.lastChild) return;
+		
 		if (this.isTinyMCE) {
 			//according to test, node will become <sth><br bogus="true"></sth>
 			//if this is half-break, then return
@@ -121,8 +143,45 @@ export class Editor {
 		//now node shall be a block node
 		while (!Utils.is_node_block(node)) 
 			node = parent_tree.shift();
-		
+			
 		//finally start processing
+		//for <pre> block, special work is needed.
+		if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
+			var txtnode = range.startContainer;
+			while (txtnode.nodeType != 3 && txtnode.lastChild)
+				txtnode = txtnode.lastChild;
+			var text = txtnode.textContent;
+			var br = this.document.createElement('br');
+			var space = this.document.createTextNode("\n");
+			console.log("part", text);
+			
+			if (/^[\n\s]*$/.test(text)) {
+				for (var i = 1; i <= config.code_block_max_empty_lines; i++) {
+					var testnode = node.childNodes[node.childNodes.length - i];
+					if (!testnode) break;
+					if (!Utils.is_node_empty(testnode)) break;
+				}
+				if (i > config.code_block_max_empty_lines)
+					text = '```';
+			}
+			
+			if (text == '```') {
+				//end the code block
+				node.removeChild(txtnode);
+				while (node.lastChild && Utils.is_node_empty(node.lastChild))
+					node.removeChild(node.lastChild);
+				_dummynode = this.GenerateEmptyLine();
+				node.parentNode.insertBefore(_dummynode, node.nextSibling);
+				Utils.move_cursor_to_end(_dummynode);
+			} else {
+				//insert another line
+				node.insertBefore(br, txtnode.nextSibling);
+				node.insertBefore(space, br.nextSibling);
+				Utils.move_cursor_to_end(space);
+			}
+			ev.preventDefault();
+			return;
+		} else
 		if (Utils.is_line_empty(<HTMLElement> node)) {
 			//ouch. it is an empty line.
 			console.log("Ouch! empty line.");
@@ -154,51 +213,9 @@ export class Editor {
 			node.parentNode.insertBefore(_dummynode, node.nextSibling);
 			Utils.move_cursor_to_end(_dummynode);
 			ev.preventDefault();
-		} else {
+		} else 
+		{
 			console.log("Renderer on", node);
-			
-			//for <pre> block, special work is needed.
-			if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
-				var text;
-				for (var i = node.childNodes.length - 1; i >= 0 ;i--) {
-					if (Utils.is_node_empty(node.childNodes[i])) 
-						continue;
-					text = node.childNodes[i].textContent;
-					break;
-				}
-				if (text != '```' && node.childNodes.length > config.code_block_max_empty_lines) {
-					//find continous empty lines
-					for (var i = 1; i <= config.code_block_max_empty_lines; i++) {
-						if (node.childNodes[node.childNodes.length - i].nodeName != "BR")
-							break;
-					}
-					if (i > config.code_block_max_empty_lines) {
-						//user is anxious and input many empty lines
-						//which means the user wants to leave
-						for (var i = 1; i <= config.code_block_max_empty_lines - 1; i++) {
-							node.removeChild(node.lastChild);
-						}
-						text = '```';
-					}
-				}
-				if (text == '```') {
-					//end the code block
-					node.removeChild(node.lastChild);
-					if (node.lastChild && node.lastChild.nodeName == "BR") 
-						node.appendChild(this.document.createElement('br'));	//extra br
-					_dummynode = this.GenerateEmptyLine();
-					node.parentNode.insertBefore(_dummynode, node.nextSibling);
-					Utils.move_cursor_to_end(_dummynode);
-				} else {
-					//insert another line
-					if (!node.lastChild || node.lastChild.nodeName != "BR") 
-						node.appendChild(this.document.createElement('br'));	//extra br
-					node.appendChild(this.document.createElement('br'));
-					Utils.move_cursor_to_end(node);
-				}
-				ev.preventDefault();
-				return true;
-			}
 			
 			node = Renderer.Render(<HTMLElement> node);
 			

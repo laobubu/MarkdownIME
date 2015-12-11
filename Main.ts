@@ -6,15 +6,16 @@
 
 /// <reference path="Utils.ts" />
 /// <reference path="Editor.ts" />
+/// <reference path="UI.ts" />
 
 namespace MarkdownIME{
 
 /**
- * Fetching contenteditable nodes from the window and its iframe.
+ * Fetching contenteditable elements from the window and its iframe.
  */
-export function Scan(window : Window) : Array<Node>{
+export function Scan(window : Window) : Array<Element>{
 	var document = window.document;
-	var editors : Array<Node>;
+	var editors : Array<Element>;
 	
 	editors = [].slice.call(document.querySelectorAll('[contenteditable]'));
 	
@@ -33,17 +34,27 @@ export function Scan(window : Window) : Array<Node>{
 /**
  * Enhance one or more editor.
  */
-export function Enhance(editor: any) {
-	if (typeof editor['length'] == "number") {
-		[].forEach.call(editor, Enhance);
-		return;
+export function Enhance(editor: Element | Element[]) {
+	if (typeof editor['length'] === "number") {
+		return [].map.call(editor, Enhance);
 	}
 	
 	var rtn : Editor;
-	rtn = new Editor(editor);
-	rtn.Init();
-	
-	return rtn;
+	rtn = new Editor(<Element>editor);
+	if (rtn.Init())	
+		return rtn;
+		
+	return null;
+}
+
+/**
+ * Bookmarklet Entry
+ */
+export function Bookmarklet(window: Window) {
+	[].forEach.call(Enhance(Scan(window)),
+	function(editor : Editor){
+		UI.Toast.makeToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT).show();
+	});
 }
 
 }

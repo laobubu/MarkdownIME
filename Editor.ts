@@ -72,7 +72,7 @@ export class Editor {
 			//the we get the real and normalized node.
 			node = tinymce_node.previousSibling;
 			while (Utils.Pattern.NodeName.list.test(node.nodeName)) {
-				node = node.lastChild.lastChild; // this will get the text in li, or another nested ul/ol object.
+				node = node.lastChild; // this will get the li, or another nested ul/ol object.
 			}
 			tinymce_node.parentNode.removeChild(tinymce_node);
 		}

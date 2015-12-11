@@ -34,9 +34,7 @@ namespace MarkdownIME.Utils {
 	 * Check if it's a BR or empty stuff.
 	 */
 	export function is_node_empty(node : Node) {
-		return (node.nodeType == 3 && (
-			node.nodeName == "BR" || /^[\s\r\n]*$/.test(node.nodeValue)
-		))
+		return (node.nodeType == 3 && /^[\s\r\n]*$/.test(node.nodeValue)) || node.nodeName == "BR";
 	}
 	
 	/**

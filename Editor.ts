@@ -63,7 +63,10 @@ export class Editor {
 		if (this.isTinyMCE) {
 			//according to test, node will become <sth><br bogus="true"></sth>
 			//if this is half-break, then return
-			if (!(node.childNodes.length == 1 && node.firstChild.nodeName == "BR"))
+			if (
+				!(Utils.Pattern.NodeName.pre.test(node.nodeName)) &&
+				!(node.childNodes.length == 1 && node.firstChild.nodeName == "BR")
+			)
 				return;
 			//so we get rid of it.
 			tinymce_node = node;
@@ -71,9 +74,21 @@ export class Editor {
 				tinymce_node = tinymce_node.parentNode;
 			}
 			//the we get the real and normalized node.
-			node = tinymce_node.previousSibling;
-			while (Utils.Pattern.NodeName.list.test(node.nodeName)) {
-				node = node.lastChild; // this will get the li, or another nested ul/ol object.
+			if (Utils.Pattern.NodeName.pre.test(tinymce_node.nodeName)) {
+				//<pre> is special
+				node = tinymce_node;
+				while (node.lastChild && Utils.is_node_empty(node.lastChild)) {
+					node.removeChild(node.lastChild);
+				}
+				node.appendChild(this.document.createElement('br'));
+				node.appendChild(this.document.createElement('br'));
+				tinymce_node = null;
+			} else {
+				node = tinymce_node.previousSibling;
+				if (Utils.Pattern.NodeName.list.test(node.nodeName)) {
+					//tinymce helps us get rid of a list.
+					return;
+				}
 			}
 		}
 		
@@ -144,8 +159,14 @@ export class Editor {
 			
 			//for <pre> block, special work is needed.
 			if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
-				var text = node.lastChild.textContent;
-				if (node.childNodes.length > config.code_block_max_empty_lines) {
+				var text;
+				for (var i = node.childNodes.length - 1; i >= 0 ;i--) {
+					if (Utils.is_node_empty(node.childNodes[i])) 
+						continue;
+					text = node.childNodes[i].textContent;
+					break;
+				}
+				if (text != '```' && node.childNodes.length > config.code_block_max_empty_lines) {
 					//find continous empty lines
 					for (var i = 1; i <= config.code_block_max_empty_lines; i++) {
 						if (node.childNodes[node.childNodes.length - i].nodeName != "BR")

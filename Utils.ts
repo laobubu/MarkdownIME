@@ -4,7 +4,7 @@ namespace MarkdownIME.Utils {
 		export namespace NodeName {
 			export var list = /^(UL|OL)$/;
 			export var li = /^LI$/;
-			export var line = /^(P|DIV)$/;
+			export var line = /^(P|DIV|H\d)$/;
 			export var blockquote = /^BLOCKQUOTE$/;
 			export var pre = /^PRE$/;
 			export var hr = /^HR$/;
@@ -51,7 +51,11 @@ namespace MarkdownIME.Utils {
 	 */
 	export function is_node_block(node : Node) {
 		if (node.nodeType != 1) return false;
-		return (/^(P|DIV|PRE|LI|H\d)$/.test(node.nodeName));
+		return (
+			Pattern.NodeName.line.test(node.nodeName) ||
+			Pattern.NodeName.li.test(node.nodeName) ||
+			Pattern.NodeName.pre.test(node.nodeName)
+		);
 	}
 	
 	/**

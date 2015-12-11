@@ -63,6 +63,7 @@ export function Bookmarklet(window: Window) {
  */
 export var bookmarklet = Bookmarklet;
 export var enhance = (window, element)=>{Enhance(element)};
+export var prepare = enhance;
 export var scan = (window)=>{Enhance(Scan(window))};
 
 }

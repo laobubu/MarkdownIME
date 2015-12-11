@@ -12,7 +12,13 @@ Works like a charm on mobile devices, too!
 
 Visit http://laobubu.github.io/MarkdownIME/ 
 
-## Building
+## Developing
+
+### Program
+
+To read/edit the code, consider using [VSCode](https://code.visualstudio.com/).
+
+### Build
 
 This project requires `tsc` (TypeScript Compiler) and `make` to compile. Optionally, `uglifyjs` can be used to compress the output.
 

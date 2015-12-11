@@ -57,4 +57,12 @@ export function Bookmarklet(window: Window) {
 	});
 }
 
+/**
+ * Function alias, just for compatibility
+ * @deprecated since version 0.2
+ */
+export var bookmarklet = Bookmarklet;
+export var enhance = (window, element)=>{Enhance(element)};
+export var scan = (window)=>{Enhance(Scan(window))};
+
 }

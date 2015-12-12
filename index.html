@@ -7,96 +7,57 @@
   <link rel="stylesheet" href="demo.css">
 </head>
 <body>
-
-<header>
-  <h1>MarkdownIME</h1>
-  <p>Type and transform.</p>
-</header>
-
-
-<!-- create a simple editor -->
-
-<div contenteditable="true" id="vanilla_demo" class="editor" spellcheck="false">
-  <h1>Hello World</h1>
-</div>
-<script src='https://rawgit.com/laobubu/MarkdownIME/master/MarkdownIME.js'></script>
-<script>
-  var editor = document.querySelector('#vanilla_demo');
-  MarkdownIME.prepare(window, editor);
-</script>
-
-
-
-<!-- introduce -->
-
-<section>
-  <h2>Introducing</h2>
-    <p>MarkdownIME is a "plugin" for the rich editors on web pages.</p>
-  <h2>Quickstart</h2>
-  <h3>For users who enjoy markdown</h3>
-    <p align="center"><a href="javascript:(function()%7Bvar%20s%3Ddocument.createElement('script')%3Bs.setAttribute('type'%2C'text%2Fjavascript')%3Bs.setAttribute('src'%2C'https%3A%2F%2Frawgit.com%2Flaobubu%2FMarkdownIME%2Fmaster%2FMarkdownIME.js')%3Bs.onload%3Dfunction()%7BMarkdownIME.bookmarklet(window)%7D%3Bdocument.documentElement.appendChild(s)%3B%7D)()" title="Load MarkdownIME" id="bookmarklet">Load MarkdownIME</a></p>
-    <p>Drag this bookmarklet to your bookmark bar. When you feel bad, click it and everything goes better.</p>
-  <h3>For developer</h3>
-    <p>This plugin is still unstable. If you want to try, here is some simple APIs.</p>
+  <div id="bizzarebg"></div>
+  <section id="s1">
+    <h1 class="hide">MarkdownIME</h1>
+    <p class="subtitle hide">A FRESH WAY TO INPUT & FORMAT</p>
+    <nav class="hide">
+      <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">View on GitHub</a>
+      <a id="nav_help" href="#help">Help Document</a>
+    </nav>
+    <div id="editor" contenteditable="true" spellcheck="false" class="hide"></div>
+  </section>
+  <section id="s2">
+    <h2><a name="help"></a>Introducing</h2>
+      <p>MarkdownIME is a "plugin" for the rich editors on web pages.</p>
+    <h2>Quickstart</h2>
+    <h3>For users who enjoy markdown</h3>
+      <p align="center"><a href="javascript:(function()%7Bvar%20s%3Ddocument.createElement('script')%3Bs.setAttribute('type'%2C'text%2Fjavascript')%3Bs.setAttribute('src'%2C'https%3A%2F%2Frawgit.com%2Flaobubu%2FMarkdownIME%2Fmaster%2FMarkdownIME.js')%3Bs.onload%3Dfunction()%7BMarkdownIME.Bookmarklet(window)%7D%3Bdocument.documentElement.appendChild(s)%3B%7D)()" title="Load MarkdownIME" class="button" id="bookmarklet">Load MarkdownIME</a></p>
+      <p>Drag this bookmarklet to your bookmark bar. When you feel bad, click it and everything goes better.</p>
+    <h3>For developer</h3>
+      <p><a href="manual.html">Read Manual &raquo;</a></p>
+    <h2>Features</h2>
+    <h3>Supported Markdown Syntax</h3>
+      <h4>Span Elements</h4>
+      <ul>
+        <li>Links</li>
+        <li>Emphasis</li>
+        <li>Strikethrough</li>
+        <li>In-line Code</li>
+        <li>Images</li>
+      </ul>
+      <h4>Block Elements</h4>
+      <ul>
+        <li>Headers (beginning with<code>#</code>)</li>
+        <li>Horizontal Line</li>
+        <li>List & Nested list</li>
+        <li>Blockquote & Nested blockquote</li>
+        <li>Code Block</li>
+      </ul>
+    <h3>Supported Editor</h3>
+      <ul>
+        <li><b>Vanilla contenteditable elements</b> - browsers solve everything.</li>
+        <li><b>TinyMCE</b> - now typing on EverNote and others is easier.</li>
+      </ul>
+    <h2>Contribute / Troubleshooting</h2>
+    <p>Well, I'm not good at javascripting and I need your help.</p>
     <ul>
-      <li><code>MarkdownIME.scan(window)</code> scans all the content-editable elements (aka. editors) and enhances them.</li>
-      <li><code>MarkdownIME.prepare(window, editor)</code> enhances one editor.</li>
+      <li><a href="">Fork me on GitHub</a></li>
+      <li><a href="https://github.com/laobubu/MarkdownIME/issues/new">Submit one Issue</a></li>
     </ul>
-  <h2>Features</h2>
-  <h3>Supported Markdown Syntax</h3>
-    <h4>Span Elements</h4>
-    <ul>
-      <li>Links</li>
-      <li>Emphasis</li>
-      <li>In-line Code</li>
-      <li>Images</li>
-    </ul>
-    <h4>Block Elements</h4>
-    <ul>
-      <li>Headers (beginning with<code>#</code>)</li>
-      <li>Horizontal</li>
-      <li>Lists (nested list is not supported yet)</li>
-    </ul>
-    <p><b>NOTICE</b>: Backslash Escapes is not supported yet.</p>
-  <h3>Supported Editor</h3>
-    <ul>
-      <li><b>Vanilla contenteditable elements</b> - browsers solve everything.</li>
-      <li><b>TinyMCE</b> - now typing on EverNote and others is easier. <a href="#tinymce">Try out &raquo;</a></li>
-    </ul>
-  <h2>Contribute</h2>
-  <p>Well, I'm not good at javascripting and I need your help.</p>
-  <ul>
-    <li><a href="https://github.com/laobubu/MarkdownIME">Fork me on GitHub</a></li>
-    <li><a href="https://github.com/laobubu/MarkdownIME/issues/new">Submit one Issue</a></li>
-  </ul>
-</section>
-
-<script src='demo.js'></script>
-
-
-<!-- the following part is tinyMCE's showcase -->
-<a name="tinymce"></a>
-<div id="tinymce_demo" class="editor">
-  <b>TinyMCE is partially supported!</b>
-  <p>But you need some trick.</p>
-  <ol>
-    <li>Load the editor with <code>tinymce.init</code>.</li>
-    <li>Find out the contentWindow and call <code>MarkdownIME.prepare(the_window, the_contenteditable_element)</code></li>
-  </ol>
-  <p>Feeling sad? There is something better.</p>
-  <p>Just call <code>MarkdownIME.scan(window)</code> and every editor in this big window will get better.</p>
-</div>
-<script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
-<script>
-tinymce.init({
-  selector: '#tinymce_demo',
-  init_instance_callback: function() {
-    MarkdownIME.scan(window);
-  }
-});
-</script>
-
-
-
+  </section>
+  <script id="s_mdime" src="https://rawgit.com/laobubu/MarkdownIME/master/MarkdownIME.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="demo.js"></script>
 </body>
 </html>

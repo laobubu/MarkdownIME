@@ -1,67 +1,40 @@
 @charset "utf-8";
 
 body {
-	background: #B7A980;
+	background-color: #333;
 	font-family: 'DejaVu Serif', 'Times New Roman', Times, serif;
-	max-width: 800px;
-	margin: 10pt auto;
+	margin: 0;
+	transition: background-image 2s ease;
 }
 
+#bizzarebg {
+	position: absolute;
+	width: 100%;
+	height: 150%;
+	left: 0;
+	top: 0;
+	background-image: radial-gradient(at bottom, rgba(0,0,0,0),rgba(0,0,0,0.7));
+}
+
+body > section {
+	box-sizing: border-box;
+	min-height: 90vh;
+	max-width: 800px;
+	margin: 5vh auto;
+	padding: 20pt 30pt;
+	border-radius: 10pt;
+	perspective: 500;
+	-webkit-perspective: 500;
+}
+
+
+/* misc */
+.hide {
+	opacity: 0!important;
+}
 a {
 	color: #04c;
 }
-
-header {
-	color: #fff;
-	text-align: center;
-	text-shadow: 0 2px 5pt rgba(0, 0, 0, 0.8);
-	margin-bottom: 2em;
-}
-
-section {
-	background: #E0FFAA;
-	padding: 10pt 20pt;
-	border-radius: 5pt;
-	margin-top: 5pt;
-	margin-bottom: 10pt;
-}
-
-section h2 {
-	position: relative;
-}
-section h2:before {
-	display: block;
-	background: #333;
-	content: ' ';
-	position: absolute;
-	right: 100%;
-	top: -.2em;
-	height: 1.4em;
-	width: 10pt;
-	margin-right: 10pt;
-}
-
-#bookmarklet {
-	display: inline-block;
-	text-decoration: none;
-	color: #f33535;
-	font-size: 0;
-	background: #f33535;
-	padding: 10pt 20pt;
-	border-radius: 10pt;
-	cursor: move;
-	transition: box-shadow .5s ease;
-}
-#bookmarklet:after {
-	content: 'Magic Bookmarklet';
-	color: #fff;
-	display: block;
-	font-size: 16pt;
-}
-#bookmarklet:active, #bookmarklet:hover {
-	box-shadow: 0 5px 15pt rgba(0, 0, 0, 0.3);
-}
-
 hr {
 	outline: none;
 	border: none;
@@ -78,22 +51,136 @@ code, pre {
 	border-radius: 5px;
 }
 
-.editor, .mce-tinymce {
-	box-sizing: border-box;
+blockquote {
+	background: #FAFAFA;
+	border-left: 10px solid #bbb;
+	margin: 10pt;
+	padding: 20pt;
+}
+
+/* section 1 */
+#s1 > h1 {
+	transition: 1s ease;
+	text-shadow: 0 2px 5px #222;
+	font-size: 50pt;
+	color: #FAFAFA;
+	text-align: center;
+	margin: 0;
+	margin-bottom: .5em;
+}
+#s1 > h1:before {
+	display: block;
+	content: ' ';
+	height: 10vh;
+	min-height: .83em;
+}
+#s1 > .subtitle {
+	transition: 1s ease;
+	transition-delay: .2s;
+	color: #aaa;
+	text-align: center;
+	font-weight: bold;
+	margin: 0;
+}
+#s1 > nav {
+	text-align: center;
+	transition: 1s ease;
+	margin-top: .5em;
+	height: 8vh;
+	min-height: 30pt;
+}
+#s1 > nav.hide {
+	transform: translateY(-20px);
+}
+#s1 > nav > a {
+	background: #444;
+	padding: 2pt 8pt;
 	border-radius: 5pt;
-	background: #FFD;
-	padding: 10pt 20pt;
-	margin-top: 5pt;
-	margin-bottom: 10pt;
-	transition: box-shadow .5s ease;
+	display: inline-block;
+	margin: 3pt;
+	text-decoration: none;
+	color: #aaa;
+	font-size: 87%;
+	transition: .3s ease;
+}
+#s1 > nav > a:focus, #s1 > nav > a:hover {
+	background: #ccc;
+	color: #333;
+}
+#editor {
+	outline: none !important;
+	box-shadow: 0 2px 10px #333;
+	background: #eee;
+	min-height: 15em;
+	padding: 5pt 10pt;
+	
+	opacity: 0.6;
+	transition: 1s cubic-bezier(.3, 0, .3, 1.6);
+	transition-delay: .8s;
+}
+#editor:focus, #editor:active, #editor:hover {
+	opacity: 1;
+	transition: .5s ease;
+	transition-delay: 0s;
+}
+#editor.hide {
+	transform: translateY(-60px) rotateX(5deg) scale(.95);
+}
+#editor p {
+	margin: 5pt 0;
+}
+@media(max-width: 600px) {
+	#s1 > h1 {
+		font-size: 24pt;	
+	}
+	#s1 > nav {
+		height: auto;
+		margin-bottom: 10pt;
+	}
 }
 
-.editor {
-	resize: vertical;
-	overflow: auto;
+/* section 2 */
+#s2 {
+	position: relative;
+	color: #eee;
+	line-height: 1.5;
+	font-size: 14pt;
 }
 
-.editor:focus, .mce-tinymce:active {
-	outline: none;
-	box-shadow: 0 5px 20pt rgba(0, 0, 0, 0.3);
+#s2 a {
+	color: #9DF;
+}
+
+#s2 h2 {
+	position: relative;
+}
+#s2 h2:before {
+	display: block;
+	background: #2994B2;
+	content: ' ';
+	position: absolute;
+	right: 100%;
+	top: -.2em;
+	height: 1.4em;
+	width: 10pt;
+	margin-right: 10pt;
+}
+
+#bookmarklet {
+	font-size: 0;
+}
+#bookmarklet:before {
+	content: 'Magic Bookmarklet! ';
+	font-size: 14pt;
+}
+
+.button {
+	background: rgba(255,180,0,0.6);
+	color: #000!important;
+	text-decoration: none;
+	padding: 10pt 30pt;
+	display: inline-block;
+}
+.button:hover,.button:active,.button:focus {
+	background: #FFB400;
 }

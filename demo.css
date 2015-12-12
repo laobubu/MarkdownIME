@@ -125,6 +125,7 @@ blockquote {
 }
 #editor.hide {
 	transform: translateY(-60px) rotateX(5deg) scale(.95);
+	opacity: 0!important;
 }
 #editor p {
 	margin: 5pt 0;

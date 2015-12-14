@@ -709,3 +709,4 @@ var MarkdownIME;
     MarkdownIME.prepare = MarkdownIME.enhance;
     MarkdownIME.scan = function (window) { Enhance(Scan(window)); };
 })(MarkdownIME || (MarkdownIME = {}));
+//# sourceMappingURL=MarkdownIME.js.map

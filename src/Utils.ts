@@ -33,8 +33,10 @@ namespace MarkdownIME.Utils {
 	/**
 	 * Check if it's a BR or empty stuff.
 	 */
-	export function is_node_empty(node : Node) {
-		return (node.nodeType == 3 && /^[\s\r\n]*$/.test(node.nodeValue)) || node.nodeName == "BR";
+	export function is_node_empty(node : Node, regardBrAsEmpty : boolean = true) {
+		return	(node.nodeType == Node.TEXT_NODE && /^[\s\r\n]*$/.test(node.nodeValue)) || 
+				(node.nodeType == Node.COMMENT_NODE) ||
+				(regardBrAsEmpty && node.nodeName == "BR");
 	}
 	
 	/**
@@ -68,7 +70,7 @@ namespace MarkdownIME.Utils {
 		}
 		while (ci--) {
 			var node = children[ci];
-			if (node.nodeType == 3) continue;	//textNode pass
+			if (node.nodeType == Node.TEXT_NODE) continue;	//textNode pass
 			return false;
 		}
 		return true;

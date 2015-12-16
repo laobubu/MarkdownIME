@@ -144,10 +144,47 @@ namespace MarkdownIME.Utils {
 	}
 	
 	/**
+	 * remove whitespace in the DOM text. works for textNode.
+	 */
+	export function trim(str : string) : string {
+		return str.replace(/^[\t\r\n ]+/,'').replace(/[\t\r\n ]+$/,'').replace(/[\t\r\n ]+/,' ');
+	}
+	
+	/**
 	 * help one element wear a wrapper
 	 */
 	export function wrap(wrapper : Node, node : Node) {
 		node.parentNode.replaceChild(wrapper, node);
 		wrapper.appendChild(node);
+	}
+	
+	/** 
+	 * get outerHTML for a new element safely.
+	 * @see http://www.w3.org/TR/2000/WD-xml-c14n-20000119.html#charescaping
+	 * @see http://www.w3.org/TR/2011/WD-html-markup-20110113/syntax.html#void-element
+	 */
+	export function generateElementHTML(nodeName: string, props?: Object, innerHTML?: string):string {
+		var rtn = "<" + nodeName;
+		if (props) {
+			for (let attr in props) {
+				if (!props.hasOwnProperty(attr)) continue;
+				let value = "" + props[attr];
+				value = value.replace(/"/g,  "&quot;");
+				value = value.replace(/&/g,  "&amp;" );
+				value = value.replace(/</g,  "&lt;"  );
+				value = value.replace(/\t/g, "&#x9;" );
+				value = value.replace(/\r/g, "&#xA;" );
+				value = value.replace(/\n/g, "&#xD;" );
+				rtn += " " + attr + '="' + value + '"';
+			}
+		}
+		rtn += ">";
+		if (innerHTML) {
+			rtn += innerHTML + "</" + nodeName + ">";
+		} else 
+		if (!/^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i.test(nodeName)) {
+			rtn += "</" + nodeName + ">";
+		}
+		return rtn;
 	}
 }

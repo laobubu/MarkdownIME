@@ -48,7 +48,7 @@ namespace Pattern {
 		{
 			name: "link",
 			regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\\)|[^\)])*[^\\])\)/g,
-			replacement: '$1<a src="$3">$2</a>'
+			replacement: '$1<a href="$3">$2</a>'
 		},
 		{
 			//NOTE put this on the tail!

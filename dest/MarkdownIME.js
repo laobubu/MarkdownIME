@@ -218,7 +218,7 @@ var MarkdownIME;
                     //NOTE put this on the tail!
                     name: "escaping",
                     regex: /\\([\*`\(\)\[\]\~])/g,
-                    replacement: "$1"
+                    replacement: "<!--escaping-->$1"
                 },
                 {
                     //NOTE put this on the tail!
@@ -240,7 +240,7 @@ var MarkdownIME;
          * @note This function will turn ' ' into '&nbsp;' when return.
          */
         function RenderInlineHTML(html) {
-            var rtn = html;
+            var rtn = html.replace(/<!--escaping-->/g, '<!--escaping-->\\');
             var i, rule;
             for (i = 0; i < Pattern.InlineElement.length; i++) {
                 rule = Pattern.InlineElement[i];
@@ -251,6 +251,7 @@ var MarkdownIME;
                     rtn = rtn.replace(rule.regex, rule.replacement);
                 }
             }
+            rtn = rtn.replace(/<!--escaping-->(\\|<!--escaping-->)/g, '<!--escaping-->');
             return rtn;
         }
         Renderer.RenderInlineHTML = RenderInlineHTML;

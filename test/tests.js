@@ -31,9 +31,15 @@ var ren = MarkdownIME.Renderer;
 QUnit.test("render entire line block", function( assert ) {
   setHTML();
   
-  var srcNode = createTextContainer("***mix*** **bo\\*ld** *italy* ~~st~~ `co\\`de` **\\*mix*** [li\\]nk](..)");
+  var srcText = "***mix*** **bo\\*ld** *italy* ~~st~~ `co\\`de` **\\*mix*** [li\\]nk](..)";
+  var dstText = "mix bo*ld italy st co`de *mix* li]nk";
+  
+  var srcNode = createTextContainer(srcText);
   var newNode = ren.Render(srcNode);
   
-  assert.equal(srcNode, newNode);
-  assert.equal(newNode.textContent, "mix bo*ld italy st co`de *mix* li]nk");
+  assert.equal(srcNode, newNode, "return same block element");
+  assert.equal(newNode.textContent, dstText, "get correct text");
+  
+  newNode = ren.Render(newNode);
+  assert.equal(newNode.textContent, dstText, "render twice and keep escaping");
 });

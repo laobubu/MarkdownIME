@@ -34,7 +34,7 @@ export function Scan(window : Window) : Array<Element>{
 /**
  * Enhance one or more editor.
  */
-export function Enhance(editor: Element | Element[]) {
+export function Enhance(editor: Element | Element[]) : Editor {
 	if (typeof editor['length'] === "number") {
 		return [].map.call(editor, Enhance);
 	}

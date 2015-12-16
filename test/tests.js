@@ -5,7 +5,7 @@ var editor = document.getElementById('editor');
 var ime = MarkdownIME.Enhance(editor);
 
 //////////////////////////////////////////////////////////////
-function setHTML(html)  { editor.innerHTML = html||''; }
+function setHTML(html)  { while(editor.firstChild){editor.removeChild(editor.firstChild);} editor.innerHTML = html||''; }
 function getHTML()      { return editor.innerHTML; }
 
 function useTestLine(id) {
@@ -42,4 +42,30 @@ QUnit.test("render entire line block", function( assert ) {
   
   newNode = ren.Render(newNode);
   assert.equal(newNode.textContent, dstText, "render twice and keep escaping");
+});
+QUnit.test("elevate to a list", function( assert ) {
+  setHTML();
+  
+  var srcText = "1. *l*`o`~~r~~**e**[m](..)";
+  var dstText = "lorem";
+  
+  var srcNode = createTextContainer(srcText);
+  var newNode = ren.Render(srcNode);
+  
+  assert.equal(newNode.nodeName, "LI", "return a <li> element");
+  assert.equal(newNode.parentNode.nodeName, "OL", "get an <ol> wrapper");
+  assert.equal(newNode.textContent, dstText, "get correct text");
+});
+QUnit.test("elevate to a blockquote", function( assert ) {
+  setHTML();
+  
+  var srcText = "> *l*`o`~~r~~**e**[m](..)";
+  var dstText = "lorem";
+  
+  var srcNode = createTextContainer(srcText);
+  var newNode = ren.Render(srcNode);
+  
+  assert.equal(srcNode, newNode, "keep the line block element");
+  assert.equal(newNode.parentNode.nodeName, "BLOCKQUOTE", "get a <blockquote> wrapper");
+  assert.equal(newNode.textContent, dstText, "get correct text");
 });

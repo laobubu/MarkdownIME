@@ -1,5 +1,5 @@
 # Old-fashion Makefile
-# @deperated use `npm run make` instead.
+# use this script to generate final uglified files.
 
 TS_COMPILER = tsc
 TS_FILES = $(wildcard src/*.ts)

@@ -71,28 +71,28 @@ namespace MarkdownIME.Renderer {
 			},
 			{
 				name: "img with title",
-				regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+				regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
 				replacement: function(a,alt,src,b,title){
 					return Utils.generateElementHTML("img",{alt:alt,src:src,title:title})
 				}
 			},
 			{
 				name: "img",
-				regex: /\!\[([^\]]*)\]\(([^\)]+)\)/,
+				regex: /\!\[([^\]]*)\]\(([^\)]+)\)/g,
 				replacement: function(a,alt,src){
 					return Utils.generateElementHTML("img",{alt:alt,src:src})
 				}
 			},
 			{
 				name: "link with title",
-				regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+				regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
 				replacement: function(a,text,href,b,title){
 					return Utils.generateElementHTML("a",{href:href,title:title},text)
 				}
 			},
 			{
 				name: "link",
-				regex: /\[([^\]]*)\]\(([^\)]+)\)/,
+				regex: /\[([^\]]*)\]\(([^\)]+)\)/g,
 				replacement: function(a,text,href){
 					return Utils.generateElementHTML("a",{href:href},text)
 				}

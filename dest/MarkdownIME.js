@@ -242,7 +242,7 @@ var MarkdownIME;
             };
             /**
              * do render on a Node
-             * @return the output nodes. something like a DocumentFragment
+             * @return the output nodes
              */
             InlineRenderer.prototype.RenderNode = function (node) {
                 var docfrag = node.ownerDocument.createElement('div');
@@ -319,28 +319,28 @@ var MarkdownIME;
                 },
                 {
                     name: "img with title",
-                    regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+                    regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
                     replacement: function (a, alt, src, b, title) {
                         return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
                     }
                 },
                 {
                     name: "img",
-                    regex: /\!\[([^\]]*)\]\(([^\)]+)\)/,
+                    regex: /\!\[([^\]]*)\]\(([^\)]+)\)/g,
                     replacement: function (a, alt, src) {
                         return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
                     }
                 },
                 {
                     name: "link with title",
-                    regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+                    regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
                     replacement: function (a, text, href, b, title) {
                         return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, text);
                     }
                 },
                 {
                     name: "link",
-                    regex: /\[([^\]]*)\]\(([^\)]+)\)/,
+                    regex: /\[([^\]]*)\]\(([^\)]+)\)/g,
                     replacement: function (a, text, href) {
                         return MarkdownIME.Utils.generateElementHTML("a", { href: href }, text);
                     }

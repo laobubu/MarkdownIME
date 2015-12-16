@@ -34,6 +34,7 @@ namespace MarkdownIME.Utils {
 	 * Check if it's a BR or empty stuff.
 	 */
 	export function is_node_empty(node : Node, regardBrAsEmpty : boolean = true) {
+		if (!node) return false;
 		return	(node.nodeType == Node.TEXT_NODE && /^[\s\r\n]*$/.test(node.nodeValue)) || 
 				(node.nodeType == Node.COMMENT_NODE) ||
 				(regardBrAsEmpty && node.nodeName == "BR");
@@ -50,6 +51,7 @@ namespace MarkdownIME.Utils {
 	 * Check if one node is a container for text line
 	 */
 	export function is_node_block(node : Node) {
+		if (!node) return false;
 		if (node.nodeType != 1) return false;
 		return (
 			Pattern.NodeName.line.test(node.nodeName) ||

@@ -120,8 +120,10 @@ export class Editor {
 		// 3. editor , which means editor is empty. then f**k user.
 		//cond 3
 		if (node == this.editor) {
-			ev.preventDefault();
-			return;
+			node = this.document.createElement(config.wrapper || "div");
+			(<HTMLElement>node).innerHTML = (<HTMLElement>this.editor).innerHTML;
+			(<HTMLElement>this.editor).innerHTML = "";
+			this.editor.appendChild(node);
 		}
 		//cond 2
 		while (!Utils.is_node_block(node) && node.parentNode != this.editor) {

@@ -39,6 +39,8 @@ var MarkdownIME;
          */
         function is_node_empty(node, regardBrAsEmpty) {
             if (regardBrAsEmpty === void 0) { regardBrAsEmpty = true; }
+            if (!node)
+                return false;
             return (node.nodeType == Node.TEXT_NODE && /^[\s\r\n]*$/.test(node.nodeValue)) ||
                 (node.nodeType == Node.COMMENT_NODE) ||
                 (regardBrAsEmpty && node.nodeName == "BR");
@@ -55,6 +57,8 @@ var MarkdownIME;
          * Check if one node is a container for text line
          */
         function is_node_block(node) {
+            if (!node)
+                return false;
             if (node.nodeType != 1)
                 return false;
             return (Pattern.NodeName.line.test(node.nodeName) ||
@@ -436,8 +440,10 @@ var MarkdownIME;
             // 3. editor , which means editor is empty. then f**k user.
             //cond 3
             if (node == this.editor) {
-                ev.preventDefault();
-                return;
+                node = this.document.createElement(MarkdownIME.config.wrapper || "div");
+                node.innerHTML = this.editor.innerHTML;
+                this.editor.innerHTML = "";
+                this.editor.appendChild(node);
             }
             //cond 2
             while (!MarkdownIME.Utils.is_node_block(node) && node.parentNode != this.editor) {

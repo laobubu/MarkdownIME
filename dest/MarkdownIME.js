@@ -155,6 +155,13 @@ var MarkdownIME;
         }
         Utils.text2html = text2html;
         /**
+         * remove whitespace in the DOM text. works for textNode.
+         */
+        function trim(str) {
+            return str.replace(/^[\t\r\n ]+/, '').replace(/[\t\r\n ]+$/, '').replace(/[\t\r\n ]+/, ' ');
+        }
+        Utils.trim = trim;
+        /**
          * help one element wear a wrapper
          */
         function wrap(wrapper, node) {
@@ -162,75 +169,202 @@ var MarkdownIME;
             wrapper.appendChild(node);
         }
         Utils.wrap = wrap;
+        /**
+         * get outerHTML for a new element safely.
+         * @see http://www.w3.org/TR/2000/WD-xml-c14n-20000119.html#charescaping
+         * @see http://www.w3.org/TR/2011/WD-html-markup-20110113/syntax.html#void-element
+         */
+        function generateElementHTML(nodeName, props, innerHTML) {
+            var rtn = "<" + nodeName;
+            if (props) {
+                for (var attr in props) {
+                    if (!props.hasOwnProperty(attr))
+                        continue;
+                    var value = "" + props[attr];
+                    value = value.replace(/"/g, "&quot;");
+                    value = value.replace(/&/g, "&amp;");
+                    value = value.replace(/</g, "&lt;");
+                    value = value.replace(/\t/g, "&#x9;");
+                    value = value.replace(/\r/g, "&#xA;");
+                    value = value.replace(/\n/g, "&#xD;");
+                    rtn += " " + attr + '="' + value + '"';
+                }
+            }
+            rtn += ">";
+            if (innerHTML) {
+                rtn += innerHTML + "</" + nodeName + ">";
+            }
+            else if (!/^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i.test(nodeName)) {
+                rtn += "</" + nodeName + ">";
+            }
+            return rtn;
+        }
+        Utils.generateElementHTML = generateElementHTML;
     })(Utils = MarkdownIME.Utils || (MarkdownIME.Utils = {}));
 })(MarkdownIME || (MarkdownIME = {}));
+/// <reference path="../Utils.ts" />
+var MarkdownIME;
+(function (MarkdownIME) {
+    var Renderer;
+    (function (Renderer) {
+        /**
+         * InlineRenderer: Renderer for inline objects
+         *
+         *  [Things to be rendered] -> replacement chain -> [Renderer output]
+         *  (you can also add your custom inline replacement)
+         *
+         * @example MarkdownIME.Renderer.InlineRenderer.makeMarkdownRenderer().RenderHTML('**Hello Markdown**')
+         */
+        var InlineRenderer = (function () {
+            function InlineRenderer() {
+                /** Replacements for this Renderer */
+                this.replacement = [];
+            }
+            /**
+             * do render.
+             * @note DOM whitespace will be removed by Utils.trim(str) .
+             * @note after escaping, `\` will become `<!--escaping-->`.
+             * @note if you want some chars escaped without `\`, use `<!--escaping-->`.
+             */
+            InlineRenderer.prototype.RenderHTML = function (html) {
+                var rtn = MarkdownIME.Utils.trim(html);
+                var i, rule;
+                for (i = 0; i < this.replacement.length; i++) {
+                    rule = this.replacement[i];
+                    if ((typeof rule.method) == "function") {
+                        rtn = rule.method(rtn);
+                    }
+                    else {
+                        rtn = rtn.replace(rule.regex, rule.replacement);
+                    }
+                }
+                return rtn;
+            };
+            /**
+             * do render on a Node
+             * @return the output nodes. something like a DocumentFragment
+             */
+            InlineRenderer.prototype.RenderNode = function (node) {
+                var docfrag = node.ownerDocument.createElement('div');
+                var nodes;
+                var source = node['innerHTML'] || node.textContent;
+                docfrag.innerHTML = this.RenderHTML(source);
+                nodes = [].slice.call(docfrag.childNodes, 0);
+                if (node.parentNode) {
+                    if (node.nodeType == Node.TEXT_NODE) {
+                        while (docfrag.lastChild) {
+                            node.parentNode.insertBefore(node.nextSibling, docfrag.lastChild);
+                        }
+                        node.parentNode.removeChild(node);
+                    }
+                    else if (node.nodeType == Node.ELEMENT_NODE) {
+                        while (node.firstChild)
+                            node.removeChild(node.firstChild);
+                        while (docfrag.firstChild)
+                            node.appendChild(docfrag.firstChild);
+                    }
+                }
+                return nodes;
+            };
+            /**
+             * (Factory Function) Create a Markdown InlineRenderer
+             */
+            InlineRenderer.makeMarkdownRenderer = function () {
+                var rtn = new InlineRenderer();
+                rtn.replacement = this.markdownReplacement.concat(rtn.replacement);
+                return rtn;
+            };
+            /** Suggested Markdown Replacement */
+            InlineRenderer.markdownReplacement = [
+                //NOTE process bold first, then italy.
+                //NOTE safe way to get payload:
+                //		((?:\\\_|[^\_])*[^\\])
+                //		in which _ is the right bracket char
+                //Preproccess
+                {
+                    name: "escaping",
+                    regex: /(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g,
+                    replacement: function (a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';'; }
+                },
+                {
+                    name: "turn &nbsp; into spaces",
+                    regex: /&nbsp;/g,
+                    replacement: String.fromCharCode(160)
+                },
+                {
+                    name: 'turn &quot; into "s',
+                    regex: /&quot;/g,
+                    replacement: '"'
+                },
+                //Basic Markdown Replacements
+                {
+                    name: "strikethrough",
+                    regex: /~~([^~]+)~~/g,
+                    replacement: "<del>$1</del>"
+                },
+                {
+                    name: "bold",
+                    regex: /\*\*([^\*]+)\*\*/g,
+                    replacement: "<b>$1</b>"
+                },
+                {
+                    name: "italy",
+                    regex: /\*([^\*]+)\*/g,
+                    replacement: "<i>$1</i>"
+                },
+                {
+                    name: "code",
+                    regex: /`([^`]+)`/g,
+                    replacement: "<code>$1</code>"
+                },
+                {
+                    name: "img with title",
+                    regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+                    replacement: function (a, alt, src, b, title) {
+                        return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
+                    }
+                },
+                {
+                    name: "img",
+                    regex: /\!\[([^\]]*)\]\(([^\)]+)\)/,
+                    replacement: function (a, alt, src) {
+                        return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
+                    }
+                },
+                {
+                    name: "link with title",
+                    regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/,
+                    replacement: function (a, text, href, b, title) {
+                        return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, text);
+                    }
+                },
+                {
+                    name: "link",
+                    regex: /\[([^\]]*)\]\(([^\)]+)\)/,
+                    replacement: function (a, text, href) {
+                        return MarkdownIME.Utils.generateElementHTML("a", { href: href }, text);
+                    }
+                },
+                //Postproccess
+                {
+                    name: "turn escaped chars back",
+                    regex: /<!--escaping-->&#(\d+);/g,
+                    replacement: function (_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode); }
+                },
+            ];
+            return InlineRenderer;
+        })();
+        Renderer.InlineRenderer = InlineRenderer;
+    })(Renderer = MarkdownIME.Renderer || (MarkdownIME.Renderer = {}));
+})(MarkdownIME || (MarkdownIME = {}));
 /// <reference path="Utils.ts" />
+/// <reference path="Renderer/InlineRenderer.ts" />
 var MarkdownIME;
 (function (MarkdownIME) {
     var Renderer;
     (function (Renderer) {
         var Pattern;
         (function (Pattern) {
-            Pattern.InlineElement = [
-                //NOTE process bold first, then italy.
-                //NOTE safe way to get payload:
-                //		((?:\\\_|[^\_])*[^\\])
-                //		in which _ is the right bracer
-                //$1 is something strange
-                //$2 is the text
-                {
-                    name: "strikethrough",
-                    regex: /([^\\]|^)\~\~((?:\\\~|[^\~])*[^\\])\~\~/g,
-                    replacement: "$1<del>$2</del>"
-                },
-                {
-                    name: "bold",
-                    regex: /([^\\]|^)\*\*((?:\\\*|[^\*])*[^\\])\*\*/g,
-                    replacement: "$1<b>$2</b>"
-                },
-                {
-                    name: "italy",
-                    regex: /([^\\]|^)\*((?:\\\*|[^\*])*[^\\])\*/g,
-                    replacement: "$1<i>$2</i>"
-                },
-                {
-                    name: "code",
-                    regex: /([^\\]|^)`((?:\\`|[^`])*[^\\])`/g,
-                    replacement: "$1<code>$2</code>"
-                },
-                {
-                    name: "img with title",
-                    regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])?\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|"|)((?:\\\)|[^\)])*[^\\])\4\)/g,
-                    replacement: '$1<img alt="$2" src="$3" title="$5">'
-                },
-                {
-                    name: "img",
-                    regex: /([^\\]|^)\!\[((?:\\\]|[^\]])*[^\\])?\]\(((?:\\\)|[^\)])*[^\\])\)/g,
-                    replacement: '$1<img alt="$2" src="$3">'
-                },
-                {
-                    name: "link with title",
-                    regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\[\)\s]|[^\)\s])*[^\\])\s+(&quot;|"|)((?:\\\)|[^\)])*[^\\])\4\)/g,
-                    replacement: '$1<a href="$3" title="$5">$2</a>'
-                },
-                {
-                    name: "link",
-                    regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\\)|[^\)])*[^\\])\)/g,
-                    replacement: '$1<a href="$3">$2</a>'
-                },
-                {
-                    //NOTE put this on the tail!
-                    name: "escaping",
-                    regex: /\\([\*`\(\)\[\]\~])/g,
-                    replacement: "<!--escaping-->$1"
-                },
-                {
-                    //NOTE put this on the tail!
-                    name: "&nbsp convert",
-                    regex: /  /g,
-                    replacement: " &nbsp;"
-                }
-            ];
             Pattern.hr = /^\s*([\-\=\*])(\s*\1){2,}\s*$/g;
             Pattern.header = /^(#+)\s*(.+?)\s*\1?$/g;
             Pattern.ul = /^ ?( *)[\*\+\-]\s+(.*)$/g;
@@ -238,32 +372,12 @@ var MarkdownIME;
             Pattern.blockquote = /^(\>|&gt;)\s*(.*)$/g;
             Pattern.codeblock = /^```\s*(\S*)\s*$/g;
         })(Pattern || (Pattern = {}));
-        /**
-         * Render inline objects, HTML in HTML out
-         * @note Remove redundant space and convert '&nbsp;' to ' ' before use this function.
-         * @note This function will turn ' ' into '&nbsp;' when return.
-         */
-        function RenderInlineHTML(html) {
-            var rtn = html.replace(/<!--escaping-->/g, '<!--escaping-->\\');
-            var i, rule;
-            for (i = 0; i < Pattern.InlineElement.length; i++) {
-                rule = Pattern.InlineElement[i];
-                if ((typeof rule.method) == "function") {
-                    rtn = rule.method(rtn);
-                }
-                else {
-                    rtn = rtn.replace(rule.regex, rule.replacement);
-                }
-            }
-            rtn = rtn.replace(/<!--escaping-->(\\|<!--escaping-->)/g, '<!--escaping-->');
-            return rtn;
-        }
-        Renderer.RenderInlineHTML = RenderInlineHTML;
+        var inlineRenderer = Renderer.InlineRenderer.makeMarkdownRenderer();
         /**
          * Make one Block Node beautiful!
          */
         function Render(node) {
-            var html = node.innerHTML.trim().replace(/\s{2,}/g, ' ').replace('&nbsp;', ' ');
+            var html = MarkdownIME.Utils.trim(node.innerHTML);
             var match_result;
             var new_node;
             var big_block;
@@ -281,7 +395,7 @@ var MarkdownIME;
             match_result = Pattern.header.exec(html);
             if (match_result) {
                 new_node = node.ownerDocument.createElement("h" + match_result[1].length);
-                new_node.innerHTML = RenderInlineHTML(match_result[2]);
+                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
                 node.parentNode.replaceChild(new_node, node);
                 return new_node;
             }
@@ -290,7 +404,7 @@ var MarkdownIME;
             match_result = Pattern.ul.exec(html);
             if (match_result) {
                 new_node = node.ownerDocument.createElement("li");
-                new_node.innerHTML = RenderInlineHTML(match_result[2]);
+                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
                 node.parentNode.insertBefore(new_node, node);
                 big_block = MarkdownIME.Utils.get_or_create_prev_block(new_node, "UL");
                 MarkdownIME.Utils.wrap(big_block, new_node);
@@ -302,7 +416,7 @@ var MarkdownIME;
             match_result = Pattern.ol.exec(html);
             if (match_result) {
                 new_node = node.ownerDocument.createElement("li");
-                new_node.innerHTML = RenderInlineHTML(match_result[2]);
+                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
                 node.parentNode.insertBefore(new_node, node);
                 big_block = MarkdownIME.Utils.get_or_create_prev_block(new_node, "OL");
                 MarkdownIME.Utils.wrap(big_block, new_node);
@@ -332,7 +446,7 @@ var MarkdownIME;
                 node.parentNode.replaceChild(big_block, node);
                 return big_block;
             }
-            node.innerHTML = RenderInlineHTML(html);
+            node.innerHTML = inlineRenderer.RenderHTML(html);
             return node;
         }
         Renderer.Render = Render;

@@ -1,4 +1,5 @@
 # Old-fashion Makefile
+# @deperated use `npm run make` instead.
 
 TS_COMPILER = tsc
 TS_FILES = $(wildcard src/*.ts)
@@ -20,7 +21,7 @@ MarkdownIME.js: $(OUT_UGLIFIED)
 	cp $(OUT_UGLIFIED) MarkdownIME.js
 
 $(OUT_FULL): $(TS_FILES)
-	$(TS_COMPILER) --out $(OUT_FULL) --sourceMap $(TS_FILES)
+	$(TS_COMPILER)
 
 $(OUT_UGLIFIED): $(OUT_FULL)
 	-cat $(OUT_FULL)|grep -v console\.|$(UGLIFY) --comments -o $(OUT_UGLIFIED)

@@ -12,7 +12,7 @@
   "scripts": {
     "tsc": "tsc",
     "tsc:w": "tsc -w",
-    "lite": "lite-server",
+    "lite": "lite-server --open test",
     "serve": "concurrent \"npm run tsc:w\" \"npm run lite\" "
   },
   "dependencies": {},

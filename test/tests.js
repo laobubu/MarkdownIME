@@ -43,6 +43,24 @@ QUnit.test("render entire line block", function( assert ) {
   newNode = ren.Render(newNode);
   assert.equal(newNode.textContent, dstText, "render twice and keep escaping");
 });
+QUnit.test("render a hr object", function( assert ) {
+  setHTML();
+  
+  var goodExamples = ['---', '* * *', ' - - - '];
+  var badExamples  = ['\\---', '* \\* *'];
+  
+  goodExamples.forEach(function(srcText) {
+    var srcNode = createTextContainer(srcText);
+    var newNode = ren.Render(srcNode);
+    assert.equal(newNode.nodeName, "HR", "return <hr> for " + srcText);
+  }, this);
+  
+  badExamples.forEach(function(srcText) {
+    var srcNode = createTextContainer(srcText);
+    var newNode = ren.Render(srcNode);
+    assert.notEqual(newNode.nodeName, "HR", "not return <hr> for " + srcText);
+  }, this);
+});
 QUnit.test("elevate to a list", function( assert ) {
   setHTML();
   

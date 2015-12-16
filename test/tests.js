@@ -28,12 +28,12 @@ function createTextContainer(text, tagName) {
 //////////////////////////////////////////////////////////////
 QUnit.module("Renderer");
 var ren = MarkdownIME.Renderer;
-QUnit.test("inline basic", function( assert ) {
+QUnit.test("render entire line block", function( assert ) {
   setHTML();
   
-  var srcNode = createTextContainer("***mix*** **bold** *italy* ~~st~~ `co\`de` ***mix*** [li\]nk](..)");
+  var srcNode = createTextContainer("***mix*** **bo\\*ld** *italy* ~~st~~ `co\\`de` **\\*mix*** [li\\]nk](..)");
   var newNode = ren.Render(srcNode);
   
-  assert.ok(srcNode == newNode);
-  assert.ok(newNode.textContent === "mix bold italy st code` mix [li]nk](..)");
+  assert.equal(srcNode, newNode);
+  assert.equal(newNode.textContent, "mix bo*ld italy st co`de *mix* li]nk");
 });

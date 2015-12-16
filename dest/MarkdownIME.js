@@ -37,8 +37,11 @@ var MarkdownIME;
         /**
          * Check if it's a BR or empty stuff.
          */
-        function is_node_empty(node) {
-            return (node.nodeType == 3 && /^[\s\r\n]*$/.test(node.nodeValue)) || node.nodeName == "BR";
+        function is_node_empty(node, regardBrAsEmpty) {
+            if (regardBrAsEmpty === void 0) { regardBrAsEmpty = true; }
+            return (node.nodeType == Node.TEXT_NODE && /^[\s\r\n]*$/.test(node.nodeValue)) ||
+                (node.nodeType == Node.COMMENT_NODE) ||
+                (regardBrAsEmpty && node.nodeName == "BR");
         }
         Utils.is_node_empty = is_node_empty;
         /**
@@ -71,7 +74,7 @@ var MarkdownIME;
             }
             while (ci--) {
                 var node = children[ci];
-                if (node.nodeType == 3)
+                if (node.nodeType == Node.TEXT_NODE)
                     continue; //textNode pass
                 return false;
             }
@@ -209,7 +212,7 @@ var MarkdownIME;
                 {
                     name: "link",
                     regex: /([^\\]|^)\[((?:\\\]|[^\]])*[^\\])\]\(((?:\\\)|[^\)])*[^\\])\)/g,
-                    replacement: '$1<a src="$3">$2</a>'
+                    replacement: '$1<a href="$3">$2</a>'
                 },
                 {
                     //NOTE put this on the tail!
@@ -336,7 +339,7 @@ var MarkdownIME;
 (function (MarkdownIME) {
     MarkdownIME.config = {
         "wrapper": "p",
-        "code_block_max_empty_lines": 5
+        "code_block_max_empty_lines": 5,
     };
     var Editor = (function () {
         function Editor(editor) {

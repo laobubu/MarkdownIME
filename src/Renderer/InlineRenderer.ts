@@ -3,15 +3,31 @@
 namespace MarkdownIME.Renderer {
 	/**
 	 * IInlineRendererReplacement
-	 * @description can be used to implement customized replacement. Use [regex, replacement] or [method : func(text)]
+	 * @description can be used to implement customized replacement.
 	 */
 	export interface IInlineRendererReplacement {
 		name: string;
+		method(text: string) : string;
+	}
+	
+	/**
+	 * Use RegExp to do replace.
+	 * One implement of IInlineRendererReplacement.
+	 */
+	export class InlineRendererRegexpReplacement implements IInlineRendererReplacement {
+		name: string;
+		regex : RegExp;
+		replacement : any;
 		
-		regex? : RegExp;
-		replacement? : any;
+		constructor(name: string, regex: RegExp, replacement: any) {
+			this.name = name;
+			this.regex = regex;
+			this.replacement = replacement;
+		}
 		
-		method?(text: string) : string;
+		method(text: string) : string {
+			return text.replace(this.regex, this.replacement);
+		}
 	}
 	
 	/**
@@ -32,78 +48,78 @@ namespace MarkdownIME.Renderer {
 			//		in which _ is the right bracket char
 			
 			//Preproccess
-			{
-				name: "escaping",
-				regex: /(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g,
-				replacement: function(a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';' }
-			},
-			{
-				name: "turn &nbsp; into spaces",
-				regex: /&nbsp;/g,
-				replacement: String.fromCharCode(160)
-			},
-			{
-				name: 'turn &quot; into "s',
-				regex: /&quot;/g,
-				replacement: '"'
-			},
+			new InlineRendererRegexpReplacement(
+				"escaping",
+				/(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g,
+				function(a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';' }
+			),
+			new InlineRendererRegexpReplacement(
+				"turn &nbsp; into spaces",
+				/&nbsp;/g,
+				String.fromCharCode(160)
+			),
+			new InlineRendererRegexpReplacement(
+				'turn &quot; into "s',
+				/&quot;/g,
+				'"'
+			),
 			
 			//Basic Markdown Replacements
-			{
-				name: "strikethrough",
-				regex: /~~([^~]+)~~/g,
-				replacement: "<del>$1</del>"
-			},
-			{
-				name: "bold",
-				regex: /\*\*([^\*]+)\*\*/g,
-				replacement: "<b>$1</b>"
-			},
-			{
-				name: "italy",
-				regex: /\*([^\*]+)\*/g,
-				replacement: "<i>$1</i>"
-			},
-			{
-				name: "code",
-				regex: /`([^`]+)`/g,
-				replacement: "<code>$1</code>"
-			},
-			{
-				name: "img with title",
-				regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-				replacement: function(a,alt,src,b,title){
+			new InlineRendererRegexpReplacement(
+				"strikethrough",
+				/~~([^~]+)~~/g,
+				"<del>$1</del>"
+			),
+			new InlineRendererRegexpReplacement(
+				"bold",
+				/\*\*([^\*]+)\*\*/g,
+				"<b>$1</b>"
+			),
+			new InlineRendererRegexpReplacement(
+				"italy",
+				/\*([^\*]+)\*/g,
+				"<i>$1</i>"
+			),
+			new InlineRendererRegexpReplacement(
+				"code",
+				/`([^`]+)`/g,
+				"<code>$1</code>"
+			),
+			new InlineRendererRegexpReplacement(
+				"img with title",
+				/\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
+				function(a,alt,src,b,title){
 					return Utils.generateElementHTML("img",{alt:alt,src:src,title:title})
 				}
-			},
-			{
-				name: "img",
-				regex: /\!\[([^\]]*)\]\(([^\)]+)\)/g,
-				replacement: function(a,alt,src){
+			),
+			new InlineRendererRegexpReplacement(
+				"img",
+				/\!\[([^\]]*)\]\(([^\)]+)\)/g,
+				function(a,alt,src){
 					return Utils.generateElementHTML("img",{alt:alt,src:src})
 				}
-			},
-			{
-				name: "link with title",
-				regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-				replacement: function(a,text,href,b,title){
+			),
+			new InlineRendererRegexpReplacement(
+				"link with title",
+				/\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
+				function(a,text,href,b,title){
 					return Utils.generateElementHTML("a",{href:href,title:title},text)
 				}
-			},
-			{
-				name: "link",
-				regex: /\[([^\]]*)\]\(([^\)]+)\)/g,
-				replacement: function(a,text,href){
+			),
+			new InlineRendererRegexpReplacement(
+				"link",
+				/\[([^\]]*)\]\(([^\)]+)\)/g,
+				function(a,text,href){
 					return Utils.generateElementHTML("a",{href:href},text)
 				}
-			},
+			),
 			
 			//Postproccess
-			{
-				name: "turn escaped chars back",
-				regex: /<!--escaping-->&#(\d+);/g,
-				replacement: function(_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode) }
-			},
+			new InlineRendererRegexpReplacement(
+				"turn escaped chars back",
+				/<!--escaping-->&#(\d+);/g,
+				function(_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode) }
+			),
 		];
 		
 		/** Replacements for this Renderer */
@@ -120,11 +136,7 @@ namespace MarkdownIME.Renderer {
 			var i, rule;
 			for (i = 0; i< this.replacement.length; i++) {
 				rule = this.replacement[i];
-				if ((typeof rule.method) == "function") {
-					rtn = rule.method(rtn);
-				} else {
-					rtn = rtn.replace(rule.regex, rule.replacement);
-				}
+				rtn = rule.method(rtn);
 			}
 			return rtn;
 		}

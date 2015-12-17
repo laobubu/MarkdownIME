@@ -142,7 +142,7 @@ namespace MarkdownIME.Renderer {
 			if (node.parentNode){
 				if (node.nodeType == Node.TEXT_NODE) {
 					while(docfrag.lastChild) {
-						node.parentNode.insertBefore(node.nextSibling, docfrag.lastChild);
+						node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
 					}
 					node.parentNode.removeChild(node);
 				} else 

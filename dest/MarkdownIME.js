@@ -513,7 +513,7 @@ var MarkdownIME;
                 return null;
             };
             /**
-             * (Factory Function) Create a Markdown InlineRenderer
+             * (Factory Function) Create a Markdown BlockRenderer
              */
             BlockRenderer.makeMarkdownRenderer = function () {
                 var rtn = new BlockRenderer();

@@ -195,7 +195,7 @@ namespace MarkdownIME.Renderer {
 		];
 		
 		/**
-		 * (Factory Function) Create a Markdown InlineRenderer
+		 * (Factory Function) Create a Markdown BlockRenderer
 		 */
 		public static makeMarkdownRenderer() : BlockRenderer {
 			var rtn : BlockRenderer = new BlockRenderer();

@@ -208,6 +208,22 @@ var MarkdownIME;
     var Renderer;
     (function (Renderer) {
         /**
+         * Use RegExp to do replace.
+         * One implement of IInlineRendererReplacement.
+         */
+        var InlineRendererRegexpReplacement = (function () {
+            function InlineRendererRegexpReplacement(name, regex, replacement) {
+                this.name = name;
+                this.regex = regex;
+                this.replacement = replacement;
+            }
+            InlineRendererRegexpReplacement.prototype.method = function (text) {
+                return text.replace(this.regex, this.replacement);
+            };
+            return InlineRendererRegexpReplacement;
+        })();
+        Renderer.InlineRendererRegexpReplacement = InlineRendererRegexpReplacement;
+        /**
          * InlineRenderer: Renderer for inline objects
          *
          *  [Things to be rendered] -> replacement chain -> [Renderer output]
@@ -231,12 +247,7 @@ var MarkdownIME;
                 var i, rule;
                 for (i = 0; i < this.replacement.length; i++) {
                     rule = this.replacement[i];
-                    if ((typeof rule.method) == "function") {
-                        rtn = rule.method(rtn);
-                    }
-                    else {
-                        rtn = rtn.replace(rule.regex, rule.replacement);
-                    }
+                    rtn = rule.method(rtn);
                 }
                 return rtn;
             };
@@ -281,98 +292,259 @@ var MarkdownIME;
                 //		((?:\\\_|[^\_])*[^\\])
                 //		in which _ is the right bracket char
                 //Preproccess
-                {
-                    name: "escaping",
-                    regex: /(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g,
-                    replacement: function (a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';'; }
-                },
-                {
-                    name: "turn &nbsp; into spaces",
-                    regex: /&nbsp;/g,
-                    replacement: String.fromCharCode(160)
-                },
-                {
-                    name: 'turn &quot; into "s',
-                    regex: /&quot;/g,
-                    replacement: '"'
-                },
+                new InlineRendererRegexpReplacement("escaping", /(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g, function (a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';'; }),
+                new InlineRendererRegexpReplacement("turn &nbsp; into spaces", /&nbsp;/g, String.fromCharCode(160)),
+                new InlineRendererRegexpReplacement('turn &quot; into "s', /&quot;/g, '"'),
                 //Basic Markdown Replacements
-                {
-                    name: "strikethrough",
-                    regex: /~~([^~]+)~~/g,
-                    replacement: "<del>$1</del>"
-                },
-                {
-                    name: "bold",
-                    regex: /\*\*([^\*]+)\*\*/g,
-                    replacement: "<b>$1</b>"
-                },
-                {
-                    name: "italy",
-                    regex: /\*([^\*]+)\*/g,
-                    replacement: "<i>$1</i>"
-                },
-                {
-                    name: "code",
-                    regex: /`([^`]+)`/g,
-                    replacement: "<code>$1</code>"
-                },
-                {
-                    name: "img with title",
-                    regex: /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-                    replacement: function (a, alt, src, b, title) {
-                        return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
-                    }
-                },
-                {
-                    name: "img",
-                    regex: /\!\[([^\]]*)\]\(([^\)]+)\)/g,
-                    replacement: function (a, alt, src) {
-                        return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
-                    }
-                },
-                {
-                    name: "link with title",
-                    regex: /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-                    replacement: function (a, text, href, b, title) {
-                        return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, text);
-                    }
-                },
-                {
-                    name: "link",
-                    regex: /\[([^\]]*)\]\(([^\)]+)\)/g,
-                    replacement: function (a, text, href) {
-                        return MarkdownIME.Utils.generateElementHTML("a", { href: href }, text);
-                    }
-                },
+                new InlineRendererRegexpReplacement("strikethrough", /~~([^~]+)~~/g, "<del>$1</del>"),
+                new InlineRendererRegexpReplacement("bold", /\*\*([^\*]+)\*\*/g, "<b>$1</b>"),
+                new InlineRendererRegexpReplacement("italy", /\*([^\*]+)\*/g, "<i>$1</i>"),
+                new InlineRendererRegexpReplacement("code", /`([^`]+)`/g, "<code>$1</code>"),
+                new InlineRendererRegexpReplacement("img with title", /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
+                    return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
+                }),
+                new InlineRendererRegexpReplacement("img", /\!\[([^\]]*)\]\(([^\)]+)\)/g, function (a, alt, src) {
+                    return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
+                }),
+                new InlineRendererRegexpReplacement("link with title", /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, text, href, b, title) {
+                    return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, text);
+                }),
+                new InlineRendererRegexpReplacement("link", /\[([^\]]*)\]\(([^\)]+)\)/g, function (a, text, href) {
+                    return MarkdownIME.Utils.generateElementHTML("a", { href: href }, text);
+                }),
                 //Postproccess
-                {
-                    name: "turn escaped chars back",
-                    regex: /<!--escaping-->&#(\d+);/g,
-                    replacement: function (_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode); }
-                },
+                new InlineRendererRegexpReplacement("turn escaped chars back", /<!--escaping-->&#(\d+);/g, function (_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode); }),
             ];
             return InlineRenderer;
         })();
         Renderer.InlineRenderer = InlineRenderer;
     })(Renderer = MarkdownIME.Renderer || (MarkdownIME.Renderer = {}));
 })(MarkdownIME || (MarkdownIME = {}));
+/// <reference path="../Utils.ts" />
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var MarkdownIME;
+(function (MarkdownIME) {
+    var Renderer;
+    (function (Renderer) {
+        var BlockRendererContainer = (function () {
+            function BlockRendererContainer() {
+                /**
+                 * the new nodeName of children. Use `null` to keep original nodeName when elevate a node.
+                 * @example "LI" for "ol > li"
+                 */
+                this.childNodeName = null;
+                /**
+                 * the new nodeName of parent. Use `null` to prevent creating one.
+                 * @example "OL" for "ol > li"
+                 */
+                this.parentNodeName = null;
+                /**
+                 * tell if user can type inside. this helps when creating strange things like <hr>
+                 */
+                this.isTypable = true;
+            }
+            /** changing its name, moving it into proper container. return null if failed. */
+            BlockRendererContainer.prototype.Elevate = function (node) {
+                if (!this.prepareElevate(node))
+                    return null;
+                var child;
+                var parent;
+                if (!this.childNodeName) {
+                    child = node;
+                }
+                else {
+                    //create a new tag named with childNodeName
+                    child = node.ownerDocument.createElement(this.childNodeName);
+                    while (node.firstChild) {
+                        child.appendChild(node.firstChild);
+                    }
+                    node.parentNode.insertBefore(child, node);
+                    node.parentElement.removeChild(node);
+                }
+                if (!this.parentNodeName) {
+                    //do nothing. need no parent.
+                    parent = null;
+                }
+                else {
+                    if (child.previousElementSibling && child.previousElementSibling.nodeName == this.parentNodeName) {
+                        //this child is just next to the parent.
+                        parent = child.previousElementSibling;
+                        parent.appendChild(child);
+                    }
+                    else {
+                        //create parent.
+                        parent = child.ownerDocument.createElement(this.parentNodeName);
+                        MarkdownIME.Utils.wrap(parent, child);
+                    }
+                }
+                return { child: child, parent: parent };
+            };
+            /**
+             * check if one node is elevatable and remove the feature mark.
+             * do NOT use this func outsides Elevate()
+             */
+            BlockRendererContainer.prototype.prepareElevate = function (node) {
+                if (!node)
+                    return null;
+                var matchResult = this.featureMark.exec(node.textContent);
+                if (!matchResult)
+                    return null;
+                var n = node;
+                n.innerHTML = n.innerHTML.replace(/&nbsp;/g, String.fromCharCode(160)).replace(this.featureMark, '');
+                return matchResult;
+            };
+            return BlockRendererContainer;
+        })();
+        Renderer.BlockRendererContainer = BlockRendererContainer;
+        var BlockRendererContainers;
+        (function (BlockRendererContainers) {
+            var UL = (function (_super) {
+                __extends(UL, _super);
+                function UL() {
+                    _super.call(this);
+                    this.name = "unordered list";
+                    this.featureMark = /^\s*[\*\+\-]\s+/;
+                    this.childNodeName = "LI";
+                    this.parentNodeName = "UL";
+                }
+                return UL;
+            })(BlockRendererContainer);
+            BlockRendererContainers.UL = UL;
+            var OL = (function (_super) {
+                __extends(OL, _super);
+                function OL() {
+                    _super.call(this);
+                    this.name = "ordered list";
+                    this.featureMark = /^\s*\d+\.\s+/;
+                    this.childNodeName = "LI";
+                    this.parentNodeName = "OL";
+                }
+                return OL;
+            })(BlockRendererContainer);
+            BlockRendererContainers.OL = OL;
+            var BLOCKQUOTE = (function (_super) {
+                __extends(BLOCKQUOTE, _super);
+                function BLOCKQUOTE() {
+                    _super.call(this);
+                    this.name = "blockquote";
+                    this.featureMark = /^(\>|&gt;)\s*/;
+                    this.parentNodeName = "BLOCKQUOTE";
+                }
+                return BLOCKQUOTE;
+            })(BlockRendererContainer);
+            BlockRendererContainers.BLOCKQUOTE = BLOCKQUOTE;
+            /** assuming a <hr> is just another block container and things go easier */
+            var HR = (function (_super) {
+                __extends(HR, _super);
+                function HR() {
+                    _super.call(this);
+                    this.isTypable = false;
+                    this.name = "hr";
+                    this.featureMark = /^\s*([\-\=\*])(\s*\1){2,}\s*$/;
+                }
+                HR.prototype.Elevate = function (node) {
+                    if (!this.prepareElevate(node))
+                        return null;
+                    var child = node.ownerDocument.createElement("hr");
+                    node.parentElement.insertBefore(child, node);
+                    node.parentElement.removeChild(node);
+                    return { parent: null, child: child };
+                };
+                return HR;
+            })(BlockRendererContainer);
+            BlockRendererContainers.HR = HR;
+            var HeaderText = (function (_super) {
+                __extends(HeaderText, _super);
+                function HeaderText() {
+                    _super.call(this);
+                    this.name = "header text";
+                    this.featureMark = /^(#+)\s+$/;
+                }
+                HeaderText.prototype.Elevate = function (node) {
+                    var match = this.prepareElevate(node);
+                    if (!match)
+                        return null;
+                    //create a new tag named with childNodeName
+                    var child = node.ownerDocument.createElement("H" + match[1].length);
+                    while (node.firstChild) {
+                        child.appendChild(node.firstChild);
+                    }
+                    node.parentNode.insertBefore(child, node);
+                    node.parentElement.removeChild(node);
+                    return { parent: null, child: child };
+                };
+                return HeaderText;
+            })(BlockRendererContainer);
+            BlockRendererContainers.HeaderText = HeaderText;
+        })(BlockRendererContainers = Renderer.BlockRendererContainers || (Renderer.BlockRendererContainers = {}));
+        /**
+         * In fact the BlockRenderer is not a renderer; it can elevate / degrade a node, changing its name, moving it from one container to another.
+         */
+        var BlockRenderer = (function () {
+            function BlockRenderer() {
+                this.containers = [];
+            }
+            /** Elevate a node. Make sure the node is a block node. */
+            BlockRenderer.prototype.Elevate = function (node) {
+                for (var i = 0; i < this.containers.length; i++) {
+                    var container = this.containers[i];
+                    var rtn = container.Elevate(node);
+                    if (rtn) {
+                        rtn.containerType = container;
+                        return rtn;
+                    }
+                }
+                return null;
+            };
+            /**
+             * Get suggested nodeName of a new line inside a container.
+             * @return null if no suggestion.
+             */
+            BlockRenderer.prototype.GetSuggestedNodeName = function (container) {
+                for (var i = 0; i < this.containers.length; i++) {
+                    var cc = this.containers[i];
+                    if (cc.parentNodeName == container.nodeName)
+                        return cc.childNodeName;
+                }
+                return null;
+            };
+            /**
+             * (Factory Function) Create a Markdown InlineRenderer
+             */
+            BlockRenderer.makeMarkdownRenderer = function () {
+                var rtn = new BlockRenderer();
+                rtn.containers = this.markdownContainers.concat(rtn.containers);
+                return rtn;
+            };
+            BlockRenderer.markdownContainers = [
+                new BlockRendererContainers.BLOCKQUOTE(),
+                new BlockRendererContainers.HeaderText(),
+                new BlockRendererContainers.HR(),
+                new BlockRendererContainers.OL(),
+                new BlockRendererContainers.UL()
+            ];
+            return BlockRenderer;
+        })();
+        Renderer.BlockRenderer = BlockRenderer;
+    })(Renderer = MarkdownIME.Renderer || (MarkdownIME.Renderer = {}));
+})(MarkdownIME || (MarkdownIME = {}));
 /// <reference path="Utils.ts" />
 /// <reference path="Renderer/InlineRenderer.ts" />
+/// <reference path="Renderer/BlockRenderer.ts" />
 var MarkdownIME;
 (function (MarkdownIME) {
     var Renderer;
     (function (Renderer) {
         var Pattern;
         (function (Pattern) {
-            Pattern.hr = /^\s*([\-\=\*])(\s*\1){2,}\s*$/g;
-            Pattern.header = /^(#+)\s*(.+?)\s*\1?$/g;
-            Pattern.ul = /^ ?( *)[\*\+\-]\s+(.*)$/g;
-            Pattern.ol = /^ ?( *)\d+\.\s*(.*)$/g;
-            Pattern.blockquote = /^(\>|&gt;)\s*(.*)$/g;
             Pattern.codeblock = /^```\s*(\S*)\s*$/g;
         })(Pattern || (Pattern = {}));
         var inlineRenderer = Renderer.InlineRenderer.makeMarkdownRenderer();
+        var blockRenderer = Renderer.BlockRenderer.makeMarkdownRenderer();
         /**
          * Make one Block Node beautiful!
          */
@@ -382,57 +554,7 @@ var MarkdownIME;
             var new_node;
             var big_block;
             console.log("Render", node, html);
-            // hr 
-            Pattern.hr.lastIndex = 0;
-            match_result = Pattern.hr.exec(html);
-            if (match_result) {
-                new_node = node.ownerDocument.createElement("hr");
-                node.parentNode.replaceChild(new_node, node);
-                return new_node;
-            }
-            // header 
-            Pattern.header.lastIndex = 0;
-            match_result = Pattern.header.exec(html);
-            if (match_result) {
-                new_node = node.ownerDocument.createElement("h" + match_result[1].length);
-                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
-                node.parentNode.replaceChild(new_node, node);
-                return new_node;
-            }
-            // ul
-            Pattern.ul.lastIndex = 0;
-            match_result = Pattern.ul.exec(html);
-            if (match_result) {
-                new_node = node.ownerDocument.createElement("li");
-                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
-                node.parentNode.insertBefore(new_node, node);
-                big_block = MarkdownIME.Utils.get_or_create_prev_block(new_node, "UL");
-                MarkdownIME.Utils.wrap(big_block, new_node);
-                node.parentNode.removeChild(node);
-                return new_node;
-            }
-            // ol
-            Pattern.ol.lastIndex = 0;
-            match_result = Pattern.ol.exec(html);
-            if (match_result) {
-                new_node = node.ownerDocument.createElement("li");
-                new_node.innerHTML = inlineRenderer.RenderHTML(match_result[2]);
-                node.parentNode.insertBefore(new_node, node);
-                big_block = MarkdownIME.Utils.get_or_create_prev_block(new_node, "OL");
-                MarkdownIME.Utils.wrap(big_block, new_node);
-                node.parentNode.removeChild(node);
-                return new_node;
-            }
-            //blockquote
-            Pattern.blockquote.lastIndex = 0;
-            match_result = Pattern.blockquote.exec(html);
-            if (match_result) {
-                big_block = MarkdownIME.Utils.get_or_create_prev_block(node, "blockquote");
-                MarkdownIME.Utils.wrap(big_block, node);
-                html = match_result[2];
-            }
             //codeblock
-            Pattern.codeblock.lastIndex = 0;
             match_result = Pattern.codeblock.exec(html);
             if (match_result) {
                 big_block = node.ownerDocument.createElement('pre');
@@ -446,7 +568,13 @@ var MarkdownIME;
                 node.parentNode.replaceChild(big_block, node);
                 return big_block;
             }
-            node.innerHTML = inlineRenderer.RenderHTML(html);
+            var elevateResult = blockRenderer.Elevate(node);
+            if (elevateResult) {
+                if (!elevateResult.containerType.isTypable)
+                    return elevateResult.child;
+                node = elevateResult.child;
+            }
+            inlineRenderer.RenderNode(node);
             return node;
         }
         Renderer.Render = Render;

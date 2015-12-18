@@ -32,7 +32,7 @@ function demoStart(editor, text, _callback) {
 			if (ch != ' ' && text_arr[0] != ' ')
 				ch += text_arr.shift() || "";
 			p.innerHTML += ch;
-			setTimeout(next, (ch==' ')?300:100);
+			setTimeout(next, (ch==' ')?250:60);
 		}
 		
 		range.selectNodeContents(p.lastChild || p);
@@ -52,7 +52,7 @@ function demoStart(editor, text, _callback) {
 				range.collapse(false);
 				selection.removeAllRanges();
 				selection.addRange(range);
-			}, 250);
+			}, 200);
 		}
 	}
 	next();

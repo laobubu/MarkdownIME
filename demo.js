@@ -10,34 +10,50 @@
  */
 function demoStart(editor, text, _callback) {
 	var p = document.createElement("p");
-	var tn = document.createTextNode("");
 	var text_arr = text.split("");
+	
+	var fakeSpaceEvent = {keyCode: 32, preventDefault: function(){}};
 	
 	var selection = window.getSelection();
 	var range = document.createRange();
 	
 	var callback = _callback;
 	
-	p.appendChild(tn);
 	editor.appendChild(p);
 	editor.focus();
 	
 	function next() {
+		var p = editor.lastChild;
+		if (p.childNodes.length == 1 && p.firstChild.nodeName == "BR")
+			p.removeChild(p.childNodes[0]);
+		
 		var ch = text_arr.shift();
 		if (ch) {
-			ch += text_arr.shift() || "";
-			tn.textContent += ch;
-			setTimeout(next, 100);
+			if (ch != ' ' && text_arr[0] != ' ')
+				ch += text_arr.shift() || "";
+			p.innerHTML += ch;
+			setTimeout(next, (ch==' ')?300:100);
 		}
 		
-		range.selectNodeContents(tn);
+		range.selectNodeContents(p.lastChild || p);
 		range.collapse(false);
 		selection.removeAllRanges();
 		selection.addRange(range);
 		
 		if (!ch) {
 			(typeof(callback)=="function") && callback(editor, text);
-		} 
+		} else if (ch == ' ') {
+			//emulate space keyup
+			setTimeout(function() {
+				mdime_editor.keyupHandler(fakeSpaceEvent);
+				p.innerHTML += ' ';
+				
+				range.selectNodeContents(p.lastChild || p);
+				range.collapse(false);
+				selection.removeAllRanges();
+				selection.addRange(range);
+			}, 250);
+		}
 	}
 	next();
 }
@@ -54,9 +70,9 @@ setTimeout(function() {
 			try{mdime_editor.ProcessCurrentLine();} catch(e){}
 			editor.removeChild(editor.lastChild);
 			demoStart(editor, 
-				"Just ***MARKDOWN*** " +
-				"your ~~test~~ `words`, [links](http://laobubu.net), etc, " + 
-				"then press Enter."
+				"Just **directly type in** " +
+				"your *Markdown* text like `\\*this\\*`, " + 
+				"then press Enter or Space."
 			)
 		}
 	);

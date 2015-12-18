@@ -346,6 +346,10 @@ var MarkdownIME;
                  * tell if user can type inside. this helps when creating strange things like <hr>
                  */
                 this.isTypable = true;
+                /**
+                 * if is true, the text that matches featureMark will be deleted.
+                 */
+                this.removeFeatureMark = true;
             }
             /** changing its name, moving it into proper container. return null if failed. */
             BlockRendererContainer.prototype.Elevate = function (node) {
@@ -393,8 +397,10 @@ var MarkdownIME;
                 var matchResult = this.featureMark.exec(node.textContent);
                 if (!matchResult)
                     return null;
-                var n = node;
-                n.innerHTML = n.innerHTML.replace(/&nbsp;/g, String.fromCharCode(160)).replace(this.featureMark, '');
+                if (this.removeFeatureMark) {
+                    var n = node;
+                    n.innerHTML = n.innerHTML.replace(/&nbsp;/g, String.fromCharCode(160)).replace(this.featureMark, '');
+                }
                 return matchResult;
             };
             return BlockRendererContainer;
@@ -462,7 +468,7 @@ var MarkdownIME;
                 function HeaderText() {
                     _super.call(this);
                     this.name = "header text";
-                    this.featureMark = /^(#+)\s+$/;
+                    this.featureMark = /^(#+)\s+/;
                 }
                 HeaderText.prototype.Elevate = function (node) {
                     var match = this.prepareElevate(node);
@@ -543,8 +549,8 @@ var MarkdownIME;
         (function (Pattern) {
             Pattern.codeblock = /^```\s*(\S*)\s*$/g;
         })(Pattern || (Pattern = {}));
-        var inlineRenderer = Renderer.InlineRenderer.makeMarkdownRenderer();
-        var blockRenderer = Renderer.BlockRenderer.makeMarkdownRenderer();
+        Renderer.inlineRenderer = Renderer.InlineRenderer.makeMarkdownRenderer();
+        Renderer.blockRenderer = Renderer.BlockRenderer.makeMarkdownRenderer();
         /**
          * Make one Block Node beautiful!
          */
@@ -568,13 +574,13 @@ var MarkdownIME;
                 node.parentNode.replaceChild(big_block, node);
                 return big_block;
             }
-            var elevateResult = blockRenderer.Elevate(node);
+            var elevateResult = Renderer.blockRenderer.Elevate(node);
             if (elevateResult) {
                 if (!elevateResult.containerType.isTypable)
                     return elevateResult.child;
                 node = elevateResult.child;
             }
-            inlineRenderer.RenderNode(node);
+            Renderer.inlineRenderer.RenderNode(node);
             return node;
         }
         Renderer.Render = Render;

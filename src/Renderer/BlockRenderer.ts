@@ -30,6 +30,11 @@ namespace MarkdownIME.Renderer {
 		 */
 		isTypable: boolean = true;
 		
+		/**
+		 * if is true, the text that matches featureMark will be deleted.
+		 */
+		removeFeatureMark: boolean = true;
+		
 		/** changing its name, moving it into proper container. return null if failed. */
 		Elevate (node: Element) : {parent:Element, child:Element} {
 			if (!this.prepareElevate(node)) return null;
@@ -75,8 +80,11 @@ namespace MarkdownIME.Renderer {
 			var matchResult = this.featureMark.exec(node.textContent);
 			if (!matchResult) return null;
 		
-			let n = <HTMLElement> node;
-			n.innerHTML = n.innerHTML.replace(/&nbsp;/g,String.fromCharCode(160)).replace(this.featureMark, '');
+			if (this.removeFeatureMark) {
+				let n = <HTMLElement> node;
+				n.innerHTML = n.innerHTML.replace(/&nbsp;/g,String.fromCharCode(160)).replace(this.featureMark, '');
+			}
+			
 			return matchResult;
 		}
 	}
@@ -135,7 +143,7 @@ namespace MarkdownIME.Renderer {
 			constructor() {
 				super();
 				this.name = "header text";
-				this.featureMark = /^(#+)\s+$/;
+				this.featureMark = /^(#+)\s+/;
 			}
 			
 			Elevate (node: Element) : {parent:Element, child:Element} {

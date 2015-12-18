@@ -8,8 +8,8 @@ namespace Pattern {
 	export var codeblock = /^```\s*(\S*)\s*$/g;
 }
 
-var inlineRenderer: InlineRenderer = InlineRenderer.makeMarkdownRenderer();
-var blockRenderer : BlockRenderer  = BlockRenderer.makeMarkdownRenderer();
+export var inlineRenderer: InlineRenderer = InlineRenderer.makeMarkdownRenderer();
+export var blockRenderer : BlockRenderer  = BlockRenderer.makeMarkdownRenderer();
 
 /**
  * Make one Block Node beautiful!

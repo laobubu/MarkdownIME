@@ -13,7 +13,7 @@
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "lite": "lite-server --open test",
-    "serve": "concurrent \"npm run tsc:w\" \"npm run lite\" ",
+    "go": "concurrent \"npm run tsc:w\" \"npm run lite\" ",
     "make": "make all"
   },
   "dependencies": {},

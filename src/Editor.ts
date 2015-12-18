@@ -311,7 +311,7 @@ export class Editor {
 				while (!Utils.is_node_block(node)) 
 					node = node.parentNode;
 				console.log("fix to ", node);
-				if (node != this.editor) {
+				if (node != this.editor && node.nodeName != "PRE") {
 					let result = Renderer.Render(<HTMLElement>node);
 					if (result.nodeName == "HR") {
 						//for <hr> something needs to be special.

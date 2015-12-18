@@ -858,7 +858,7 @@ var MarkdownIME;
                     while (!MarkdownIME.Utils.is_node_block(node))
                         node = node.parentNode;
                     console.log("fix to ", node);
-                    if (node != this.editor) {
+                    if (node != this.editor && node.nodeName != "PRE") {
                         var result = MarkdownIME.Renderer.Render(node);
                         if (result.nodeName == "HR") {
                             //for <hr> something needs to be special.

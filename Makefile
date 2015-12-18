@@ -14,13 +14,14 @@ UGLIFY = uglifyjs
 all: MarkdownIME.js $(OUT_FULL) $(OUT_UGLIFIED)
 
 clean:
-	rm MarkdownIME.js MarkdownIME.min.js
+	-rm -rf dest
+	-rm MarkdownIME.js
 
 # uglified js for production usage
 MarkdownIME.js: $(OUT_UGLIFIED)
 	cp $(OUT_UGLIFIED) MarkdownIME.js
 
-$(OUT_FULL): $(TS_FILES)
+$(OUT_FULL): $(TS_FILES) tsconfig.json
 	$(TS_COMPILER)
 
 $(OUT_UGLIFIED): $(OUT_FULL)

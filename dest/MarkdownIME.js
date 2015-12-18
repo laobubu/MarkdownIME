@@ -612,6 +612,7 @@ var MarkdownIME;
             if (this.editor.hasAttribute('mdime-enhanced'))
                 return false;
             this.editor.addEventListener('keydown', this.keydownHandler.bind(this), false);
+            this.editor.addEventListener('keyup', this.keyupHandler.bind(this), false);
             this.editor.setAttribute('mdime-enhanced', 'true');
             return true;
         };
@@ -632,7 +633,7 @@ var MarkdownIME;
             // 2. not on a text. might be after an image or sth.
             // 3. the cursor was set by some script. (eg. tinymce)
             var node = range.startContainer;
-            if (node.nodeType == 3 && range.startOffset != node.textContent.length) {
+            if (node.nodeType == Node.TEXT_NODE && range.startOffset != node.textContent.length) {
                 _dummynode = node;
                 while (!MarkdownIME.Utils.is_node_block(_dummynode))
                     _dummynode = _dummynode.parentNode;
@@ -714,7 +715,7 @@ var MarkdownIME;
             //for <pre> block, special work is needed.
             if (MarkdownIME.Utils.Pattern.NodeName.pre.test(node.nodeName)) {
                 var txtnode = range.startContainer;
-                while (txtnode.nodeType != 3 && txtnode.lastChild)
+                while (txtnode.nodeType != Node.TEXT_NODE && txtnode.lastChild)
                     txtnode = txtnode.lastChild;
                 var text = txtnode.textContent;
                 var br = this.document.createElement('br');
@@ -833,16 +834,43 @@ var MarkdownIME;
                 this.ProcessCurrentLine(ev);
                 return;
             }
+        };
+        Editor.prototype.keyupHandler = function (ev) {
+            var keyCode = ev.keyCode || ev.which;
+            var range = this.selection.getRangeAt(0);
+            if (!range.collapsed)
+                return; // avoid processing with strange selection
             //if is typing, process special instant transform.
             var node = range.startContainer;
-            if (node.nodeType == 3) {
+            if (node.nodeType == Node.TEXT_NODE) {
                 var text = node.textContent;
                 var text_after = text.substr(range.startOffset + 1);
                 var text_before = text.substr(0, range.startOffset);
+                if (text_after.length)
+                    return; //instant render only work at the end of line, yet.
                 if (text_before.length < 2)
                     return; //too young, too simple
                 if (text_before.charAt(text_before.length - 2) == "\\")
-                    return; //escaping. run faster than others. 
+                    return; //escaping. run faster than others.
+                if (keyCode == 32) {
+                    //space key pressed.
+                    console.log("instant render at", node);
+                    while (!MarkdownIME.Utils.is_node_block(node))
+                        node = node.parentNode;
+                    console.log("fix to ", node);
+                    if (node != this.editor) {
+                        var result = MarkdownIME.Renderer.Render(node);
+                        if (result.nodeName == "HR") {
+                            //for <hr> something needs to be special.
+                            this.CreateNewLine(result);
+                        }
+                        else {
+                            if (result.textContent.length == 0)
+                                result.innerHTML = '<br data-mdime-bogus="true">';
+                            MarkdownIME.Utils.move_cursor_to_end(result);
+                        }
+                    }
+                }
             }
         };
         /**

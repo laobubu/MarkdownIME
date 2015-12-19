@@ -1,28 +1,29 @@
 /* global MarkdownIME */
-/***
- * This script is unnecessary, just making page looks better.
- */
 
 /**
  * Starts play a magic.
- * @param {div} editor - the editor
- * @param {string} text - text to be shown
+ * @param {div} editor the div element
+ * @param {string} text text to be shown
+ * @param {function(editor,text)} callback (optional) called when the magic is end
+ * @param {HTMLElement} lineObject (optional) the container of current line.
  */
-function demoStart(editor, text, _callback) {
-	var p = document.createElement("p");
+function demoStartOneLine(editor, text, callback, lineObject) {
+	var p = lineObject || document.createElement("p");
 	var text_arr = text.split("");
 	
 	var fakeSpaceEvent = {keyCode: 32, preventDefault: function(){}};
 	
 	var selection = window.getSelection();
 	var range = document.createRange();
-	
-	var callback = _callback;
+    
+    var going = true;
 	
 	editor.appendChild(p);
 	editor.focus();
 	
 	function next() {
+        if (!going) return;
+        
 		var p = editor.lastChild;
 		if (p.childNodes.length == 1 && p.firstChild.nodeName == "BR")
 			p.removeChild(p.childNodes[0]);
@@ -56,6 +57,45 @@ function demoStart(editor, text, _callback) {
 		}
 	}
 	next();
+    
+    return {
+        stop: function() { going = false; },
+        next: next
+    }
+}
+
+/**
+ * Start a script playing.
+ * @param {div} editor the div element
+ * @param {string[]} stringArray the text lines.
+ * @param {function(editor)} _callback the callback when the magic is end
+ */
+function demoStartLines(editor, stringArray, callback) {
+    var going = true;
+    
+    var currentMagic;
+    var currentLineText;
+    
+    var fakeEnterEvent = {preventDefault: function(){}};
+    
+    function startNextLine() {
+        if (!going) return;
+        currentLineText = stringArray.shift();
+        if (typeof currentLineText == "string") {
+			try{ mdime_editor.ProcessCurrentLine(fakeEnterEvent); } catch(e){ }
+			(editor.lastChild) && editor.removeChild(editor.lastChild);
+            currentMagic = demoStartOneLine(editor, currentLineText, startNextLine);
+        } else {
+            (typeof(callback)=="function") && callback(editor);
+        }
+    }
+    
+    startNextLine();
+    
+    return {
+        stop: function() { if (!going) return; going = false; currentMagic.stop(); },
+        next: function() { currentMagic.next(); }
+    }
 }
 
 
@@ -64,18 +104,11 @@ var editor = document.getElementById('editor');
 var mdime_editor = MarkdownIME.Enhance(editor);
 
 setTimeout(function() {
-	demoStart(editor, 
+    var magic = demoStartLines(editor, [
 		"# Hello World", 
-		function() {
-			try{mdime_editor.ProcessCurrentLine();} catch(e){}
-			editor.removeChild(editor.lastChild);
-			demoStart(editor, 
-				"Just **directly type in** " +
-				"your *Markdown* text like `\\*this\\*`, " + 
-				"then press Enter or Space."
-			)
-		}
-	);
+	    "Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
+    ]);
+    editor.addEventListener("keydown", function(){magic.stop();}, false);
 }, 2000);
 
 ///////////////////////////BOOKMARKLET

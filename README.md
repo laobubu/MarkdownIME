@@ -6,7 +6,7 @@ MarkdownIME provides a fresh way to write well-formatted text, by typing markdow
 
 Works like a charm on mobile devices, too!
 
-![](http://laobubu.github.io/MarkdownIME/demo.gif)
+![](http://laobubu.github.io/MarkdownIME/demo.gif?cache2)
 
 ## Quickstart / Guide
 
@@ -16,15 +16,17 @@ Visit http://laobubu.github.io/MarkdownIME/
 
 ### Program
 
-To read/edit the code, consider using [VSCode](https://code.visualstudio.com/).
+[VSCode](https://code.visualstudio.com/) is favored.
+
+To test / debug, run `npm run go`.
 
 ### Build
 
 This project requires `tsc` (TypeScript Compiler) and `make` to compile. Optionally, `uglifyjs` can be used to compress the output.
 
-You can get the tools via npm : `npm install -g uglifyjs tsc`
+You can get the tools via npm : `npm install --dev`
 
-After obtaining the tools, just run `make` and you will get the js files.
+After obtaining the tools, just run `make` and you will get the js files. If you are using Windows, you might need a `make` binary.
 
 ## Features
 

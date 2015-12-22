@@ -48,7 +48,6 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 			//emulate space keyup
 			setTimeout(function() {
 				mdime_editor.keyupHandler(fakeSpaceEvent);
-				p.innerHTML += ' ';
 				
 				range.selectNodeContents(p.lastChild || p);
 				range.collapse(false);

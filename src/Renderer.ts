@@ -34,7 +34,7 @@ export function Render(node : HTMLElement) : HTMLElement {
 			big_block.attributes.setNamedItem(typ);
 		}
 		
-		(<HTMLElement>big_block).innerHTML = "<br>";
+		(<HTMLElement>big_block).innerHTML = '<br data-mdime-bogus="true">';
 		node.parentNode.replaceChild(big_block, node);
 		
 		return (<HTMLElement>big_block);

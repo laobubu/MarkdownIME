@@ -48,6 +48,8 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 			//emulate space keyup
 			setTimeout(function() {
 				mdime_editor.keyupHandler(fakeSpaceEvent);
+                
+			    p.innerHTML = p.innerHTML.replace(/(\w)&nbsp;(?=[^&\s\r\n]{3})/g, '$1 ');
 				
 				range.selectNodeContents(p.lastChild || p);
 				range.collapse(false);

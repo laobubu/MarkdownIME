@@ -309,11 +309,16 @@ export class Editor {
 				//space key pressed.
 				console.log("instant render at", node);
                 let textnode = node;
-				while (!Utils.is_node_block(node)) 
+                let shall_do_block_rendering : boolean = true;
+				while (!Utils.is_node_block(node)) {
+                    if (shall_do_block_rendering && node != node.parentNode.firstChild) {
+                        shall_do_block_rendering = false;
+                    }
 					node = node.parentNode;
+                }
 				console.log("fix to ", node);
 				if (node != this.editor && node.nodeName != "PRE") {
-					let result = Renderer.blockRenderer.Elevate(<HTMLElement>node);
+					let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>node) : null;
                     if (result == null ) {
                         //failed to elevate. this is just a plian inline rendering work.
                         let result = Renderer.inlineRenderer.RenderNode(textnode);

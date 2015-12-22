@@ -241,6 +241,7 @@ var MarkdownIME;
              * @note DOM whitespace will be removed by Utils.trim(str) .
              * @note after escaping, `\` will become `<!--escaping-->`.
              * @note if you want some chars escaped without `\`, use `<!--escaping-->`.
+             * @deprecated might not friendly to spaces. use RenderText instead.
              */
             InlineRenderer.prototype.RenderHTML = function (html) {
                 var rtn = MarkdownIME.Utils.trim(html);
@@ -252,30 +253,93 @@ var MarkdownIME;
                 return rtn;
             };
             /**
+             * do render.
+             * @note after escaping, `\` will become `<!--escaping-->`.
+             * @return {string} HTML Result
+             */
+            InlineRenderer.prototype.RenderText = function (text) {
+                var rtn = text;
+                var i, rule;
+                for (i = 0; i < this.replacement.length; i++) {
+                    rule = this.replacement[i];
+                    rtn = rule.method(rtn);
+                }
+                return rtn;
+            };
+            /**
+             * do render on a textNode
+             * @note make sure the node is a textNode; function will NOT check!
+             * @return the output nodes
+             */
+            InlineRenderer.prototype.RenderTextNode = function (node) {
+                var docfrag = node.ownerDocument.createElement('div');
+                var nodes;
+                var source = node.textContent;
+                docfrag.innerHTML = this.RenderText(source);
+                nodes = [].slice.call(docfrag.childNodes);
+                while (docfrag.lastChild) {
+                    node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
+                }
+                node.parentNode.removeChild(node);
+                return nodes;
+            };
+            /**
              * do render on a Node
              * @return the output nodes
              */
             InlineRenderer.prototype.RenderNode = function (node) {
-                var docfrag = node.ownerDocument.createElement('div');
-                var nodes;
-                var source = node['innerHTML'] || node.textContent;
-                docfrag.innerHTML = this.RenderHTML(source);
-                nodes = [].slice.call(docfrag.childNodes, 0);
-                if (node.parentNode) {
-                    if (node.nodeType == Node.TEXT_NODE) {
-                        while (docfrag.lastChild) {
-                            node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
-                        }
-                        node.parentNode.removeChild(node);
-                    }
-                    else if (node.nodeType == Node.ELEMENT_NODE) {
-                        while (node.firstChild)
-                            node.removeChild(node.firstChild);
-                        while (docfrag.firstChild)
-                            node.appendChild(docfrag.firstChild);
-                    }
+                if (node.nodeType == Node.TEXT_NODE) {
+                    return this.RenderTextNode(node);
                 }
-                return nodes;
+                var textNodes = this.PreproccessTextNodes(node);
+                var textNode;
+                var rtn = [];
+                while (textNode = textNodes.shift()) {
+                    console.log('inline', textNode);
+                    var r1 = this.RenderTextNode(textNode);
+                    rtn.push.apply(rtn, r1);
+                }
+                return rtn;
+            };
+            /**
+             * remove all child comments whose text is "escaping"
+             * if the comments are followed by a textNode, add a escaping char "\" to the textNode
+             * @note this function do recursive processing
+             * @return {Node[]} all textNode. The first item is the last textNode.
+             */
+            InlineRenderer.prototype.PreproccessTextNodes = function (parent) {
+                if (!parent || parent.nodeType != Node.ELEMENT_NODE)
+                    return [];
+                var i = parent.childNodes.length - 1;
+                var rtn = [];
+                while (i >= 0) {
+                    var child = parent.childNodes[i];
+                    var nextSibling = child.nextSibling;
+                    switch (child.nodeType) {
+                        case Node.COMMENT_NODE:
+                            if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE && child.textContent == "escaping") {
+                                // <!--escaping--> [TEXT_NODE]
+                                nextSibling.textContent = "\\" + nextSibling.textContent;
+                                parent.removeChild(child);
+                            }
+                            break;
+                        case Node.TEXT_NODE:
+                            if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE) {
+                                // [TEXT_NODE] [TEXT_NODE]
+                                child.textContent += nextSibling.textContent;
+                                parent.removeChild(nextSibling);
+                                rtn.pop();
+                            }
+                            rtn.push(child);
+                            break;
+                        case Node.ELEMENT_NODE:
+                            var recursive_result = this.PreproccessTextNodes(child);
+                            rtn.push.apply(rtn, recursive_result);
+                            break;
+                    }
+                    i--;
+                }
+                return rtn;
             };
             /**
              * (Factory Function) Create a Markdown InlineRenderer
@@ -570,7 +634,7 @@ var MarkdownIME;
                     typ.value = match_result[1];
                     big_block.attributes.setNamedItem(typ);
                 }
-                big_block.innerHTML = "<br>";
+                big_block.innerHTML = '<br data-mdime-bogus="true">';
                 node.parentNode.replaceChild(big_block, node);
                 return big_block;
             }
@@ -856,11 +920,16 @@ var MarkdownIME;
                     //space key pressed.
                     console.log("instant render at", node);
                     var textnode = node;
-                    while (!MarkdownIME.Utils.is_node_block(node))
+                    var shall_do_block_rendering = true;
+                    while (!MarkdownIME.Utils.is_node_block(node)) {
+                        if (shall_do_block_rendering && node != node.parentNode.firstChild) {
+                            shall_do_block_rendering = false;
+                        }
                         node = node.parentNode;
+                    }
                     console.log("fix to ", node);
                     if (node != this.editor && node.nodeName != "PRE") {
-                        var result = MarkdownIME.Renderer.blockRenderer.Elevate(node);
+                        var result = shall_do_block_rendering ? MarkdownIME.Renderer.blockRenderer.Elevate(node) : null;
                         if (result == null) {
                             //failed to elevate. this is just a plian inline rendering work.
                             var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderNode(textnode);

@@ -130,6 +130,7 @@ namespace MarkdownIME.Renderer {
 		 * @note DOM whitespace will be removed by Utils.trim(str) .
 		 * @note after escaping, `\` will become `<!--escaping-->`.
 		 * @note if you want some chars escaped without `\`, use `<!--escaping-->`.
+         * @deprecated might not friendly to spaces. use RenderText instead.
 		 */
 		public RenderHTML(html : string) : string {
 			var rtn = Utils.trim(html);
@@ -142,29 +143,103 @@ namespace MarkdownIME.Renderer {
 		}
 		
 		/**
+		 * do render.
+		 * @note after escaping, `\` will become `<!--escaping-->`.
+         * @return {string} HTML Result
+		 */
+		public RenderText(text : string) : string {
+			var rtn = text;
+			var i, rule;
+			for (i = 0; i< this.replacement.length; i++) {
+				rule = this.replacement[i];
+				rtn = rule.method(rtn);
+			}
+			return rtn;
+		}
+        
+        /**
+         * do render on a textNode
+         * @note make sure the node is a textNode; function will NOT check!
+		 * @return the output nodes
+         */
+        public RenderTextNode(node : Node) : Node[] {
+            var docfrag = node.ownerDocument.createElement('div');
+            var nodes: Node[];
+            var source = node.textContent;
+            docfrag.innerHTML = this.RenderText(source);
+            nodes = [].slice.call(docfrag.childNodes);
+            while(docfrag.lastChild) {
+                node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
+            }
+            node.parentNode.removeChild(node);
+            return nodes;
+        }
+		
+		/**
 		 * do render on a Node
 		 * @return the output nodes
 		 */
 		public RenderNode(node : Node) : Node[] {
-			var docfrag = node.ownerDocument.createElement('div');
-			var nodes: Node[];
-			var source = node['innerHTML'] || node.textContent;
-			docfrag.innerHTML = this.RenderHTML(source);
-			nodes = [].slice.call(docfrag.childNodes, 0);
-			if (node.parentNode){
-				if (node.nodeType == Node.TEXT_NODE) {
-					while(docfrag.lastChild) {
-						node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
-					}
-					node.parentNode.removeChild(node);
-				} else 
-				if (node.nodeType == Node.ELEMENT_NODE) {
-					while (node.firstChild) node.removeChild(node.firstChild);
-					while (docfrag.firstChild) node.appendChild(docfrag.firstChild);
-				}
-			}
-			return nodes;
+			if (node.nodeType == Node.TEXT_NODE) {
+                return this.RenderTextNode(node);
+            }
+            
+            var textNodes : Node[] = this.PreproccessTextNodes(node);
+            var textNode : Node;
+            var rtn : Node[] = [];
+            
+            while (textNode = textNodes.shift()) {
+                console.log('inline', textNode);
+                let r1 = this.RenderTextNode(textNode);
+                rtn.push.apply(rtn, r1);
+            }
+			return rtn;
 		}
+        
+        /**
+         * remove all child comments whose text is "escaping"
+         * if the comments are followed by a textNode, add a escaping char "\" to the textNode
+         * @note this function do recursive processing
+         * @return {Node[]} all textNode. The first item is the last textNode.
+         */
+        public PreproccessTextNodes(parent : Node) : Node[] {
+            if (!parent || parent.nodeType != Node.ELEMENT_NODE) return [];
+            var i = parent.childNodes.length - 1;
+            var rtn : Node[] = [];
+            while (i >= 0) {
+                let child = parent.childNodes[i];
+                let nextSibling = child.nextSibling;
+                
+                switch (child.nodeType) {
+                    
+                    case Node.COMMENT_NODE:
+                        if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE && child.textContent == "escaping") {
+                            // <!--escaping--> [TEXT_NODE]
+                            nextSibling.textContent = "\\" + nextSibling.textContent;
+                            parent.removeChild(child);
+                        }
+                        break;
+                
+                    case Node.TEXT_NODE:
+                        if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE) {
+                            // [TEXT_NODE] [TEXT_NODE]
+                            child.textContent += nextSibling.textContent;
+                            parent.removeChild(nextSibling);
+                            rtn.pop();
+                        }
+                        rtn.push(child);
+                        break;
+                        
+                    case Node.ELEMENT_NODE:
+                        let recursive_result = this.PreproccessTextNodes(child);
+                        rtn.push.apply(rtn, recursive_result);
+                        break;
+                }
+                
+                i--;
+            }
+            return rtn;
+        }
 		
 		/**
 		 * (Factory Function) Create a Markdown InlineRenderer

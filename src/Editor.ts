@@ -308,18 +308,25 @@ export class Editor {
 			if (keyCode == 32) {
 				//space key pressed.
 				console.log("instant render at", node);
+                let textnode = node;
 				while (!Utils.is_node_block(node)) 
 					node = node.parentNode;
 				console.log("fix to ", node);
 				if (node != this.editor && node.nodeName != "PRE") {
-					let result = Renderer.Render(<HTMLElement>node);
-					if (result.nodeName == "HR") {
+					let result = Renderer.blockRenderer.Elevate(<HTMLElement>node);
+                    if (result == null ) {
+                        //failed to elevate. this is just a plian inline rendering work.
+                        let result = Renderer.inlineRenderer.RenderNode(textnode);
+                        let tail = <HTMLElement> result.pop();
+						Utils.move_cursor_to_end(tail);
+                    } else
+					if (result.child.nodeName == "HR") {
 						//for <hr> something needs to be special.
-						this.CreateNewLine(result);
+						this.CreateNewLine(result.child);
 					} else {
-						if (result.textContent.length == 0) 
-							result.innerHTML = '<br data-mdime-bogus="true">';
-						Utils.move_cursor_to_end(result);
+						if (result.child.textContent.length == 0) 
+							(<HTMLElement>result.child).innerHTML = '<br data-mdime-bogus="true">';
+						Utils.move_cursor_to_end(result.child);
 					}
 				}
 			}

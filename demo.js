@@ -17,6 +17,7 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 	var range = document.createRange();
     
     var going = true;
+    var NBSP = String.fromCharCode(160);
 	
 	editor.appendChild(p);
 	editor.focus();
@@ -32,7 +33,7 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 		if (ch) {
 			if (ch != ' ' && text_arr[0] != ' ')
 				ch += text_arr.shift() || "";
-			p.innerHTML += ch;
+			p.innerHTML += ch.replace(/ /g, NBSP);
 			setTimeout(next, (ch==' ')?250:60);
 		}
 		

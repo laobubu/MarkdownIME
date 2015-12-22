@@ -855,19 +855,26 @@ var MarkdownIME;
                 if (keyCode == 32) {
                     //space key pressed.
                     console.log("instant render at", node);
+                    var textnode = node;
                     while (!MarkdownIME.Utils.is_node_block(node))
                         node = node.parentNode;
                     console.log("fix to ", node);
                     if (node != this.editor && node.nodeName != "PRE") {
-                        var result = MarkdownIME.Renderer.Render(node);
-                        if (result.nodeName == "HR") {
+                        var result = MarkdownIME.Renderer.blockRenderer.Elevate(node);
+                        if (result == null) {
+                            //failed to elevate. this is just a plian inline rendering work.
+                            var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderNode(textnode);
+                            var tail = result_1.pop();
+                            MarkdownIME.Utils.move_cursor_to_end(tail);
+                        }
+                        else if (result.child.nodeName == "HR") {
                             //for <hr> something needs to be special.
-                            this.CreateNewLine(result);
+                            this.CreateNewLine(result.child);
                         }
                         else {
-                            if (result.textContent.length == 0)
-                                result.innerHTML = '<br data-mdime-bogus="true">';
-                            MarkdownIME.Utils.move_cursor_to_end(result);
+                            if (result.child.textContent.length == 0)
+                                result.child.innerHTML = '<br data-mdime-bogus="true">';
+                            MarkdownIME.Utils.move_cursor_to_end(result.child);
                         }
                     }
                 }
@@ -940,8 +947,20 @@ var MarkdownIME;
 })(MarkdownIME || (MarkdownIME = {}));
 /*!@preserve
     [MarkdownIME](https://github.com/laobubu/MarkdownIME)
+    
     Copyright 2016 laobubu
-    Open the link to obtain the license info.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 /// <reference path="Utils.ts" />
 /// <reference path="Editor.ts" />

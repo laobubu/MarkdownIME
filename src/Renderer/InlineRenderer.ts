@@ -149,7 +149,7 @@ namespace MarkdownIME.Renderer {
 		 */
 		public RenderText(text : string) : string {
 			var rtn = text;
-			var i, rule;
+			var i, rule : IInlineRendererReplacement;
 			for (i = 0; i< this.replacement.length; i++) {
 				rule = this.replacement[i];
 				rtn = rule.method(rtn);

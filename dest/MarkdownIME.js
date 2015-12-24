@@ -181,8 +181,8 @@ var MarkdownIME;
                     if (!props.hasOwnProperty(attr))
                         continue;
                     var value = "" + props[attr];
-                    value = value.replace(/"/g, "&quot;");
                     value = value.replace(/&/g, "&amp;");
+                    value = value.replace(/"/g, "&quot;");
                     value = value.replace(/</g, "&lt;");
                     value = value.replace(/\t/g, "&#x9;");
                     value = value.replace(/\r/g, "&#xA;");

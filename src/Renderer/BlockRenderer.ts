@@ -203,12 +203,11 @@ namespace MarkdownIME.Renderer {
 		];
 		
 		/**
-		 * (Factory Function) Create a Markdown BlockRenderer
+		 * Add Markdown rules into this BlockRenderer
 		 */
-		public static makeMarkdownRenderer() : BlockRenderer {
-			var rtn : BlockRenderer = new BlockRenderer();
-			rtn.containers = this.markdownContainers.concat(rtn.containers);
-			return rtn;
+		public AddMarkdownRules() : BlockRenderer {
+			this.containers = BlockRenderer.markdownContainers.concat(this.containers);
+			return this;
 		}
 	}
 }

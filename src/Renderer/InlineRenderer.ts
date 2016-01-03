@@ -242,12 +242,16 @@ namespace MarkdownIME.Renderer {
         }
 		
 		/**
-		 * (Factory Function) Create a Markdown InlineRenderer
+		 * Add Markdown Rules into this InlineRenderer
 		 */
-		public static makeMarkdownRenderer() : InlineRenderer {
-			var rtn : InlineRenderer = new InlineRenderer();
-			rtn.replacement = this.markdownReplacement.concat(rtn.replacement);
-			return rtn;
+		public AddMarkdownRules() : InlineRenderer {
+			this.replacement = InlineRenderer.markdownReplacement.concat(this.replacement);
+			return this;
+		}
+		
+		/** Add one extra replacing rule */
+		public AddRule(rule : IInlineRendererReplacement) {
+			this.replacement.push(rule);
 		}
 	}
 }

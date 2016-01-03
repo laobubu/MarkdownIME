@@ -2,14 +2,22 @@
 /// <reference path="Renderer/InlineRenderer.ts" />
 /// <reference path="Renderer/BlockRenderer.ts" />
 
+//people <3 emoji
+/// <reference path="Addon/EmojiAddon.ts" />
+
 namespace MarkdownIME.Renderer{
 
 namespace Pattern {
 	export var codeblock = /^```\s*(\S*)\s*$/g;
 }
 
-export var inlineRenderer: InlineRenderer = InlineRenderer.makeMarkdownRenderer();
-export var blockRenderer : BlockRenderer  = BlockRenderer.makeMarkdownRenderer();
+export var inlineRenderer: InlineRenderer = new InlineRenderer();
+export var blockRenderer : BlockRenderer  = new BlockRenderer();
+
+inlineRenderer.AddMarkdownRules();
+inlineRenderer.AddRule(new MarkdownIME.Addon.EmojiAddon());
+
+blockRenderer.AddMarkdownRules();
 
 /**
  * Make one Block Node beautiful!

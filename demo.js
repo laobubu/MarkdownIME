@@ -49,7 +49,7 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 			setTimeout(function() {
 				mdime_editor.keyupHandler(fakeSpaceEvent);
                 
-			    p.innerHTML = p.innerHTML.replace(/(\w)&nbsp;(?=[^&\s\r\n]{3})/g, '$1 ');
+			    p.innerHTML = p.innerHTML.replace(/(\w)&nbsp;(?=[^&\s\r\n])/g, '$1 ');
 				
 				range.selectNodeContents(p.lastChild || p);
 				range.collapse(false);
@@ -115,7 +115,7 @@ setTimeout(function showStart() {
 	mdime_editor = MarkdownIME.Enhance(editor);
 	if (!window.location.hash) {
 		var magic = demoStartLines(editor, [
-			"# Hello World", 
+			"# Hello World 8-)", 
 			"Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
 		]);
 		editor.addEventListener("keydown", function(){magic.stop();}, false);

@@ -2,7 +2,7 @@
 
 body {
 	background-color: #333;
-	font-family: 'DejaVu Serif', 'Times New Roman', Times, serif;
+	font-family: 'DejaVu Serif', 'Times New Roman', Times, serif, 'Segoe UI', EmojiSymbols, Symbola;
 	margin: 0;
 	transition: background-image 2s ease;
 }
@@ -28,6 +28,10 @@ body > section {
 
 
 /* misc */
+.emoji {
+	height: 1em;
+	vertical-align: middle;
+}
 .hide {
 	opacity: 0!important;
 }

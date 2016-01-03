@@ -104,6 +104,7 @@ function demoStartLines(editor, stringArray, callback) {
 //////////////////////////MAIN MAGIC
 var editor = document.getElementById('editor');
 var mdime_editor;
+var demotext;
 
 setTimeout(function showStart() {
 	if (typeof MarkdownIME !== "object") {
@@ -113,8 +114,8 @@ setTimeout(function showStart() {
 	}
 	editor.innerHTML = "";
 	mdime_editor = MarkdownIME.Enhance(editor);
-	if (!window.location.hash) {
-		var magic = demoStartLines(editor, [
+	if (!window.location.hash && !window.scrollY) {
+		var magic = demoStartLines(editor, demotext || [
 			"# Hello World 8-)", 
 			"Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
 		]);

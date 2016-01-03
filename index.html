@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,6 +8,16 @@
   <link rel="stylesheet" href="demo.css">
 </head>
 <body>
+  <script>
+	var ua_langs = navigator.languages.slice();
+	var ua_lang;
+	while (ua_lang = ua_langs.shift()) {
+		if (/^(zh)$/.test(ua_lang)) {
+			window.location.href = "./index." + ua_lang + ".html";
+			break;
+		} 
+	}
+  </script>
   <div id="bizzarebg"></div>
   <section id="s1">
     <h1 class="hide">MarkdownIME</h1>
@@ -22,6 +32,7 @@
   <div id="toc"></div>
   <section id="s2">
     <h2><a name="help"></a>Introducing</h2>
+	  <p><a href="./index.zh.html">中文版 MarkdownIME 介绍页面 &raquo;</a></p>
       <p>Imagine a rich textbox without any button, it's easy if you try.</p>
       <p>MarkdownIME provides a fresh way to write well-formatted text, by typing markdownized stuff. It will speed up writing, help you get rid of the small formatting buttons.</p>
       <p>Works like a charm on mobile devices, too!</p>

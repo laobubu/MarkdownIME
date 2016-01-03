@@ -2,7 +2,7 @@
 
 body {
 	background-color: #333;
-	font-family: 'DejaVu Serif', 'Times New Roman', Times, serif, 'Segoe UI', EmojiSymbols, Symbola;
+	font-family: 'DejaVu Serif', 'Times New Roman', Times, 'Microsoft Yahei' , serif, 'Segoe UI', EmojiSymbols, Symbola;
 	margin: 0;
 	transition: background-image 2s ease;
 }

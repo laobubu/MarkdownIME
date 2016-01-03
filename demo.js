@@ -103,14 +103,23 @@ function demoStartLines(editor, stringArray, callback) {
 
 //////////////////////////MAIN MAGIC
 var editor = document.getElementById('editor');
-var mdime_editor = MarkdownIME.Enhance(editor);
+var mdime_editor;
 
-setTimeout(function() {
-    var magic = demoStartLines(editor, [
-		"# Hello World", 
-	    "Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
-    ]);
-    editor.addEventListener("keydown", function(){magic.stop();}, false);
+setTimeout(function showStart() {
+	if (typeof MarkdownIME !== "object") {
+		setTimeout(showStart, 100);
+		editor.innerHTML = "<p>Loading...</p>";
+		return;
+	}
+	editor.innerHTML = "";
+	mdime_editor = MarkdownIME.Enhance(editor);
+	if (!window.location.hash) {
+		var magic = demoStartLines(editor, [
+			"# Hello World", 
+			"Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
+		]);
+		editor.addEventListener("keydown", function(){magic.stop();}, false);
+	}
 }, 2000);
 
 ///////////////////////////BOOKMARKLET
@@ -130,6 +139,23 @@ bookmarklet.addEventListener('click', function(ev){
 	ev.preventDefault();
 }, true);
 
+////////////TOC
+var $toc = $('#toc');
+(function makeTOC(parent) {
+	var titles = $(parent).children('h1,h2,h3,h4,h5');
+	titles.each(function(i,ele){
+		var anchor = document.createElement('a');
+		anchor.name = (ele.textContent);
+		ele.insertBefore(anchor, ele.firstChild);
+		
+		var link = document.createElement('a');
+		link.textContent = ele.textContent;
+		link.href = '#' + encodeURIComponent(anchor.name)
+		link.style.marginLeft = (1 * (ele.nodeName.substr(1) - 2)) + 'em';
+		
+		$toc.append(link);
+	})
+})('#s2');
 
 
 setTimeout(function(){
@@ -140,16 +166,25 @@ var $body = $('body');
 var $window = $(window);
 var $bizzarebg = $('#bizzarebg')[0];
 $window.scroll(function(){
-	var biz = 1 - $window.scrollTop() / ($window.innerHeight()*0.5);
+	var wst = $window.scrollTop();
+	var wh = $window.innerHeight();
+	
+	var biz = 1 - wst / (wh*0.5);
 	if (biz < 0) biz = 0;
 	$bizzarebg.style.opacity = biz.toString();
+	
+	$toc.css({top: Math.max(wh-wst,0) + 'px'})
 }).scroll();
 
 
 // a tweak to scroll smooth for bookmarks
 function smoothGo(ev){
-	ev.preventDefault();
-	var t=$(document.getElementsByName(this.getAttribute("href").substr(1))[0]);
+	var name = decodeURIComponent(this.getAttribute("href").substr(1));
+	if (history.pushState) {
+		history.pushState(null, name, this.getAttribute("href"));
+		ev.preventDefault();
+	}
+	var t=$(document.getElementsByName(name)[0]);
 	var pos=t.offset().top;
 	$("html, body").animate({scrollTop: pos+'px'}, 500);
 }

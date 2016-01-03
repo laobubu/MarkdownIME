@@ -26,7 +26,7 @@ function demoStartOneLine(editor, text, callback, lineObject) {
         if (!going) return;
         
 		var p = editor.lastChild;
-		if (p.childNodes.length == 1 && p.firstChild.nodeName == "BR")
+		if (p.firstChild && p.firstChild.nodeName == "BR")
 			p.removeChild(p.childNodes[0]);
 		
 		var ch = text_arr.shift();

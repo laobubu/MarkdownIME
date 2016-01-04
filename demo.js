@@ -174,7 +174,7 @@ $window.scroll(function(){
 	if (biz < 0) biz = 0;
 	$bizzarebg.style.opacity = biz.toString();
 	
-	$toc.css({top: Math.max(wh-wst,0) + 'px'})
+	$toc.css({top: Math.max(document.getElementById('s2').offsetTop-wst,0) + 'px'})
 }).scroll();
 
 

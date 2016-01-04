@@ -36,7 +36,11 @@ namespace MarkdownIME.Renderer {
 	 *  [Things to be rendered] -> replacement chain -> [Renderer output]
 	 *  (you can also add your custom inline replacement) 
 	 * 
-	 * @example MarkdownIME.Renderer.InlineRenderer.makeMarkdownRenderer().RenderHTML('**Hello Markdown**')
+	 * @example 
+	 * var renderer = new MarkdownIME.Renderer.InlineRenderer();
+	 * renderer.AddMarkdownRules();
+	 * renderer.RenderHTML('**Hello Markdown**');
+	 * // returns "<b>Hello Markdown</b>"
 	 */
 	export class InlineRenderer {
 		

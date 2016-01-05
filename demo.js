@@ -177,6 +177,7 @@ $window.scroll(function(){
 	$toc.css({top: Math.max(document.getElementById('s2').offsetTop-wst,0) + 'px'})
 }).scroll();
 
+$(editor).keyup(function(){$window.scroll()})
 
 // a tweak to scroll smooth for bookmarks
 function smoothGo(ev){

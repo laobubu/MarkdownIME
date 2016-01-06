@@ -22,9 +22,7 @@ namespace MarkdownIME.Addon {
 		method(text: string): string {
 			text = text.replace(this.full_syntax, this.magic1.bind(this));
 			if (this.use_shortcuts) {
-				for (let name in this.shortcuts) {
-					text = this.magic2(text, name);
-				}
+				text = this.magic2(text);
 			}
 			if (this.use_twemoji && typeof twemoji != "undefined") {
 				text = twemoji.parse(text, this.twemoji_config);
@@ -39,18 +37,39 @@ namespace MarkdownIME.Addon {
 			return this.chars[name] || fulltext;
 		}
 		
-		/** magic2 proccess shortcuts for a emoji */
-		magic2(text: string, name: string) {
-			var t: any[] = this.shortcuts[name];
-			var c = this.chars[name];
-			if (!t || !c) return text;
-			for (var i = t.length - 1; i >= 0; i--) {
-				if (!(t[i] instanceof RegExp)) {
-					t[i] = new RegExp(t[i].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
-				}
-				text = text.replace(t[i], c);
+		/** magic2 proccess shortcuts for all emojis */
+		magic2(text: string) {
+			if (!this.shortcuts_cache.length) this.UpdateShortcutCache();
+			for (let i = this.shortcuts_cache.length - 1; i >= 0; i--) {
+				text = text.replace(
+					this.shortcuts_cache[i].regexp,
+					this.chars[this.shortcuts_cache[i].targetName]
+				);
 			}
 			return text;
+		}
+		
+		/** shortcuts RegExp cache. Order: [shortest, ..., longest] */
+		shortcuts_cache: { regexp: RegExp, length: number, targetName: string }[] = [];
+		
+		/** update the shortcuts RegExp cache. Run this after modifing the shortcuts! */
+		UpdateShortcutCache() {
+			this.shortcuts_cache = [];
+			for (let name in this.shortcuts) {
+				let shortcut_phrases: any[] = this.shortcuts[name];
+				for (let s_i = shortcut_phrases.length - 1; s_i >= 0; s_i--) {
+					let regex = shortcut_phrases[s_i];
+					if (!(regex instanceof RegExp)) {
+						regex = new RegExp(shortcut_phrases[s_i].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
+					}
+					this.shortcuts_cache.push({
+						regexp: regex,
+						length: shortcut_phrases[s_i].length,
+						targetName: name
+					});
+				}
+			}
+			this.shortcuts_cache.sort((a, b) => (a.length - b.length))
 		}
 
 		chars = {

@@ -56,15 +56,15 @@ namespace MarkdownIME.Addon {
 		UpdateShortcutCache() {
 			this.shortcuts_cache = [];
 			for (let name in this.shortcuts) {
-				let shortcut_phrases: any[] = this.shortcuts[name];
+				let shortcut_phrases: RegExp[] | string[] = this.shortcuts[name];
 				for (let s_i = shortcut_phrases.length - 1; s_i >= 0; s_i--) {
 					let regex = shortcut_phrases[s_i];
 					if (!(regex instanceof RegExp)) {
-						regex = new RegExp(shortcut_phrases[s_i].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
+						regex = new RegExp((<string>regex).replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
 					}
 					this.shortcuts_cache.push({
-						regexp: regex,
-						length: shortcut_phrases[s_i].length,
+						regexp: <RegExp>regex,
+						length: regex.toString().length,
 						targetName: name
 					});
 				}
@@ -119,6 +119,7 @@ namespace MarkdownIME.Addon {
 			"worried": "😟",
 			"frowning": "😦",
 			"anguished": "😧",
+			"imp": "👿",
 			"smiling_imp": "😈",
 			"open_mouth": "😮",
 			"neutral_face": "😐",
@@ -137,6 +138,9 @@ namespace MarkdownIME.Addon {
 			"crying_cat_face": "😿",
 			"joy_cat": "😹",
 			"pouting_cat": "😾",
+			"heart": "❤️",
+			"broken_heart": "💔",
+			"two_hearts": "💕",
 			"sparkles": "✨",
 			"fist": "✊",
 			"hand": "✋",
@@ -190,7 +194,7 @@ namespace MarkdownIME.Addon {
 
 		/** shortcuts. use RegExp instead of string would be better. */
 		shortcuts = {
-			mad: ['>:(', '>:-('], // angry
+			angry: ['>:(', '>:-('], // angry
 			blush: [':")', ':-")'],
 			broken_heart: ['</3', '<\\3'],
 			// :\ and :-\ not used because of conflict with markdown escaping
@@ -198,6 +202,7 @@ namespace MarkdownIME.Addon {
 			cry: [":'(", ":'-(", ':,(', ':,-('],
 			frowning: [':(', ':-('],
 			heart: ['<3'],
+			two_hearts: [/(<3|❤){2}/g],
 			imp: [']:(', ']:-('],
 			innocent: ['o:)', 'O:)', 'o:-)', 'O:-)', '0:)', '0:-)'],
 			joy: [":')", ":'-)", ':,)', ':,-)', ":'D", ":'-D", ':,D', ':,-D'],

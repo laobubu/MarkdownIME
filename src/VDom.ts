@@ -45,12 +45,8 @@ namespace MarkdownIME {
 		
 		/** get HTML content. things in proxyStorage will be recovered. */
 		getHTML(): string {
-			var rtn = Utils.text2html(this.text);
-
-			for (var mark in this.proxyStorage) {
-				rtn = rtn.replace(mark, this.proxyStorage[mark]);
-			}
-
+			var rtn = Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
+			rtn = rtn.replace(/\uFFFC\uFFF9\w+\uFFFB/g, (mark) => (this.proxyStorage[mark]));
 			return rtn;
 		}
 		
@@ -76,11 +72,15 @@ namespace MarkdownIME {
 
 		/** storage some text to proxyStorage, and return its mark string */
 		createProxy(reality: string): string {
-			var mark = this.nextMark();
+			var mark;
+			for (mark in this.proxyStorage) {
+				if (this.proxyStorage[mark] === reality) return mark;
+			}
+			mark = this.nextMark();
 			this.proxyStorage[mark] = reality;
 			return mark;
 		}
-		
+
 		markCount: number = 0;  // a random seed
 		markPrefix = String.fromCharCode(0xfffc, 0xfff9);
 		markSuffix = String.fromCharCode(0xfffb);
@@ -104,16 +104,16 @@ namespace MarkdownIME {
 		applyTo(target: HTMLElement) {
 			var shadow = target.ownerDocument.createElement('div');
 			shadow.innerHTML = this.getHTML();
-			
+
 			const luckyLength = 3;
-			
+
 			var ti = 0, si = 0;
 			var scount = shadow.childNodes.length;
-			
+
 			for (ti = 0; ti < target.childNodes.length; ti++) {
 				var tnode = target.childNodes[ti];
 				let match = false;
-				for (let si1 = si; si1 < shadow.childNodes.length;si1++) {
+				for (let si1 = si; si1 < shadow.childNodes.length; si1++) {
 					var snode = shadow.childNodes[si1];
 					match = tnode.isEqualNode(snode);
 					//cond1. replace the shadow's child
@@ -138,7 +138,7 @@ namespace MarkdownIME {
 				}
 				match && ti--; //if match, ti = ti - 1 , because the tnode moved to shadow.
 			}
-			
+
 			target.innerHTML = ""; //clear all nodes.
 			while (shadow.childNodes.length) {
 				target.appendChild(shadow.firstChild);
@@ -171,15 +171,14 @@ namespace MarkdownIME {
 		}
 
 		render(tree: DomChaos) {
-			var self = this;
-			tree.replace(this.regex, function(whole, wrapped) {
-				return Utils.generateElementHTML(self.nodeName, self.nodeAttr, Utils.text2html(wrapped));
-			});
+			tree.replace(this.regex, (whole, wrapped) => (
+				Utils.generateElementHTML(this.nodeName, this.nodeAttr, Utils.text2html(wrapped))
+			));
 		}
 
 		unrender(node: HTMLElement) {
 			if (node.nodeType == Node.ELEMENT_NODE && node.nodeName == this.nodeName) {
-				
+
 			}
 		}
 	}

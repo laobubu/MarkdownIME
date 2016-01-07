@@ -2,7 +2,7 @@
 
 body {
 	background-color: #333;
-	font-family: 'DejaVu Serif', 'Times New Roman', Times, 'Microsoft Yahei' , serif, 'Segoe UI', EmojiSymbols, Symbola;
+	font-family: 'DejaVu Sans', "PingFang SC", "Hiragino Sans GB", "Source Han Sans CN", "Source Han Sans SC", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", sans-serif, 'Segoe UI', EmojiSymbols, Symbola;
 	margin: 0;
 	transition: background-image 2s ease;
 }
@@ -25,6 +25,10 @@ body > section {
 	padding: 20pt 30pt;
 	perspective: 500;
 	-webkit-perspective: 500;
+}
+
+.s1 h1, .s1 .subtitle {
+	font-family: 'DejaVu Serif', 'Times New Roman', Times, "PingFang SC", "Hiragino Sans GB", "Source Han Sans CN", "Source Han Sans SC", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", serif;
 }
 
 

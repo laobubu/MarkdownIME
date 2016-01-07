@@ -60,7 +60,7 @@ namespace MarkdownIME.Addon {
 				for (let s_i = shortcut_phrases.length - 1; s_i >= 0; s_i--) {
 					let regex = shortcut_phrases[s_i];
 					if (!(regex instanceof RegExp)) {
-						regex = new RegExp((<string>regex).replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
+						regex = new RegExp(Utils.text2regex(<string>regex), "g");
 					}
 					this.shortcuts_cache.push({
 						regexp: <RegExp>regex,

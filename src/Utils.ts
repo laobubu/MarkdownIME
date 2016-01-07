@@ -2,12 +2,13 @@ namespace MarkdownIME.Utils {
 	
 	export namespace Pattern {
 		export namespace NodeName {
-			export var list = /^(UL|OL)$/;
-			export var li = /^LI$/;
-			export var line = /^(P|DIV|H\d)$/;
-			export var blockquote = /^BLOCKQUOTE$/;
-			export var pre = /^PRE$/;
-			export var hr = /^HR$/;
+			export var list = /^(UL|OL)$/i;
+			export var li = /^LI$/i;
+			export var line = /^(P|DIV|H\d)$/i;
+			export var blockquote = /^BLOCKQUOTE$/i;
+			export var pre = /^PRE$/i;
+			export var hr = /^HR$/i;
+			export var autoClose = /^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
 		}
 	}
 	
@@ -135,12 +136,29 @@ namespace MarkdownIME.Utils {
 		}
 		return rtn;
 	}
+
+	/** convert some chars to HTML entities (`&` -> `&amp;`) */
+	export function text2html(text: string): string {
+		return text.replace(/&/g, '&amp;').replace(/  /g, ' &nbsp;').replace(/"/g, '&quot;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
+	}
 	
-	/**
-	 * text2html
-	 */
-	export function text2html(text : string) {
-		return text.replace(/&/g, '&amp;').replace(/  /g, '&nbsp;&nbsp;').replace(/"/g, '&quot;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
+	/** add slash chars for a RegExp */
+	export function text2regex(text: string): string {
+		return text.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+	}
+	
+	/** convert HTML entities to chars */
+	export function html_entity_decode(html: string): string {
+		var dict = {
+            'nbsp': String.fromCharCode(160),
+            'amp': '&',
+            'quot': '"',
+            'lt': '<',
+            'gt': '>'
+        }
+		return html.replace(/&(nbsp|amp|quot|lt|gt);/g, function(whole, name) {
+			return dict[name];
+		})
 	}
 	
 	/**
@@ -182,7 +200,7 @@ namespace MarkdownIME.Utils {
 		if (innerHTML) {
 			rtn += innerHTML + "</" + nodeName + ">";
 		} else 
-		if (!/^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i.test(nodeName)) {
+		if (!Pattern.NodeName.autoClose.test(nodeName)) {
 			rtn += "</" + nodeName + ">";
 		}
 		return rtn;

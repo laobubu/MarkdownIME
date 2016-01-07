@@ -27,7 +27,7 @@ namespace MarkdownIME {
 			var repFun = this.createProxy.bind(this);
 
 			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
-			html = html.replace(/<\/?\w+(\s+[^>]+)?>/g, repFun); //normal tags
+			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
 			html = html.replace(/\\./g, repFun); //escaping chars like \*
 			
 			html = Utils.html_entity_decode(html);
@@ -99,7 +99,6 @@ namespace MarkdownIME {
 		 * apply the HTML content to a real element and 
 		 * keep original child nodes as much as possible
 		 * 
-		 * using outerHTML, which not work on FireFox < 11.0
 		 * using a simple diff algorithm
 		 */
 		applyTo(target: HTMLElement) {
@@ -116,12 +115,26 @@ namespace MarkdownIME {
 				let match = false;
 				for (let si1 = si; si1 < shadow.childNodes.length;si1++) {
 					var snode = shadow.childNodes[si1];
-					if (snode.isEqualNode(tnode)) {
+					match = tnode.isEqualNode(snode);
+					//cond1. replace the shadow's child
+					if (match) {
 						shadow.replaceChild(tnode, snode);
 						si = si1 + 1;
-						match = true;
 						break;
 					}
+					//cond2. replace the shadow's child's child
+					//which means some original node just got wrapped.
+					if (snode.nodeType == Node.ELEMENT_NODE) {
+						for (let si2 = 0; si2 < snode.childNodes.length; si2++) {
+							let snodec = snode.childNodes[si2];
+							if (tnode.isEqualNode(snodec)) {
+								snode.replaceChild(tnode, snodec);
+								match = true;
+								break;
+							}
+						}
+					}
+					if (match) break;
 				}
 				match && ti--; //if match, ti = ti - 1 , because the tnode moved to shadow.
 			}

@@ -6,12 +6,13 @@ var MarkdownIME;
         (function (Pattern) {
             var NodeName;
             (function (NodeName) {
-                NodeName.list = /^(UL|OL)$/;
-                NodeName.li = /^LI$/;
-                NodeName.line = /^(P|DIV|H\d)$/;
-                NodeName.blockquote = /^BLOCKQUOTE$/;
-                NodeName.pre = /^PRE$/;
-                NodeName.hr = /^HR$/;
+                NodeName.list = /^(UL|OL)$/i;
+                NodeName.li = /^LI$/i;
+                NodeName.line = /^(P|DIV|H\d)$/i;
+                NodeName.blockquote = /^BLOCKQUOTE$/i;
+                NodeName.pre = /^PRE$/i;
+                NodeName.hr = /^HR$/i;
+                NodeName.autoClose = /^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
             })(NodeName = Pattern.NodeName || (Pattern.NodeName = {}));
         })(Pattern = Utils.Pattern || (Utils.Pattern = {}));
         /**
@@ -147,13 +148,30 @@ var MarkdownIME;
             return rtn;
         }
         Utils.build_parent_list = build_parent_list;
-        /**
-         * text2html
-         */
+        /** convert some chars to HTML entities (`&` -> `&amp;`) */
         function text2html(text) {
-            return text.replace(/&/g, '&amp;').replace(/  /g, '&nbsp;&nbsp;').replace(/"/g, '&quot;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
+            return text.replace(/&/g, '&amp;').replace(/  /g, ' &nbsp;').replace(/"/g, '&quot;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
         }
         Utils.text2html = text2html;
+        /** add slash chars for a RegExp */
+        function text2regex(text) {
+            return text.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+        }
+        Utils.text2regex = text2regex;
+        /** convert HTML entities to chars */
+        function html_entity_decode(html) {
+            var dict = {
+                'nbsp': String.fromCharCode(160),
+                'amp': '&',
+                'quot': '"',
+                'lt': '<',
+                'gt': '>'
+            };
+            return html.replace(/&(nbsp|amp|quot|lt|gt);/g, function (whole, name) {
+                return dict[name];
+            });
+        }
+        Utils.html_entity_decode = html_entity_decode;
         /**
          * remove whitespace in the DOM text. works for textNode.
          */
@@ -194,7 +212,7 @@ var MarkdownIME;
             if (innerHTML) {
                 rtn += innerHTML + "</" + nodeName + ">";
             }
-            else if (!/^(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i.test(nodeName)) {
+            else if (!Pattern.NodeName.autoClose.test(nodeName)) {
                 rtn += "</" + nodeName + ">";
             }
             return rtn;
@@ -202,69 +220,271 @@ var MarkdownIME;
         Utils.generateElementHTML = generateElementHTML;
     })(Utils = MarkdownIME.Utils || (MarkdownIME.Utils = {}));
 })(MarkdownIME || (MarkdownIME = {}));
+/// <reference path="Utils.ts" />
+var MarkdownIME;
+(function (MarkdownIME) {
+    /** something like a bridge between text and HTML, used to manipulate inline objects. */
+    var DomChaos = (function () {
+        function DomChaos() {
+            /**
+             * the XML-free text; all the XML tags go to proxyStorage.
+             *
+             * use `/\uFFFC\uFFF9\w+\uFFFB/g` to detect the placeholder(proxy)
+             *
+             * if you get new HTML data, use `setHTML(data)`
+             * if you want to replace some text to HTML, use `replace(pattern, replacementHTML)`
+             */
+            this.text = "";
+            /** a dict containing XML marks extracted from the innerHTML  */
+            this.proxyStorage = {};
+            this.markCount = 0; // a random seed
+            this.markPrefix = String.fromCharCode(0xfffc, 0xfff9);
+            this.markSuffix = String.fromCharCode(0xfffb);
+        }
+        /** clone content of a real element */
+        DomChaos.prototype.cloneNode = function (htmlElement) {
+            var html = htmlElement.innerHTML;
+            this.setHTML(html);
+        };
+        /** extract strange things and get clean text. */
+        DomChaos.prototype.digestHTML = function (html) {
+            var repFun = this.createProxy.bind(this);
+            html = html.replace(/<!--.+?-->/g, repFun); //comment tags
+            html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
+            html = html.replace(/\\(.)/g, String.fromCharCode(0x001B) + "$1"); //use \u001B to do char escaping
+            html = html.replace(/\u001B./g, repFun); //escaping chars like \*
+            html = MarkdownIME.Utils.html_entity_decode(html);
+            return html;
+        };
+        /** set HTML content, which will update proxy storage */
+        DomChaos.prototype.setHTML = function (html) {
+            this.markCount = 0;
+            this.proxyStorage = {};
+            html = this.digestHTML(html);
+            this.text = html;
+        };
+        /** get HTML content. things in proxyStorage will be recovered. */
+        DomChaos.prototype.getHTML = function () {
+            var _this = this;
+            var rtn = MarkdownIME.Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
+            rtn = rtn.replace(/\uFFFC\uFFF9\w+\uFFFB/g, function (mark) { return (_this.proxyStorage[mark]); });
+            return rtn;
+        };
+        /**
+         * replace some text to HTML
+         * this is very helpful if the replacement is part of HTML / you are about to create new nodes.
+         *
+         * @argument {RegExp}   pattern to match the text (not HTML)
+         * @argument {function} replacementHTML the replacement HTML (not text. you shall convert the strange chars like `<` and `>` to html entities)
+         */
+        DomChaos.prototype.replace = function (pattern, replacementHTML) {
+            var self = this;
+            this.text = this.text.replace(pattern, function () {
+                var r2;
+                if (typeof replacementHTML === "function") {
+                    r2 = replacementHTML.apply(null, arguments);
+                }
+                else {
+                    r2 = replacementHTML;
+                }
+                return self.digestHTML(r2);
+            });
+        };
+        /**
+         * replace the tags from proxyStorage. this works like a charm when you want to un-render something.
+         *
+         * @argument {RegExp} pattern to match the proxy content.
+         * @argument {boolean} [keepProxy] set to true if you want to keep the proxy placeholder in the text.
+         *
+         * @example
+         * chaos.screwUp(/^<\/?b>$/gi, "**")
+         * //before: getHTML() == "Hello <b>World</b>"	proxyStorage == {1: "<b>", 2: "</b>"}
+         * //after:  getHTML() == "Hello **World**"		proxyStorage == {}
+         */
+        DomChaos.prototype.screwUp = function (pattern, replacement, keepProxy) {
+            var _this = this;
+            var screwed = {};
+            var not_screwed = {};
+            this.text = this.text.replace(/\uFFFC\uFFF9\w+\uFFFB/g, function (mark) {
+                if (screwed.hasOwnProperty(mark))
+                    return screwed[mark];
+                if (not_screwed.hasOwnProperty(mark))
+                    return mark;
+                var r1 = _this.proxyStorage[mark];
+                var r2 = r1.replace(pattern, replacement);
+                if (r1 === r2) {
+                    //nothing changed
+                    not_screwed[mark] = true;
+                    return mark;
+                }
+                if (keepProxy)
+                    _this.proxyStorage[mark] = r2;
+                else
+                    delete _this.proxyStorage[mark];
+                screwed[mark] = r2;
+                return r2;
+            });
+        };
+        /** storage some text to proxyStorage, and return its mark string */
+        DomChaos.prototype.createProxy = function (reality) {
+            var mark;
+            for (mark in this.proxyStorage) {
+                if (this.proxyStorage[mark] === reality)
+                    return mark;
+            }
+            mark = this.nextMark();
+            this.proxyStorage[mark] = reality;
+            return mark;
+        };
+        /** generate a random mark string */
+        DomChaos.prototype.nextMark = function () {
+            var mark;
+            do {
+                this.markCount++;
+                mark = this.markPrefix + this.markCount.toString(36) + this.markSuffix;
+            } while (this.text.indexOf(mark) !== -1);
+            return mark;
+        };
+        /**
+         * apply the HTML content to a real element and
+         * keep original child nodes as much as possible
+         *
+         * using a simple diff algorithm
+         */
+        DomChaos.prototype.applyTo = function (target) {
+            var shadow = target.ownerDocument.createElement('div');
+            shadow.innerHTML = this.getHTML();
+            //the childNodes from shadow not have corresponding nodes from target.
+            var wildChildren = [].slice.call(shadow.childNodes, 0);
+            for (var ti = 0; ti < target.childNodes.length; ti++) {
+                var tnode = target.childNodes[ti];
+                var match = false;
+                for (var si1 = 0; si1 < wildChildren.length; si1++) {
+                    var snode = wildChildren[si1];
+                    match = tnode.isEqualNode(snode);
+                    //cond1. replace the shadow's child
+                    if (match) {
+                        shadow.replaceChild(tnode, snode);
+                        wildChildren.splice(si1, 1);
+                        break;
+                    }
+                    //cond2. replace the shadow's child's child
+                    //which means some original node just got wrapped.
+                    if (snode.nodeType == Node.ELEMENT_NODE) {
+                        for (var si2 = 0; si2 < snode.childNodes.length; si2++) {
+                            var snodec = snode.childNodes[si2];
+                            if (tnode.isEqualNode(snodec)) {
+                                snode.replaceChild(tnode, snodec);
+                                match = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (match)
+                        break;
+                }
+                match && ti--; //if match, ti = ti - 1 , because the tnode moved to shadow.
+            }
+            target.innerHTML = ""; //clear all nodes.
+            while (shadow.childNodes.length) {
+                target.appendChild(shadow.firstChild);
+            }
+        };
+        return DomChaos;
+    })();
+    MarkdownIME.DomChaos = DomChaos;
+})(MarkdownIME || (MarkdownIME = {}));
 /// <reference path="../Utils.ts" />
+/// <reference path="../VDom.ts" />
 var MarkdownIME;
 (function (MarkdownIME) {
     var Renderer;
     (function (Renderer) {
+        /** the render rule for Markdown simple inline wrapper like *emphasis* ~~and~~ `inline code` */
+        var InlineWrapperRule = (function () {
+            function InlineWrapperRule(nodeName, leftBracket, rightBracket) {
+                this.nodeAttr = {};
+                this.nodeName = nodeName.toUpperCase();
+                this.leftBracket = leftBracket;
+                this.rightBracket = rightBracket || leftBracket;
+                this.name = this.nodeName + " with " + this.leftBracket;
+                this.regex = new RegExp(MarkdownIME.Utils.text2regex(this.leftBracket) + '([^' + MarkdownIME.Utils.text2regex(this.rightBracket) + '].*?)' + MarkdownIME.Utils.text2regex(this.rightBracket), "g");
+                this.regex2_L = new RegExp("^<" + this.nodeName + "(\\s+[^>]*)?>$", "gi");
+                this.regex2_R = new RegExp("^</" + this.nodeName + ">$", "gi");
+            }
+            InlineWrapperRule.prototype.render = function (tree) {
+                var _this = this;
+                tree.replace(this.regex, function (whole, wrapped) { return (MarkdownIME.Utils.generateElementHTML(_this.nodeName, _this.nodeAttr, MarkdownIME.Utils.text2html(wrapped))); });
+            };
+            InlineWrapperRule.prototype.unrender = function (tree) {
+                tree.screwUp(this.regex2_L, this.leftBracket);
+                tree.screwUp(this.regex2_R, this.rightBracket);
+            };
+            return InlineWrapperRule;
+        })();
+        Renderer.InlineWrapperRule = InlineWrapperRule;
         /**
          * Use RegExp to do replace.
          * One implement of IInlineRendererReplacement.
          */
-        var InlineRendererRegexpReplacement = (function () {
-            function InlineRendererRegexpReplacement(name, regex, replacement) {
+        var InlineRegexRule = (function () {
+            function InlineRegexRule(name, regex, replacement) {
                 this.name = name;
                 this.regex = regex;
                 this.replacement = replacement;
             }
-            InlineRendererRegexpReplacement.prototype.method = function (text) {
-                return text.replace(this.regex, this.replacement);
+            InlineRegexRule.prototype.render = function (tree) {
+                tree.replace(this.regex, this.replacement);
             };
-            return InlineRendererRegexpReplacement;
+            InlineRegexRule.prototype.unrender = function (tree) {
+                //not implemented
+            };
+            return InlineRegexRule;
         })();
-        Renderer.InlineRendererRegexpReplacement = InlineRendererRegexpReplacement;
+        Renderer.InlineRegexRule = InlineRegexRule;
         /**
          * InlineRenderer: Renderer for inline objects
          *
          *  [Things to be rendered] -> replacement chain -> [Renderer output]
          *  (you can also add your custom inline replacement)
          *
-         * @example MarkdownIME.Renderer.InlineRenderer.makeMarkdownRenderer().RenderHTML('**Hello Markdown**')
+         * @example
+         * var renderer = new MarkdownIME.Renderer.InlineRenderer();
+         * renderer.AddMarkdownRules();
+         * renderer.RenderHTML('**Hello Markdown**');
+         * // returns "<b>Hello Markdown</b>"
          */
         var InlineRenderer = (function () {
             function InlineRenderer() {
-                /** Replacements for this Renderer */
-                this.replacement = [];
+                /** Rules for this Renderer */
+                this.rules = [];
             }
-            /**
-             * do render.
-             * @note DOM whitespace will be removed by Utils.trim(str) .
-             * @note after escaping, `\` will become `<!--escaping-->`.
-             * @note if you want some chars escaped without `\`, use `<!--escaping-->`.
-             * @deprecated might not friendly to spaces. use RenderText instead.
-             */
-            InlineRenderer.prototype.RenderHTML = function (html) {
-                var rtn = MarkdownIME.Utils.trim(html);
-                var i, rule;
-                for (i = 0; i < this.replacement.length; i++) {
-                    rule = this.replacement[i];
-                    rtn = rule.method(rtn);
+            /** Render, on a DomChaos object */
+            InlineRenderer.prototype.RenderChaos = function (tree) {
+                for (var i = 0; i < this.rules.length; i++) {
+                    var rule = this.rules[i];
+                    if (typeof rule.unrender === "function")
+                        rule.unrender(tree);
                 }
-                return rtn;
+                for (var i = 0; i < this.rules.length; i++) {
+                    var rule = this.rules[i];
+                    rule.render(tree);
+                }
+            };
+            /** Render a HTML part, returns a new HTML part */
+            InlineRenderer.prototype.RenderHTML = function (html) {
+                var tree = new MarkdownIME.DomChaos();
+                tree.setHTML(html);
+                this.RenderChaos(tree);
+                return tree.getHTML();
             };
             /**
-             * do render.
-             * @note after escaping, `\` will become `<!--escaping-->`.
+             * Markdown Text to HTML
+             * @note after escaping, `\` will become `\u001B`.
              * @return {string} HTML Result
              */
             InlineRenderer.prototype.RenderText = function (text) {
-                var rtn = text;
-                var i, rule;
-                for (i = 0; i < this.replacement.length; i++) {
-                    rule = this.replacement[i];
-                    rtn = rule.method(rtn);
-                }
-                return rtn;
+                return this.RenderHTML(MarkdownIME.Utils.text2html(text));
             };
             /**
              * do render on a textNode
@@ -274,9 +494,8 @@ var MarkdownIME;
             InlineRenderer.prototype.RenderTextNode = function (node) {
                 var docfrag = node.ownerDocument.createElement('div');
                 var nodes;
-                var source = node.textContent;
-                docfrag.innerHTML = this.RenderText(source);
-                nodes = [].slice.call(docfrag.childNodes);
+                docfrag.textContent = node.textContent;
+                nodes = this.RenderNode(docfrag);
                 while (docfrag.lastChild) {
                     node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
                 }
@@ -288,99 +507,41 @@ var MarkdownIME;
              * @return the output nodes
              */
             InlineRenderer.prototype.RenderNode = function (node) {
-                if (node.nodeType == Node.TEXT_NODE) {
-                    return this.RenderTextNode(node);
-                }
-                var textNodes = this.PreproccessTextNodes(node);
-                var textNode;
-                var rtn = [];
-                while (textNode = textNodes.shift()) {
-                    console.log('inline', textNode);
-                    var r1 = this.RenderTextNode(textNode);
-                    rtn.push.apply(rtn, r1);
-                }
-                return rtn;
+                console.log('Inline renderer on', node);
+                var tree = new MarkdownIME.DomChaos();
+                tree.cloneNode(node);
+                this.RenderChaos(tree);
+                tree.applyTo(node);
+                return [].slice.call(node.childNodes, 0);
             };
-            /**
-             * remove all child comments whose text is "escaping"
-             * if the comments are followed by a textNode, add a escaping char "\" to the textNode
-             * @note this function do recursive processing
-             * @return {Node[]} all textNode. The first item is the last textNode.
-             */
-            InlineRenderer.prototype.PreproccessTextNodes = function (parent) {
-                if (!parent || parent.nodeType != Node.ELEMENT_NODE)
-                    return [];
-                var i = parent.childNodes.length - 1;
-                var rtn = [];
-                while (i >= 0) {
-                    var child = parent.childNodes[i];
-                    var nextSibling = child.nextSibling;
-                    switch (child.nodeType) {
-                        case Node.COMMENT_NODE:
-                            if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE && child.textContent == "escaping") {
-                                // <!--escaping--> [TEXT_NODE]
-                                nextSibling.textContent = "\\" + nextSibling.textContent;
-                                parent.removeChild(child);
-                            }
-                            break;
-                        case Node.TEXT_NODE:
-                            if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE) {
-                                // [TEXT_NODE] [TEXT_NODE]
-                                child.textContent += nextSibling.textContent;
-                                parent.removeChild(nextSibling);
-                                rtn.pop();
-                            }
-                            rtn.push(child);
-                            break;
-                        case Node.ELEMENT_NODE:
-                            var recursive_result = this.PreproccessTextNodes(child);
-                            rtn.push.apply(rtn, recursive_result);
-                            break;
-                    }
-                    i--;
-                }
-                return rtn;
-            };
-            /**
-             * Add Markdown Rules into this InlineRenderer
-             */
+            /** Add basic Markdown rules into this InlineRenderer */
             InlineRenderer.prototype.AddMarkdownRules = function () {
-                this.replacement = InlineRenderer.markdownReplacement.concat(this.replacement);
+                this.rules = InlineRenderer.markdownReplacement.concat(this.rules);
                 return this;
             };
             /** Add one extra replacing rule */
             InlineRenderer.prototype.AddRule = function (rule) {
-                this.replacement.push(rule);
+                this.rules.push(rule);
             };
             /** Suggested Markdown Replacement */
             InlineRenderer.markdownReplacement = [
                 //NOTE process bold first, then italy.
-                //NOTE safe way to get payload:
-                //		((?:\\\_|[^\_])*[^\\])
-                //		in which _ is the right bracket char
-                //Preproccess
-                new InlineRendererRegexpReplacement("escaping", /(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g, function (a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';'; }),
-                new InlineRendererRegexpReplacement("turn &nbsp; into spaces", /&nbsp;/g, String.fromCharCode(160)),
-                new InlineRendererRegexpReplacement('turn &quot; into "s', /&quot;/g, '"'),
-                //Basic Markdown Replacements
-                new InlineRendererRegexpReplacement("strikethrough", /~~([^~]+)~~/g, "<del>$1</del>"),
-                new InlineRendererRegexpReplacement("bold", /\*\*([^\*]+)\*\*/g, "<b>$1</b>"),
-                new InlineRendererRegexpReplacement("italy", /\*([^\*]+)\*/g, "<i>$1</i>"),
-                new InlineRendererRegexpReplacement("code", /`([^`]+)`/g, "<code>$1</code>"),
-                new InlineRendererRegexpReplacement("img with title", /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
+                new InlineWrapperRule("del", "~~"),
+                new InlineWrapperRule("strong", "**"),
+                new InlineWrapperRule("em", "*"),
+                new InlineWrapperRule("code", "`"),
+                new InlineRegexRule("img with title", /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
                     return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
                 }),
-                new InlineRendererRegexpReplacement("img", /\!\[([^\]]*)\]\(([^\)]+)\)/g, function (a, alt, src) {
+                new InlineRegexRule("img", /\!\[([^\]]*)\]\(([^\)]+)\)/g, function (a, alt, src) {
                     return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
                 }),
-                new InlineRendererRegexpReplacement("link with title", /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, text, href, b, title) {
-                    return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, text);
+                new InlineRegexRule("link with title", /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, text, href, b, title) {
+                    return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, MarkdownIME.Utils.text2html(text));
                 }),
-                new InlineRendererRegexpReplacement("link", /\[([^\]]*)\]\(([^\)]+)\)/g, function (a, text, href) {
-                    return MarkdownIME.Utils.generateElementHTML("a", { href: href }, text);
-                }),
-                //Postproccess
-                new InlineRendererRegexpReplacement("turn escaped chars back", /<!--escaping-->&#(\d+);/g, function (_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode); }),
+                new InlineRegexRule("link", /\[([^\]]*)\]\(([^\)]+)\)/g, function (a, text, href) {
+                    return MarkdownIME.Utils.generateElementHTML("a", { href: href }, MarkdownIME.Utils.text2html(text));
+                })
             ];
             return InlineRenderer;
         })();
@@ -623,6 +784,8 @@ var MarkdownIME;
                 this.use_twemoji = true;
                 this.twemoji_config = {};
                 this.full_syntax = /:(\w+):/g;
+                /** shortcuts RegExp cache. Order: [shortest, ..., longest] */
+                this.shortcuts_cache = [];
                 this.chars = {
                     "smile": "😄",
                     "smiley": "😃",
@@ -670,6 +833,7 @@ var MarkdownIME;
                     "worried": "😟",
                     "frowning": "😦",
                     "anguished": "😧",
+                    "imp": "👿",
                     "smiling_imp": "😈",
                     "open_mouth": "😮",
                     "neutral_face": "😐",
@@ -688,6 +852,9 @@ var MarkdownIME;
                     "crying_cat_face": "😿",
                     "joy_cat": "😹",
                     "pouting_cat": "😾",
+                    "heart": "❤️",
+                    "broken_heart": "💔",
+                    "two_hearts": "💕",
                     "sparkles": "✨",
                     "fist": "✊",
                     "hand": "✋",
@@ -740,7 +907,7 @@ var MarkdownIME;
                 };
                 /** shortcuts. use RegExp instead of string would be better. */
                 this.shortcuts = {
-                    mad: ['>:(', '>:-('],
+                    angry: ['>:(', '>:-('],
                     blush: [':")', ':-")'],
                     broken_heart: ['</3', '<\\3'],
                     // :\ and :-\ not used because of conflict with markdown escaping
@@ -748,6 +915,7 @@ var MarkdownIME;
                     cry: [":'(", ":'-(", ':,(', ':,-('],
                     frowning: [':(', ':-('],
                     heart: ['<3'],
+                    two_hearts: [/(<3|❤){2}/g],
                     imp: [']:(', ']:-('],
                     innocent: ['o:)', 'O:)', 'o:-)', 'O:-)', '0:)', '0:-)'],
                     joy: [":')", ":'-)", ':,)', ':,-)', ":'D", ":'-D", ':,D', ':,-D'],
@@ -768,35 +936,52 @@ var MarkdownIME;
                     wink: [';)', ';-)']
                 };
             }
-            EmojiAddon.prototype.method = function (text) {
+            EmojiAddon.prototype.render = function (tree) {
+                var text = tree.text;
                 text = text.replace(this.full_syntax, this.magic1.bind(this));
                 if (this.use_shortcuts) {
-                    for (var name_1 in this.shortcuts) {
-                        text = this.magic2(text, name_1);
-                    }
+                    text = this.magic2(text);
                 }
+                tree.text = text;
                 if (this.use_twemoji && typeof twemoji != "undefined") {
-                    text = twemoji.parse(text, this.twemoji_config);
+                    var html = tree.getHTML();
+                    var html2 = twemoji.parse(html, this.twemoji_config);
+                    if (html !== html2)
+                        tree.setHTML(html2);
                 }
-                return text;
             };
+            EmojiAddon.prototype.unrender = function (tree) { };
             /** magic1 translates `:name:` into proper emoji char */
             EmojiAddon.prototype.magic1 = function (fulltext, name) {
                 return this.chars[name] || fulltext;
             };
-            /** magic2 proccess shortcuts for a emoji */
-            EmojiAddon.prototype.magic2 = function (text, name) {
-                var t = this.shortcuts[name];
-                var c = this.chars[name];
-                if (!t || !c)
-                    return text;
-                for (var i = t.length - 1; i >= 0; i--) {
-                    if (!(t[i] instanceof RegExp)) {
-                        t[i] = new RegExp(t[i].replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"), "g");
-                    }
-                    text = text.replace(t[i], c);
+            /** magic2 proccess shortcuts for all emojis */
+            EmojiAddon.prototype.magic2 = function (text) {
+                if (!this.shortcuts_cache.length)
+                    this.UpdateShortcutCache();
+                for (var i = this.shortcuts_cache.length - 1; i >= 0; i--) {
+                    text = text.replace(this.shortcuts_cache[i].regexp, this.chars[this.shortcuts_cache[i].targetName]);
                 }
                 return text;
+            };
+            /** update the shortcuts RegExp cache. Run this after modifing the shortcuts! */
+            EmojiAddon.prototype.UpdateShortcutCache = function () {
+                this.shortcuts_cache = [];
+                for (var name_1 in this.shortcuts) {
+                    var shortcut_phrases = this.shortcuts[name_1];
+                    for (var s_i = shortcut_phrases.length - 1; s_i >= 0; s_i--) {
+                        var regex = shortcut_phrases[s_i];
+                        if (!(regex instanceof RegExp)) {
+                            regex = new RegExp(MarkdownIME.Utils.text2regex(regex), "g");
+                        }
+                        this.shortcuts_cache.push({
+                            regexp: regex,
+                            length: regex.toString().length,
+                            targetName: name_1
+                        });
+                    }
+                }
+                this.shortcuts_cache.sort(function (a, b) { return (a.length - b.length); });
             };
             return EmojiAddon;
         })();
@@ -1138,7 +1323,7 @@ var MarkdownIME;
                         var result = shall_do_block_rendering ? MarkdownIME.Renderer.blockRenderer.Elevate(node) : null;
                         if (result == null) {
                             //failed to elevate. this is just a plian inline rendering work.
-                            var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderNode(textnode);
+                            var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderTextNode(textnode);
                             var tail = result_1.pop();
                             MarkdownIME.Utils.move_cursor_to_end(tail);
                         }

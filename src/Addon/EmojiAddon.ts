@@ -20,18 +20,18 @@ namespace MarkdownIME.Addon {
 		twemoji_config = {};
 		
 		render(tree: DomChaos){
-			var text = tree.text
+			tree.replace(this.full_syntax, this.magic1.bind(this));
 			
-			text = text.replace(this.full_syntax, this.magic1.bind(this));
-			if (this.use_shortcuts) {
-				text = this.magic2(text);
-			}
-			tree.text = text;
-			
-			if (this.use_twemoji && typeof twemoji != "undefined") {
-				var html = tree.getHTML();
-				var html2 = twemoji.parse(html, this.twemoji_config);
-				if (html !== html2) tree.setHTML(html2);
+			if (this.use_shortcuts) {			
+				if (!this.shortcuts_cache.length) this.UpdateShortcutCache();
+				var self = this;
+				
+				for (var i = this.shortcuts_cache.length - 1; i >= 0; i--) {
+					tree.replace(
+						this.shortcuts_cache[i].regexp,
+						function() {return self.magic1(null, self.shortcuts_cache[i].targetName)}
+					);
+				}
 			}
 		}
 		
@@ -41,19 +41,11 @@ namespace MarkdownIME.Addon {
 		
 		/** magic1 translates `:name:` into proper emoji char */
 		magic1(fulltext: string, name: string): string {
-			return this.chars[name] || fulltext;
-		}
-		
-		/** magic2 proccess shortcuts for all emojis */
-		magic2(text: string) {
-			if (!this.shortcuts_cache.length) this.UpdateShortcutCache();
-			for (let i = this.shortcuts_cache.length - 1; i >= 0; i--) {
-				text = text.replace(
-					this.shortcuts_cache[i].regexp,
-					this.chars[this.shortcuts_cache[i].targetName]
-				);
+			var rtnval = this.chars[name] || fulltext;
+			if (this.use_twemoji && typeof twemoji != "undefined") {
+				rtnval = twemoji.parse(rtnval, this.twemoji_config);
 			}
-			return text;
+			return rtnval;
 		}
 		
 		/** shortcuts RegExp cache. Order: [shortest, ..., longest] */

@@ -937,32 +937,24 @@ var MarkdownIME;
                 };
             }
             EmojiAddon.prototype.render = function (tree) {
-                var text = tree.text;
-                text = text.replace(this.full_syntax, this.magic1.bind(this));
+                tree.replace(this.full_syntax, this.magic1.bind(this));
                 if (this.use_shortcuts) {
-                    text = this.magic2(text);
-                }
-                tree.text = text;
-                if (this.use_twemoji && typeof twemoji != "undefined") {
-                    var html = tree.getHTML();
-                    var html2 = twemoji.parse(html, this.twemoji_config);
-                    if (html !== html2)
-                        tree.setHTML(html2);
+                    if (!this.shortcuts_cache.length)
+                        this.UpdateShortcutCache();
+                    var self = this;
+                    for (var i = this.shortcuts_cache.length - 1; i >= 0; i--) {
+                        tree.replace(this.shortcuts_cache[i].regexp, function () { return self.magic1(null, self.shortcuts_cache[i].targetName); });
+                    }
                 }
             };
             EmojiAddon.prototype.unrender = function (tree) { };
             /** magic1 translates `:name:` into proper emoji char */
             EmojiAddon.prototype.magic1 = function (fulltext, name) {
-                return this.chars[name] || fulltext;
-            };
-            /** magic2 proccess shortcuts for all emojis */
-            EmojiAddon.prototype.magic2 = function (text) {
-                if (!this.shortcuts_cache.length)
-                    this.UpdateShortcutCache();
-                for (var i = this.shortcuts_cache.length - 1; i >= 0; i--) {
-                    text = text.replace(this.shortcuts_cache[i].regexp, this.chars[this.shortcuts_cache[i].targetName]);
+                var rtnval = this.chars[name] || fulltext;
+                if (this.use_twemoji && typeof twemoji != "undefined") {
+                    rtnval = twemoji.parse(rtnval, this.twemoji_config);
                 }
-                return text;
+                return rtnval;
             };
             /** update the shortcuts RegExp cache. Run this after modifing the shortcuts! */
             EmojiAddon.prototype.UpdateShortcutCache = function () {

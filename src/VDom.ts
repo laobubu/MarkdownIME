@@ -105,21 +105,19 @@ namespace MarkdownIME {
 			var shadow = target.ownerDocument.createElement('div');
 			shadow.innerHTML = this.getHTML();
 
-			const luckyLength = 3;
+			//the childNodes from shadow not have corresponding nodes from target.
+			var wildChildren : Node[] = [].slice.call(shadow.childNodes, 0);
 
-			var ti = 0, si = 0;
-			var scount = shadow.childNodes.length;
-
-			for (ti = 0; ti < target.childNodes.length; ti++) {
+			for (let ti = 0; ti < target.childNodes.length; ti++) {
 				var tnode = target.childNodes[ti];
 				let match = false;
-				for (let si1 = si; si1 < shadow.childNodes.length; si1++) {
-					var snode = shadow.childNodes[si1];
+				for (let si1 = 0; si1 < wildChildren.length; si1++) {
+					var snode = wildChildren[si1];
 					match = tnode.isEqualNode(snode);
 					//cond1. replace the shadow's child
 					if (match) {
 						shadow.replaceChild(tnode, snode);
-						si = si1 + 1;
+						wildChildren.splice(si1, 1);
 						break;
 					}
 					//cond2. replace the shadow's child's child

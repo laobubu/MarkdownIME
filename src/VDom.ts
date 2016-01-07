@@ -1,3 +1,4 @@
+/// <reference path="Utils.ts" />
 
 namespace MarkdownIME {
 	
@@ -179,51 +180,4 @@ namespace MarkdownIME {
 			}
 		}
 	}
-	
-	/** the render rule for  */
-	export class InlineClassicElement {
-		name: string;
-
-		nodeName: string;
-		leftBracket: string;
-		rightBracket: string;
-
-		nodeAttr = {};
-
-		regex: RegExp; //for Markdown syntax like **(.+)**
-		regex2_L: RegExp;	//for HTML tags like <b>
-		regex2_R: RegExp;	//for HTML tags like </b>
-
-		constructor(nodeName: string, leftBracket: string, rightBracket?: string) {
-			this.nodeName = nodeName.toUpperCase();
-			this.leftBracket = leftBracket;
-			this.rightBracket = rightBracket || leftBracket;
-			this.name = this.nodeName + " with " + this.leftBracket;
-
-			this.regex = new RegExp(
-				Utils.text2regex(this.leftBracket) + '(.+?)' + Utils.text2regex(this.rightBracket),
-				"g"
-			);
-			this.regex2_L = new RegExp(
-				"^<" + this.nodeName + "(\\s+[^>]*)?>$",
-				"gi"
-			);
-			this.regex2_R = new RegExp(
-				"^</" + this.nodeName + ">$",
-				"gi"
-			);
-		}
-
-		render(tree: DomChaos) {
-			tree.replace(this.regex, (whole, wrapped) => (
-				Utils.generateElementHTML(this.nodeName, this.nodeAttr, Utils.text2html(wrapped))
-			));
-		}
-
-		unrender(tree: DomChaos) {
-			tree.screwUp(this.regex2_L, this.leftBracket);
-			tree.screwUp(this.regex2_R, this.rightBracket);
-		}
-	}
-
 }

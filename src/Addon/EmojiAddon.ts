@@ -9,7 +9,7 @@ namespace MarkdownIME.Addon {
 	 * 
 	 * @see https://github.com/markdown-it/markdown-it-emoji/
 	 */
-	export class EmojiAddon implements MarkdownIME.Renderer.IInlineRendererReplacement {
+	export class EmojiAddon implements MarkdownIME.Renderer.IInlineRule {
 
 		name = "Emoji";
 
@@ -18,17 +18,24 @@ namespace MarkdownIME.Addon {
 		/** use twemoji to get `img` tags if possible. if it bothers, disable it. */
 		use_twemoji: boolean = true;
 		twemoji_config = {};
-
-		method(text: string): string {
+		
+		render(tree: DomChaos){
+			var text = tree.text
+			
 			text = text.replace(this.full_syntax, this.magic1.bind(this));
 			if (this.use_shortcuts) {
 				text = this.magic2(text);
 			}
+			tree.text = text;
+			
 			if (this.use_twemoji && typeof twemoji != "undefined") {
-				text = twemoji.parse(text, this.twemoji_config);
+				var html = tree.getHTML();
+				var html2 = twemoji.parse(html, this.twemoji_config);
+				if (html !== html2) tree.setHTML(html2);
 			}
-			return text;
 		}
+		
+		unrender(tree: DomChaos){}
 
 		full_syntax = /:(\w+):/g;
 		

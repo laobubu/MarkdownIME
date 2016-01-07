@@ -321,7 +321,7 @@ export class Editor {
 					let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>node) : null;
                     if (result == null ) {
                         //failed to elevate. this is just a plian inline rendering work.
-                        let result = Renderer.inlineRenderer.RenderNode(textnode);
+                        let result = Renderer.inlineRenderer.RenderTextNode(textnode);
                         let tail = <HTMLElement> result.pop();
 						Utils.move_cursor_to_end(tail);
                     } else

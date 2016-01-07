@@ -1,20 +1,68 @@
 /// <reference path="../Utils.ts" />
+/// <reference path="../VDom.ts" />
 
 namespace MarkdownIME.Renderer {
 	/**
 	 * IInlineRendererReplacement
 	 * @description can be used to implement customized replacement.
 	 */
-	export interface IInlineRendererReplacement {
+	export interface IInlineRule {
 		name: string;
-		method(text: string) : string;
+		render(tree: DomChaos);
+		unrender?(tree: DomChaos);
+	}
+	
+	/** the render rule for Markdown simple inline wrapper like *emphasis* ~~and~~ `inline code` */
+	export class InlineWrapperRule implements IInlineRule {
+		name: string;
+
+		nodeName: string;
+		leftBracket: string;
+		rightBracket: string;
+
+		nodeAttr = {};
+
+		regex: RegExp; //for Markdown syntax like **(.+)**
+		regex2_L: RegExp;	//for HTML tags like <b>
+		regex2_R: RegExp;	//for HTML tags like </b>
+
+		constructor(nodeName: string, leftBracket: string, rightBracket?: string) {
+			this.nodeName = nodeName.toUpperCase();
+			this.leftBracket = leftBracket;
+			this.rightBracket = rightBracket || leftBracket;
+			this.name = this.nodeName + " with " + this.leftBracket;
+
+			this.regex = new RegExp(
+				Utils.text2regex(this.leftBracket) + '([^' + Utils.text2regex(this.rightBracket) + '].*?)' + Utils.text2regex(this.rightBracket),
+				"g"
+			);
+			this.regex2_L = new RegExp(
+				"^<" + this.nodeName + "(\\s+[^>]*)?>$",
+				"gi"
+			);
+			this.regex2_R = new RegExp(
+				"^</" + this.nodeName + ">$",
+				"gi"
+			);
+		}
+
+		render(tree: DomChaos) {
+			tree.replace(this.regex, (whole, wrapped) => (
+				Utils.generateElementHTML(this.nodeName, this.nodeAttr, Utils.text2html(wrapped))
+			));
+		}
+
+		unrender(tree: DomChaos) {
+			tree.screwUp(this.regex2_L, this.leftBracket);
+			tree.screwUp(this.regex2_R, this.rightBracket);
+		}
 	}
 	
 	/**
 	 * Use RegExp to do replace.
 	 * One implement of IInlineRendererReplacement.
 	 */
-	export class InlineRendererRegexpReplacement implements IInlineRendererReplacement {
+	export class InlineRegexRule implements IInlineRule {
 		name: string;
 		regex : RegExp;
 		replacement : any;
@@ -25,8 +73,12 @@ namespace MarkdownIME.Renderer {
 			this.replacement = replacement;
 		}
 		
-		method(text: string) : string {
-			return text.replace(this.regex, this.replacement);
+		render(tree: DomChaos) {
+			tree.replace(this.regex, this.replacement);
+		}
+
+		unrender(tree: DomChaos) {
+			//not implemented
 		}
 	}
 	
@@ -45,120 +97,74 @@ namespace MarkdownIME.Renderer {
 	export class InlineRenderer {
 		
 		/** Suggested Markdown Replacement */
-		static markdownReplacement : IInlineRendererReplacement[] = [
+		static markdownReplacement: IInlineRule[] = [
 			//NOTE process bold first, then italy.
-			//NOTE safe way to get payload:
-			//		((?:\\\_|[^\_])*[^\\])
-			//		in which _ is the right bracket char
 			
-			//Preproccess
-			new InlineRendererRegexpReplacement(
-				"escaping",
-				/(\\|<!--escaping-->)([\*`\(\)\[\]\~\\])/g,
-				function(a, b, char) { return "<!--escaping-->&#" + char.charCodeAt(0) + ';' }
-			),
-			new InlineRendererRegexpReplacement(
-				"turn &nbsp; into spaces",
-				/&nbsp;/g,
-				String.fromCharCode(160)
-			),
-			new InlineRendererRegexpReplacement(
-				'turn &quot; into "s',
-				/&quot;/g,
-				'"'
-			),
-			
-			//Basic Markdown Replacements
-			new InlineRendererRegexpReplacement(
-				"strikethrough",
-				/~~([^~]+)~~/g,
-				"<del>$1</del>"
-			),
-			new InlineRendererRegexpReplacement(
-				"bold",
-				/\*\*([^\*]+)\*\*/g,
-				"<b>$1</b>"
-			),
-			new InlineRendererRegexpReplacement(
-				"italy",
-				/\*([^\*]+)\*/g,
-				"<i>$1</i>"
-			),
-			new InlineRendererRegexpReplacement(
-				"code",
-				/`([^`]+)`/g,
-				"<code>$1</code>"
-			),
-			new InlineRendererRegexpReplacement(
+			new InlineWrapperRule("del", "~~"),
+			new InlineWrapperRule("strong", "**"),
+			new InlineWrapperRule("em", "*"),
+			new InlineWrapperRule("code", "`"),
+			new InlineRegexRule(
 				"img with title",
 				/\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-				function(a,alt,src,b,title){
-					return Utils.generateElementHTML("img",{alt:alt,src:src,title:title})
+				function(a, alt, src, b, title) {
+					return Utils.generateElementHTML("img", { alt: alt, src: src, title: title })
 				}
 			),
-			new InlineRendererRegexpReplacement(
+			new InlineRegexRule(
 				"img",
 				/\!\[([^\]]*)\]\(([^\)]+)\)/g,
-				function(a,alt,src){
-					return Utils.generateElementHTML("img",{alt:alt,src:src})
+				function(a, alt, src) {
+					return Utils.generateElementHTML("img", { alt: alt, src: src })
 				}
 			),
-			new InlineRendererRegexpReplacement(
+			new InlineRegexRule(
 				"link with title",
 				/\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
-				function(a,text,href,b,title){
-					return Utils.generateElementHTML("a",{href:href,title:title},text)
+				function(a, text, href, b, title) {
+					return Utils.generateElementHTML("a", { href: href, title: title }, Utils.text2html(text))
 				}
 			),
-			new InlineRendererRegexpReplacement(
+			new InlineRegexRule(
 				"link",
 				/\[([^\]]*)\]\(([^\)]+)\)/g,
-				function(a,text,href){
-					return Utils.generateElementHTML("a",{href:href},text)
+				function(a, text, href) {
+					return Utils.generateElementHTML("a", { href: href }, Utils.text2html(text))
 				}
-			),
-			
-			//Postproccess
-			new InlineRendererRegexpReplacement(
-				"turn escaped chars back",
-				/<!--escaping-->&#(\d+);/g,
-				function(_, charCode) { return "<!--escaping-->" + String.fromCharCode(~~charCode) }
-			),
+			)
 		];
 		
-		/** Replacements for this Renderer */
-		replacement : IInlineRendererReplacement[] = [];
+		/** Rules for this Renderer */
+		rules: IInlineRule[] = [];
 		
-		/**
-		 * do render.
-		 * @note DOM whitespace will be removed by Utils.trim(str) .
-		 * @note after escaping, `\` will become `<!--escaping-->`.
-		 * @note if you want some chars escaped without `\`, use `<!--escaping-->`.
-         * @deprecated might not friendly to spaces. use RenderText instead.
-		 */
-		public RenderHTML(html : string) : string {
-			var rtn = Utils.trim(html);
-			var i, rule;
-			for (i = 0; i< this.replacement.length; i++) {
-				rule = this.replacement[i];
-				rtn = rule.method(rtn);
+		/** Render, on a DomChaos object */
+		public RenderChaos(tree: DomChaos) {
+			for (let i = 0; i < this.rules.length; i++) {
+				let rule = this.rules[i];
+				if (typeof rule.unrender === "function")
+					rule.unrender(tree);
 			}
-			return rtn;
+			for (let i = 0; i < this.rules.length; i++) {
+				let rule = this.rules[i];
+				rule.render(tree);
+			}
+		}
+		
+		/** Render a HTML part, returns a new HTML part */
+		public RenderHTML(html: string): string {
+			var tree: DomChaos = new DomChaos();
+			tree.setHTML(html);
+			this.RenderChaos(tree);
+			return tree.getHTML();
 		}
 		
 		/**
-		 * do render.
-		 * @note after escaping, `\` will become `<!--escaping-->`.
+		 * Markdown Text to HTML 
+		 * @note after escaping, `\` will become `\u001B`.
          * @return {string} HTML Result
 		 */
-		public RenderText(text : string) : string {
-			var rtn = text;
-			var i, rule : IInlineRendererReplacement;
-			for (i = 0; i< this.replacement.length; i++) {
-				rule = this.replacement[i];
-				rtn = rule.method(rtn);
-			}
-			return rtn;
+		public RenderText(text: string): string {
+			return this.RenderHTML(Utils.text2html(text));
 		}
         
         /**
@@ -169,9 +175,8 @@ namespace MarkdownIME.Renderer {
         public RenderTextNode(node : Node) : Node[] {
             var docfrag = node.ownerDocument.createElement('div');
             var nodes: Node[];
-            var source = node.textContent;
-            docfrag.innerHTML = this.RenderText(source);
-            nodes = [].slice.call(docfrag.childNodes);
+            docfrag.textContent = node.textContent;
+			nodes = this.RenderNode(docfrag);
             while(docfrag.lastChild) {
                 node.parentNode.insertBefore(docfrag.lastChild, node.nextSibling);
             }
@@ -183,79 +188,24 @@ namespace MarkdownIME.Renderer {
 		 * do render on a Node
 		 * @return the output nodes
 		 */
-		public RenderNode(node : Node) : Node[] {
-			if (node.nodeType == Node.TEXT_NODE) {
-                return this.RenderTextNode(node);
-            }
-            
-            var textNodes : Node[] = this.PreproccessTextNodes(node);
-            var textNode : Node;
-            var rtn : Node[] = [];
-            
-            while (textNode = textNodes.shift()) {
-                console.log('inline', textNode);
-                let r1 = this.RenderTextNode(textNode);
-                rtn.push.apply(rtn, r1);
-            }
-			return rtn;
+		public RenderNode(node : HTMLElement) : Node[] {
+			console.log('Inline renderer on', node);
+			var tree: DomChaos = new DomChaos();
+			tree.cloneNode(node)
+			this.RenderChaos(tree);
+			tree.applyTo(node);
+			return [].slice.call(node.childNodes,0);
 		}
-        
-        /**
-         * remove all child comments whose text is "escaping"
-         * if the comments are followed by a textNode, add a escaping char "\" to the textNode
-         * @note this function do recursive processing
-         * @return {Node[]} all textNode. The first item is the last textNode.
-         */
-        public PreproccessTextNodes(parent : Node) : Node[] {
-            if (!parent || parent.nodeType != Node.ELEMENT_NODE) return [];
-            var i = parent.childNodes.length - 1;
-            var rtn : Node[] = [];
-            while (i >= 0) {
-                let child = parent.childNodes[i];
-                let nextSibling = child.nextSibling;
-                
-                switch (child.nodeType) {
-                    
-                    case Node.COMMENT_NODE:
-                        if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE && child.textContent == "escaping") {
-                            // <!--escaping--> [TEXT_NODE]
-                            nextSibling.textContent = "\\" + nextSibling.textContent;
-                            parent.removeChild(child);
-                        }
-                        break;
-                
-                    case Node.TEXT_NODE:
-                        if (nextSibling && nextSibling.nodeType == Node.TEXT_NODE) {
-                            // [TEXT_NODE] [TEXT_NODE]
-                            child.textContent += nextSibling.textContent;
-                            parent.removeChild(nextSibling);
-                            rtn.pop();
-                        }
-                        rtn.push(child);
-                        break;
-                        
-                    case Node.ELEMENT_NODE:
-                        let recursive_result = this.PreproccessTextNodes(child);
-                        rtn.push.apply(rtn, recursive_result);
-                        break;
-                }
-                
-                i--;
-            }
-            return rtn;
-        }
 		
-		/**
-		 * Add Markdown Rules into this InlineRenderer
-		 */
+		/** Add basic Markdown rules into this InlineRenderer */
 		public AddMarkdownRules() : InlineRenderer {
-			this.replacement = InlineRenderer.markdownReplacement.concat(this.replacement);
+			this.rules = InlineRenderer.markdownReplacement.concat(this.rules);
 			return this;
 		}
 		
 		/** Add one extra replacing rule */
-		public AddRule(rule : IInlineRendererReplacement) {
-			this.replacement.push(rule);
+		public AddRule(rule : IInlineRule) {
+			this.rules.push(rule);
 		}
 	}
 }

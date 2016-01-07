@@ -28,7 +28,8 @@ namespace MarkdownIME {
 
 			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
 			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-			html = html.replace(/\\./g, repFun); //escaping chars like \*
+			html = html.replace(/\\(.)/g, String.fromCharCode(0x001B) + "$1"); //use \u001B to do char escaping
+			html = html.replace(/\u001B./g, repFun); //escaping chars like \*
 			
 			html = Utils.html_entity_decode(html);
 
@@ -69,6 +70,41 @@ namespace MarkdownIME {
 				return self.digestHTML(r2);
 			});
 		}
+		
+		/**
+		 * replace the tags from proxyStorage. this works like a charm when you want to un-render something.
+		 * 
+		 * @argument {RegExp} pattern to match the proxy content.
+		 * @argument {boolean} [keepProxy] set to true if you want to keep the proxy placeholder in the text.
+		 * 
+		 * @example
+		 * chaos.screwUp(/^<\/?b>$/gi, "**")
+		 * //before: getHTML() == "Hello <b>World</b>"	proxyStorage == {1: "<b>", 2: "</b>"}
+		 * //after:  getHTML() == "Hello **World**"		proxyStorage == {}
+		 */
+		screwUp(pattern: RegExp, replacement: string | ((...matchResult: string[]) => string), keepProxy?: boolean) {
+			var screwed = {};
+			var not_screwed = {};
+			this.text = this.text.replace(/\uFFFC\uFFF9\w+\uFFFB/g, (mark) => {
+				if (screwed.hasOwnProperty(mark)) return screwed[mark];
+				if (not_screwed.hasOwnProperty(mark)) return mark;
+
+				var r1 = this.proxyStorage[mark];
+				var r2 = r1.replace(pattern, replacement);
+
+				if (r1 === r2) {
+					//nothing changed
+					not_screwed[mark] = true;
+					return mark;
+				}
+
+				if (keepProxy) this.proxyStorage[mark] = r2;
+				else delete this.proxyStorage[mark];
+
+				screwed[mark] = r2;
+				return r2;
+			});
+		}
 
 		/** storage some text to proxyStorage, and return its mark string */
 		createProxy(reality: string): string {
@@ -106,7 +142,7 @@ namespace MarkdownIME {
 			shadow.innerHTML = this.getHTML();
 
 			//the childNodes from shadow not have corresponding nodes from target.
-			var wildChildren : Node[] = [].slice.call(shadow.childNodes, 0);
+			var wildChildren: Node[] = [].slice.call(shadow.childNodes, 0);
 
 			for (let ti = 0; ti < target.childNodes.length; ti++) {
 				var tnode = target.childNodes[ti];
@@ -154,7 +190,9 @@ namespace MarkdownIME {
 
 		nodeAttr = {};
 
-		regex: RegExp;
+		regex: RegExp; //for Markdown syntax like **(.+)**
+		regex2_L: RegExp;	//for HTML tags like <b>
+		regex2_R: RegExp;	//for HTML tags like </b>
 
 		constructor(nodeName: string, leftBracket: string, rightBracket?: string) {
 			this.nodeName = nodeName.toUpperCase();
@@ -166,6 +204,14 @@ namespace MarkdownIME {
 				Utils.text2regex(this.leftBracket) + '(.+?)' + Utils.text2regex(this.rightBracket),
 				"g"
 			);
+			this.regex2_L = new RegExp(
+				"^<" + this.nodeName + "(\\s+[^>]*)?>$",
+				"gi"
+			);
+			this.regex2_R = new RegExp(
+				"^</" + this.nodeName + ">$",
+				"gi"
+			);
 		}
 
 		render(tree: DomChaos) {
@@ -174,10 +220,9 @@ namespace MarkdownIME {
 			));
 		}
 
-		unrender(node: HTMLElement) {
-			if (node.nodeType == Node.ELEMENT_NODE && node.nodeName == this.nodeName) {
-
-			}
+		unrender(tree: DomChaos) {
+			tree.screwUp(this.regex2_L, this.leftBracket);
+			tree.screwUp(this.regex2_R, this.rightBracket);
 		}
 	}
 

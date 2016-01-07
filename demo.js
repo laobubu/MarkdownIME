@@ -106,10 +106,14 @@ var editor = document.getElementById('editor');
 var mdime_editor;
 var demotext;
 
+var loading = "|/-\\";
+var loading_i = 0;
+
 setTimeout(function showStart() {
 	if (typeof MarkdownIME !== "object") {
 		setTimeout(showStart, 100);
-		editor.innerHTML = "<p>Loading...</p>";
+		editor.innerHTML = "<p>Loading... " + loading.charAt(loading_i++) + " </p>";
+		if (loading_i >= loading.length) loading_i = 0;
 		return;
 	}
 	editor.innerHTML = "";
@@ -122,6 +126,13 @@ setTimeout(function showStart() {
 		editor.addEventListener("keydown", function(){magic.stop();}, false);
 	}
 }, 2000);
+
+setTimeout(function(){
+	if (typeof MarkdownIME !== "object") {
+		var s = document.getElementById('s_mdime');
+		s.setAttribute('src', s.getAttribute('src').replace("/rawgit.com", "/cdn.rawgit.com") + "?_=" + Math.random());
+	}
+},2000);
 
 ///////////////////////////BOOKMARKLET
 var mdimejs = document.getElementById('s_mdime').getAttribute('src');

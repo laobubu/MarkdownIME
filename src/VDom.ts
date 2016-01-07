@@ -37,6 +37,8 @@ namespace MarkdownIME {
 		
 		/** set HTML content, which will update proxy storage */
 		setHTML(html: string) {
+			this.markCount = 0;
+			this.proxyStorage = {};
 			html = this.digestHTML(html);
 			this.text = html;
 		}
@@ -55,6 +57,9 @@ namespace MarkdownIME {
 		/** 
 		 * replace some text to HTML
 		 * this is very helpful if the replacement is part of HTML / you are about to create new nodes.
+		 * 
+		 * @argument {RegExp}   pattern to match the text (not HTML)
+		 * @argument {function} replacementHTML the replacement HTML (not text. you shall convert the strange chars like `<` and `>` to html entities)
 		 */
 		replace(pattern: RegExp | string, replacementHTML: string | ((...matchResult: string[]) => string)) {
 			var self = this;
@@ -103,48 +108,27 @@ namespace MarkdownIME {
 			
 			const luckyLength = 3;
 			
-			var ti = 0;
+			var ti = 0, si = 0;
 			var scount = shadow.childNodes.length;
-			var sacrefice;
 			
-			while (sacrefice = shadow.childNodes[0]) {
+			for (ti = 0; ti < target.childNodes.length; ti++) {
+				var tnode = target.childNodes[ti];
 				let match = false;
-				
-				console.log('Chaos: <' + sacrefice.nodeName + '>' + sacrefice.textContent);
-				
-				//search for the corresponding original node
-				for (let ti2 = ti; ti2 < (ti + luckyLength) && ti2 < target.childNodes.length; ti2++) {
-					let cmp = target.childNodes[ti2];
-					console.log(' - Cmp @ ' + ti2 , cmp.nodeName, cmp.textContent);
-					if (sacrefice.isEqualNode(cmp)) {
-						//found the equal child from target.
-						//remove strange things
-						while (ti2 > ti) {
-							target.removeChild(target.childNodes[ti]);
-							ti2--;
-						}
-						//and now `cmp` is `target.childNodes[ti]`
-						match = true; 
+				for (let si1 = si; si1 < shadow.childNodes.length;si1++) {
+					var snode = shadow.childNodes[si1];
+					if (snode.isEqualNode(tnode)) {
+						shadow.replaceChild(tnode, snode);
+						si = si1 + 1;
+						match = true;
 						break;
 					}
 				}
-				//end of search
-				
-				if (match) {
-					//the sacrefice shall die now.
-					console.log(' - Keep');
-					shadow.removeChild(sacrefice);
-				} else {
-					//move the node from shadow to target
-					console.log(' - Insert!');
-					target.insertBefore(sacrefice, target.childNodes[ti] || null);
-				}
-				ti++;
+				match && ti--; //if match, ti = ti - 1 , because the tnode moved to shadow.
 			}
 			
-			console.log('Chaos: End, tail: ' + (target.childNodes.length - scount));
-			while (target.childNodes.length > scount) {
-				target.removeChild(target.childNodes[scount]);
+			target.innerHTML = ""; //clear all nodes.
+			while (shadow.childNodes.length) {
+				target.appendChild(shadow.firstChild);
 			}
 		}
 	}

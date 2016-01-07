@@ -170,9 +170,8 @@ var $toc = $('#toc');
 })('#s2');
 
 
-setTimeout(function(){
-	$('#s1>*').removeClass("hide");
-}, 50);
+setTimeout(function () { $('#s1>h1, #s1>p, #s1>nav').removeClass("hide"); }, 50);
+setTimeout(function () { $(editor).removeClass("hide"); }, 850);
 
 var $body = $('body');
 var $window = $(window);

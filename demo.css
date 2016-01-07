@@ -124,12 +124,10 @@ blockquote {
 	
 	opacity: 0.6;
 	transition: 1s cubic-bezier(.3, 0, .3, 1.6);
-	transition-delay: .8s;
 }
 #editor:focus, #editor:active, #editor:hover {
 	opacity: 1;
 	transition: .5s ease;
-	transition-delay: 0s;
 }
 #editor.hide {
 	transform: translateY(-60px) rotateX(5deg) scale(.95);

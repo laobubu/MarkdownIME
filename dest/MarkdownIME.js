@@ -249,10 +249,10 @@ var MarkdownIME;
         /** extract strange things and get clean text. */
         DomChaos.prototype.digestHTML = function (html) {
             var repFun = this.createProxy.bind(this);
-            html = html.replace(/<!--.+?-->/g, repFun); //comment tags
             html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-            html = html.replace(/\\(.)/g, String.fromCharCode(0x001B) + "$1"); //use \u001B to do char escaping
-            html = html.replace(/\u001B./g, repFun); //escaping chars like \*
+            html = html.replace(/\\(.)/g, "<!--escaing-->$1"); //use escaing comment to do char escaping
+            html = html.replace(/<!--escaing-->./g, repFun); //escaping chars
+            html = html.replace(/<!--.+?-->/g, repFun); //comment tags
             html = MarkdownIME.Utils.html_entity_decode(html);
             return html;
         };
@@ -526,10 +526,6 @@ var MarkdownIME;
             /** Suggested Markdown Replacement */
             InlineRenderer.markdownReplacement = [
                 //NOTE process bold first, then italy.
-                new InlineWrapperRule("del", "~~"),
-                new InlineWrapperRule("strong", "**"),
-                new InlineWrapperRule("em", "*"),
-                new InlineWrapperRule("code", "`"),
                 new InlineRegexRule("img with title", /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
                     return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
                 }),
@@ -541,7 +537,11 @@ var MarkdownIME;
                 }),
                 new InlineRegexRule("link", /\[([^\]]*)\]\(([^\)]+)\)/g, function (a, text, href) {
                     return MarkdownIME.Utils.generateElementHTML("a", { href: href }, MarkdownIME.Utils.text2html(text));
-                })
+                }),
+                new InlineWrapperRule("del", "~~"),
+                new InlineWrapperRule("strong", "**"),
+                new InlineWrapperRule("em", "*"),
+                new InlineWrapperRule("code", "`")
             ];
             return InlineRenderer;
         })();
@@ -1315,7 +1315,7 @@ var MarkdownIME;
                         var result = shall_do_block_rendering ? MarkdownIME.Renderer.blockRenderer.Elevate(node) : null;
                         if (result == null) {
                             //failed to elevate. this is just a plian inline rendering work.
-                            var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderTextNode(textnode);
+                            var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderNode(node);
                             var tail = result_1.pop();
                             MarkdownIME.Utils.move_cursor_to_end(tail);
                         }

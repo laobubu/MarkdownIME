@@ -100,10 +100,6 @@ namespace MarkdownIME.Renderer {
 		static markdownReplacement: IInlineRule[] = [
 			//NOTE process bold first, then italy.
 			
-			new InlineWrapperRule("del", "~~"),
-			new InlineWrapperRule("strong", "**"),
-			new InlineWrapperRule("em", "*"),
-			new InlineWrapperRule("code", "`"),
 			new InlineRegexRule(
 				"img with title",
 				/\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
@@ -131,7 +127,11 @@ namespace MarkdownIME.Renderer {
 				function(a, text, href) {
 					return Utils.generateElementHTML("a", { href: href }, Utils.text2html(text))
 				}
-			)
+			),
+			new InlineWrapperRule("del", "~~"),
+			new InlineWrapperRule("strong", "**"),
+			new InlineWrapperRule("em", "*"),
+			new InlineWrapperRule("code", "`")
 		];
 		
 		/** Rules for this Renderer */

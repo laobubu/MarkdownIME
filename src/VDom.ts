@@ -27,10 +27,10 @@ namespace MarkdownIME {
 		digestHTML(html: string): string {
 			var repFun = this.createProxy.bind(this);
 
-			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
 			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-			html = html.replace(/\\(.)/g, String.fromCharCode(0x001B) + "$1"); //use \u001B to do char escaping
-			html = html.replace(/\u001B./g, repFun); //escaping chars like \*
+			html = html.replace(/\\(.)/g, "<!--escaing-->$1"); //use escaing comment to do char escaping
+			html = html.replace(/<!--escaing-->./g, repFun); //escaping chars
+			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
 			
 			html = Utils.html_entity_decode(html);
 

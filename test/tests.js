@@ -110,3 +110,89 @@ QUnit.test("deal with editors whose children is only one #text", function( asser
   assert.equal(editor.firstChild.nodeName, "P",        "elevate text to block");
   assert.equal(editor.firstChild.textContent, dstText, "and render it");
 });
+
+
+
+
+///////////////////////////////////////////////////////////////
+
+var oldChildren = [];
+var newChildren = [];
+QUnit.module("DOMChaos", {
+	afterEach: (assert) => {
+		oldChildren.forEach((node)=>{
+			if (node.parentNode !== editor) return;
+			if (node.nodeType == 3) { //textNode
+				var wrap = document.createElement("span");
+				node.parentNode.insertBefore(wrap, node);
+				wrap.appendChild(node);
+				node = wrap;
+			}
+			if (node.nodeType == 1) { //element
+				node.style.backgroundColor = "#FFC";
+			}
+		})
+	}
+});
+QUnit.test("Apply without any change", function( assert ) {
+	var chaos = new MarkdownIME.DomChaos();
+	
+	var testHTML = "A <b>B</b> <i>C</i>";
+	setHTML(testHTML);
+	oldChildren = [].slice.call(editor.childNodes);
+	chaos.cloneNode(editor);
+	chaos.applyTo(editor);
+	newChildren = [].slice.call(editor.childNodes);
+	
+	assert.deepEqual(newChildren, oldChildren, "same children");
+});
+QUnit.test("Insert something", function( assert ) {
+	var chaos = new MarkdownIME.DomChaos();
+	
+	var testHTML  = "A <b>B</b> <i>C</i>";
+	setHTML(testHTML);
+	oldChildren = [].slice.call(editor.childNodes);
+	
+	var testHTML2 = "A <b>B</b> something <i>C</i>";
+	chaos.setHTML(testHTML2);
+	chaos.applyTo(editor);
+	newChildren = [].slice.call(editor.childNodes);
+	
+	assert.notEqual(newChildren[2], oldChildren[2], "the 3rd child changed");
+	newChildren.splice(2,1);
+	oldChildren.splice(2,1);
+	assert.deepEqual(newChildren, oldChildren, "others remain");
+});
+QUnit.test("Wrap something", function( assert ) {
+	var chaos = new MarkdownIME.DomChaos();
+	
+	var testHTML  = "A <b>B</b> <i>C</i>";
+	setHTML(testHTML);
+	oldChildren = [].slice.call(editor.childNodes);
+	
+	var testHTML2 = "A <i><b>B</b></i> <i>C</i>";
+	chaos.setHTML(testHTML2);
+	chaos.applyTo(editor);
+	newChildren = [].slice.call(editor.childNodes);
+	
+	assert.notEqual(newChildren[1], oldChildren[1], "the 2nd child changed");
+	assert.notEqual(newChildren[1].parentNode, oldChildren[1], "the 2nd child moved into a wrapper");
+	newChildren.splice(1,1);
+	oldChildren.splice(1,1);
+	assert.deepEqual(newChildren, oldChildren, "others remain");
+});
+QUnit.test("Delete something", function( assert ) {
+	var chaos = new MarkdownIME.DomChaos();
+	
+	var testHTML  = "A <b>B</b> <i>C</i>";
+	setHTML(testHTML);
+	oldChildren = [].slice.call(editor.childNodes);
+	
+	var testHTML2 = "A  <i>C</i>"; //notice that there are 2 spaces
+	chaos.setHTML(testHTML2);
+	chaos.applyTo(editor);
+	newChildren = [].slice.call(editor.childNodes);
+	
+	assert.equal(newChildren.length, 2, "get two childNodes");
+	assert.strictEqual(newChildren[newChildren.length - 1], oldChildren[oldChildren.length - 1], "last one survived");
+});

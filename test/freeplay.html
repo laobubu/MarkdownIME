@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- open this page on a browser and test. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MarkdownIME Test</title>
+  <base href="/test/">
+  <style>
+    body {
+      background: #aaa;
+      font-family: "DejaVu Sans Mono", "Courier New", Courier, monospace;
+    }
+	.emoji {
+		height: 1.3em;
+		vertical-align: middle;
+	}
+    #editor, #editor blockquote, #editor pre {
+      margin: 10pt;
+      padding: 10pt;
+      border: 1px solid #666;
+    }
+	#editor {
+		margin: 30pt auto;
+		padding: 10pt 20pt;
+		max-width: 860px;
+		box-shadow: 0 2px 20px #666;
+      background: #EEE;
+	}
+    #editor blockquote {
+      border-left-width: 10px;
+    }
+    #editor p {
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div id="editor" contenteditable="true"><p><br></p></div>
+  
+  <script src="../dest/MarkdownIME.js"></script>
+  <script>
+	  var editor = document.getElementById('editor');
+	  MarkdownIME.Enhance(editor)
+	  editor.focus();
+  </script>
+  
+  <script src="//twemoji.maxcdn.com/twemoji.min.js"></script>
+</body>
+</html>

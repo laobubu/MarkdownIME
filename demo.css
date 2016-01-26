@@ -33,6 +33,25 @@ body > section {
 
 
 /* misc */
+
+ol.footnote {
+	counter-reset: o-counter 0;
+	list-style-type: none;
+	font-size: 85%;
+}
+
+ol.footnote li {
+	position: relative;
+}
+
+ol.footnote li:before {
+	position: absolute;
+	content: '[' counter(o-counter) '] ';
+	counter-increment: o-counter;
+	right: 100%;
+	padding-right: .5em;
+}
+
 .emoji {
 	height: 1em;
 	vertical-align: middle;

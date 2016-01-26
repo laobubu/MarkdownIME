@@ -54,8 +54,13 @@
         <li>~~删除线~~</li>
         <li>`行内代码`</li>
         <li>图片</li>
-		<li>一些emoji表情 :-)</li>
+		<li>一些emoji表情 <code>:-)</code> <sup>[1]</sup></li>
+		<li>Tex 数学公式: <code>$ E=mc^2 $</code> <sup>[2]</sup></li>
       </ul>
+	  <ol class="footnote">
+	  	<li>“emoji表情”功能以插件形式提供，并自动加载。可以和 <a href="https://github.com/twitter/twemoji">twemoji</a> 配合使用。</li>
+		<li>“Tex 数学公式”功能以插件形式提供，但是不会自动加载。详情请参考<a href="https://github.com/laobubu/MarkdownIME/blob/master/src/Addon/MathAddon.ts">源代码及其中的注释</a>。</li>
+	  </ol>
       <h4>块元素</h4>
       <ul>
         <li>标题 (使用 <code>#</code> 开头)</li>

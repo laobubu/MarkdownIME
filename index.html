@@ -11,6 +11,7 @@
   <script>
 	var ua_langs = navigator.languages.slice();
 	var ua_lang;
+	if (window.location.search !== "?ncr")
 	while (ua_lang = ua_langs.shift()) {
 		if (/^(zh)$/.test(ua_lang)) {
 			window.location.href = "./index." + ua_lang + ".html";
@@ -59,7 +60,13 @@
         <li>~~Strikethrough~~</li>
         <li>`In-line Code`</li>
         <li>Images</li>
+		<li>emoji <code>:-)</code> <sup>[1]</sup></li>
+		<li>Tex formulas: <code>$ E=mc^2 $</code> <sup>[2]</sup></li>
       </ul>
+	  <ol class="footnote">
+	  	<li>Emoji feature is provided as an add-on. System loads it automatically. Works better with <a href="https://github.com/twitter/twemoji">twemoji</a>.</li>
+		<li>Tex formulas feature is provided as an add-on, which will NOT load automatically. Read the <a href="https://github.com/laobubu/MarkdownIME/blob/master/src/Addon/MathAddon.ts">source code and the comments</a>.</li>
+	  </ol>
       <h4>Block Elements</h4>
       <ul>
         <li>Headers (beginning with<code>#</code>)</li>

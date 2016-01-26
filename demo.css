@@ -2,7 +2,7 @@
 
 body {
 	background-color: #333;
-	font-family: 'DejaVu Sans', "PingFang SC", "Hiragino Sans GB", "Source Han Sans CN", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", sans-serif, 'Segoe UI', EmojiSymbols, Symbola;
+	font-family: "PingFang SC", "Hiragino Sans GB", "Source Han Sans CN", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei", "ST Heiti", SimHei, "WenQuanYi Zen Hei Sharp", 'DejaVu Sans', sans-serif, 'Segoe UI', EmojiSymbols, Symbola;
 	margin: 0;
 	transition: background-image 2s ease;
 }
@@ -128,6 +128,7 @@ blockquote {
 	text-decoration: none;
 	color: #aaa;
 	font-size: 87%;
+	line-height: 1.4em;
 	transition: .3s ease;
 }
 #s1 > nav > a:focus, #s1 > nav > a:hover {

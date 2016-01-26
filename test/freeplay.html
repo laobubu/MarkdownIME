@@ -43,8 +43,11 @@
 	  var editor = document.getElementById('editor');
 	  MarkdownIME.Enhance(editor)
 	  editor.focus();
+	  
+	  //Load MathAddon.
+	  MarkdownIME.Renderer.inlineRenderer.rules.unshift(new MarkdownIME.Addon.MathAddon());
   </script>
   
-  <script src="//twemoji.maxcdn.com/twemoji.min.js"></script>
+  <script src="//twemoji.maxcdn.com/twemoji.min.js" async></script>
 </body>
 </html>

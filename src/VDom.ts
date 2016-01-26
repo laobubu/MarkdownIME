@@ -28,8 +28,7 @@ namespace MarkdownIME {
 			var repFun = this.createProxy.bind(this);
 
 			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-			html = html.replace(/\\(.)/g, "<!--escaing-->$1"); //use escaing comment to do char escaping
-			html = html.replace(/<!--escaing-->./g, repFun); //escaping chars
+			html = html.replace(/<!--protect-->.*?<--\/protect-->/g, repFun); //regard a part of HTML as a entity. Wrap with `<--protect-->` and `<--/protect-->`
 			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
 			
 			html = Utils.html_entity_decode(html);
@@ -45,9 +44,13 @@ namespace MarkdownIME {
 			this.text = html;
 		}
 		
-		/** get HTML content. things in proxyStorage will be recovered. */
-		getHTML(): string {
-			var rtn = Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
+		/** 
+		 * get HTML content. things in proxyStorage will be recovered.
+		 * 
+		 * @argument {string} [althtml] - the HTML containing proxy replacement. If not set, the html of this DomChaos will be used. 
+		 */
+		getHTML(althtml?: string): string {
+			var rtn = althtml || Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
 			rtn = rtn.replace(/\uFFFC\uFFF9\w+\uFFFB/g, (mark) => (this.proxyStorage[mark]));
 			return rtn;
 		}

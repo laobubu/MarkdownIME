@@ -33,7 +33,7 @@ namespace MarkdownIME.Renderer {
 			this.name = this.nodeName + " with " + this.leftBracket;
 
 			this.regex = new RegExp(
-				Utils.text2regex(this.leftBracket) + '([^' + Utils.text2regex(this.rightBracket) + '].*?)' + Utils.text2regex(this.rightBracket),
+				Utils.text2regex(this.leftBracket) + '(.*?[^\\\\])' + Utils.text2regex(this.rightBracket),
 				"g"
 			);
 			this.regex2_L = new RegExp(
@@ -102,28 +102,28 @@ namespace MarkdownIME.Renderer {
 			
 			new InlineRegexRule(
 				"img with title",
-				/\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
+				/\!\[(.*?)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
 				function(a, alt, src, b, title) {
 					return Utils.generateElementHTML("img", { alt: alt, src: src, title: title })
 				}
 			),
 			new InlineRegexRule(
 				"img",
-				/\!\[([^\]]*)\]\(([^\)]+)\)/g,
+				/\!\[(.*?)\]\(([^\)]+)\)/g,
 				function(a, alt, src) {
 					return Utils.generateElementHTML("img", { alt: alt, src: src })
 				}
 			),
 			new InlineRegexRule(
 				"link with title",
-				/\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
+				/\[(.*?)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g,
 				function(a, text, href, b, title) {
 					return Utils.generateElementHTML("a", { href: href, title: title }, Utils.text2html(text))
 				}
 			),
 			new InlineRegexRule(
 				"link",
-				/\[([^\]]*)\]\(([^\)]+)\)/g,
+				/\[(.*?)\]\(([^\)]+)\)/g,
 				function(a, text, href) {
 					return Utils.generateElementHTML("a", { href: href }, Utils.text2html(text))
 				}
@@ -139,6 +139,7 @@ namespace MarkdownIME.Renderer {
 		
 		/** Render, on a DomChaos object */
 		public RenderChaos(tree: DomChaos) {
+			tree.screwUp(/^<!--escaping-->$/g, "\\");
 			for (let i = 0; i < this.rules.length; i++) {
 				let rule = this.rules[i];
 				if (typeof rule.unrender === "function")
@@ -148,6 +149,7 @@ namespace MarkdownIME.Renderer {
 				let rule = this.rules[i];
 				rule.render(tree);
 			}
+			tree.replace(/\\/g, "<!--escaping-->");
 		}
 		
 		/** Render a HTML part, returns a new HTML part */

@@ -109,6 +109,8 @@ var demotext;
 var loading = "|/-\\";
 var loading_i = 0;
 
+var shallPlay = !window.location.hash && !window.scrollY;
+
 setTimeout(function showStart() {
 	if (typeof MarkdownIME !== "object") {
 		setTimeout(showStart, 100);
@@ -117,8 +119,9 @@ setTimeout(function showStart() {
 		return;
 	}
 	editor.innerHTML = "";
+	MarkdownIME.Renderer.inlineRenderer.rules.unshift(new MarkdownIME.Addon.MathAddon())
 	mdime_editor = MarkdownIME.Enhance(editor);
-	if (!window.location.hash && !window.scrollY) {
+	if (shallPlay) {
 		var magic = demoStartLines(editor, demotext || [
 			"# Hello World 8-)", 
 			"Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."

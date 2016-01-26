@@ -33,7 +33,7 @@ namespace MarkdownIME.Renderer {
 			this.name = this.nodeName + " with " + this.leftBracket;
 
 			this.regex = new RegExp(
-				Utils.text2regex(this.leftBracket) + '(.*?[^\\\\])' + Utils.text2regex(this.rightBracket),
+				'([^\\\\]|^)' + Utils.text2regex(this.leftBracket) + '(.*?[^\\\\])' + Utils.text2regex(this.rightBracket),
 				"g"
 			);
 			this.regex2_L = new RegExp(
@@ -47,8 +47,8 @@ namespace MarkdownIME.Renderer {
 		}
 
 		render(tree: DomChaos) {
-			tree.replace(this.regex, (whole, wrapped) => (
-				Utils.generateElementHTML(this.nodeName, this.nodeAttr, Utils.text2html(wrapped))
+			tree.replace(this.regex, (whole, leading, wrapped) => (
+				leading + Utils.generateElementHTML(this.nodeName, this.nodeAttr, Utils.text2html(wrapped))
 			));
 		}
 

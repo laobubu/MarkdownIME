@@ -250,8 +250,7 @@ var MarkdownIME;
         DomChaos.prototype.digestHTML = function (html) {
             var repFun = this.createProxy.bind(this);
             html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-            html = html.replace(/\\(.)/g, "<!--escaing-->$1"); //use escaing comment to do char escaping
-            html = html.replace(/<!--escaing-->./g, repFun); //escaping chars
+            html = html.replace(/<!--protect-->.*?<--\/protect-->/g, repFun); //regard a part of HTML as a entity. Wrap with `<--protect-->` and `<--/protect-->`
             html = html.replace(/<!--.+?-->/g, repFun); //comment tags
             html = MarkdownIME.Utils.html_entity_decode(html);
             return html;
@@ -263,10 +262,14 @@ var MarkdownIME;
             html = this.digestHTML(html);
             this.text = html;
         };
-        /** get HTML content. things in proxyStorage will be recovered. */
-        DomChaos.prototype.getHTML = function () {
+        /**
+         * get HTML content. things in proxyStorage will be recovered.
+         *
+         * @argument {string} [althtml] - the HTML containing proxy replacement. If not set, the html of this DomChaos will be used.
+         */
+        DomChaos.prototype.getHTML = function (althtml) {
             var _this = this;
-            var rtn = MarkdownIME.Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
+            var rtn = althtml || MarkdownIME.Utils.text2html(this.text); //assuming this will not ruin the Unicode chars
             rtn = rtn.replace(/\uFFFC\uFFF9\w+\uFFFB/g, function (mark) { return (_this.proxyStorage[mark]); });
             return rtn;
         };
@@ -408,13 +411,13 @@ var MarkdownIME;
                 this.leftBracket = leftBracket;
                 this.rightBracket = rightBracket || leftBracket;
                 this.name = this.nodeName + " with " + this.leftBracket;
-                this.regex = new RegExp(MarkdownIME.Utils.text2regex(this.leftBracket) + '([^' + MarkdownIME.Utils.text2regex(this.rightBracket) + '].*?)' + MarkdownIME.Utils.text2regex(this.rightBracket), "g");
+                this.regex = new RegExp('([^\\\\]|^)' + MarkdownIME.Utils.text2regex(this.leftBracket) + '(.*?[^\\\\])' + MarkdownIME.Utils.text2regex(this.rightBracket), "g");
                 this.regex2_L = new RegExp("^<" + this.nodeName + "(\\s+[^>]*)?>$", "gi");
                 this.regex2_R = new RegExp("^</" + this.nodeName + ">$", "gi");
             }
             InlineWrapperRule.prototype.render = function (tree) {
                 var _this = this;
-                tree.replace(this.regex, function (whole, wrapped) { return (MarkdownIME.Utils.generateElementHTML(_this.nodeName, _this.nodeAttr, MarkdownIME.Utils.text2html(wrapped))); });
+                tree.replace(this.regex, function (whole, leading, wrapped) { return (leading + MarkdownIME.Utils.generateElementHTML(_this.nodeName, _this.nodeAttr, MarkdownIME.Utils.text2html(wrapped))); });
             };
             InlineWrapperRule.prototype.unrender = function (tree) {
                 tree.screwUp(this.regex2_L, this.leftBracket);
@@ -461,6 +464,7 @@ var MarkdownIME;
             }
             /** Render, on a DomChaos object */
             InlineRenderer.prototype.RenderChaos = function (tree) {
+                tree.screwUp(/^<!--escaping-->$/g, "\\");
                 for (var i = 0; i < this.rules.length; i++) {
                     var rule = this.rules[i];
                     if (typeof rule.unrender === "function")
@@ -470,6 +474,7 @@ var MarkdownIME;
                     var rule = this.rules[i];
                     rule.render(tree);
                 }
+                tree.replace(/\\/g, "<!--escaping-->");
             };
             /** Render a HTML part, returns a new HTML part */
             InlineRenderer.prototype.RenderHTML = function (html) {
@@ -526,16 +531,16 @@ var MarkdownIME;
             /** Suggested Markdown Replacement */
             InlineRenderer.markdownReplacement = [
                 //NOTE process bold first, then italy.
-                new InlineRegexRule("img with title", /\!\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
+                new InlineRegexRule("img with title", /\!\[(.*?)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, alt, src, b, title) {
                     return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src, title: title });
                 }),
-                new InlineRegexRule("img", /\!\[([^\]]*)\]\(([^\)]+)\)/g, function (a, alt, src) {
+                new InlineRegexRule("img", /\!\[(.*?)\]\(([^\)]+)\)/g, function (a, alt, src) {
                     return MarkdownIME.Utils.generateElementHTML("img", { alt: alt, src: src });
                 }),
-                new InlineRegexRule("link with title", /\[([^\]]*)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, text, href, b, title) {
+                new InlineRegexRule("link with title", /\[(.*?)\]\(([^\)\s]+)\s+("?)([^\)]+)\3\)/g, function (a, text, href, b, title) {
                     return MarkdownIME.Utils.generateElementHTML("a", { href: href, title: title }, MarkdownIME.Utils.text2html(text));
                 }),
-                new InlineRegexRule("link", /\[([^\]]*)\]\(([^\)]+)\)/g, function (a, text, href) {
+                new InlineRegexRule("link", /\[(.*?)\]\(([^\)]+)\)/g, function (a, text, href) {
                     return MarkdownIME.Utils.generateElementHTML("a", { href: href }, MarkdownIME.Utils.text2html(text));
                 }),
                 new InlineWrapperRule("del", "~~"),
@@ -1465,5 +1470,50 @@ var MarkdownIME;
     MarkdownIME.enhance = function (window, element) { Enhance(element); };
     MarkdownIME.prepare = MarkdownIME.enhance;
     MarkdownIME.scan = function (window) { Enhance(Scan(window)); };
+})(MarkdownIME || (MarkdownIME = {}));
+/// <reference path="../Renderer/InlineRenderer.ts" />
+var MarkdownIME;
+(function (MarkdownIME) {
+    var Addon;
+    (function (Addon) {
+        /**
+         * MathAddon is an add-on for InlineRenderer, transforms `$y=ax^2+b$` into a formatted html.
+         *
+         * This addon MUST have a higher priority, than other inline elements like emphasising.
+         *
+         * To enable, execute this:
+         *  `MarkdownIME.Renderer.inlineRenderer.rules.unshift(new MarkdownIME.Addon.MathAddon())`
+         *
+         * Use Google Chart API to generate the picture.
+         * @see https://developers.google.com/chart/infographics/docs/formulas
+         *
+         * Originally planned to use http://www.mathjax.org/ , but failed due to its async proccessing.
+         */
+        var MathAddon = (function () {
+            function MathAddon() {
+                this.name = "MathFormula";
+                //this is the formula image URL prefix.
+                this.imgServer = 'https://chart.googleapis.com/chart?cht=tx&chf=bg,s,00000000&chl=';
+                this.regex = /([^\\]|^)(\${1,2})(.*?[^\\])\2/g;
+            }
+            MathAddon.prototype.render = function (tree) {
+                var _this = this;
+                tree.replace(this.regex, function (whole, leading, bracket, formula) {
+                    // var rtn = `<!--protect--><script type="math/tex">${wrapped}</script><!--/protect-->`;
+                    var formulaHtmlized = MarkdownIME.Utils.text2html(formula);
+                    var imgUrl = _this.imgServer + encodeURIComponent(formula);
+                    var rtn = "<!--protect--><!--formula:" + formulaHtmlized + "--><img alt=\"" + formulaHtmlized + "\" class=\"formula\" src=\"" + imgUrl + "\"><!--/protect-->";
+                    return leading + rtn;
+                });
+            };
+            MathAddon.prototype.unrender = function (tree) {
+                tree.screwUp(/<!--protect--><!--formula:(.+?)--><img .+?><!--\/protect-->/g, function (whole, formulaHtmlized) {
+                    return '$' + MarkdownIME.Utils.html_entity_decode(formulaHtmlized) + '$';
+                });
+            };
+            return MathAddon;
+        })();
+        Addon.MathAddon = MathAddon;
+    })(Addon = MarkdownIME.Addon || (MarkdownIME.Addon = {}));
 })(MarkdownIME || (MarkdownIME = {}));
 //# sourceMappingURL=MarkdownIME.js.map

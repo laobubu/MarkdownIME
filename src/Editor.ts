@@ -211,22 +211,10 @@ export class Editor {
 					tr.parentNode.removeChild(tr);
 					node = table;
 				} else {
-					let newTr = this.document.createElement("tr");
-					for (let i = tr.childNodes.length; i--;) {
-						if (Utils.Pattern.NodeName.cell.test(tr.childNodes[i].nodeName)) {
-							let newTd = newTr.insertCell(0);
-							newTd.innerHTML = '<br data-mdime-bogus="true">';
-							if (tr.childNodes[i] === node) {
-								//this new cell is right under the old one
-								emptyLine = newTd;
-							}
-						}
-					}
-					tr.parentNode.insertBefore(newTr, tr.nextSibling);
-					// ugly hack
+					//otherwise, create a row. 
+					emptyLine = <HTMLElement>this.CreateNewCell(node);
 					node = null;
 				}
-				//get the blockquote object
 			} else
 			if (Utils.Pattern.NodeName.blockquote.test(node.parentNode.nodeName)) {
 				//empty line inside a blockquote
@@ -268,20 +256,54 @@ export class Editor {
 	}
 	
 	/**
+	 * Create new table row.
+	 * @argument {Node} refer - current cell
+	 * @return   {Node} the corresponding new cell element
+	 */
+	CreateNewCell(refer : Node) {
+		if (!refer || !Utils.Pattern.NodeName.cell.test(refer.nodeName)) return null;
+		let rtn : Node;
+		let tr = refer.parentNode;
+		let table = tr.parentNode.parentNode;
+		let newTr = this.document.createElement("tr");
+		for (let i = tr.childNodes.length; i--;) {
+			if (Utils.Pattern.NodeName.cell.test(tr.childNodes[i].nodeName)) {
+				let newTd = newTr.insertCell(0);
+				newTd.innerHTML = '<br data-mdime-bogus="true">';
+				if (tr.childNodes[i] === refer) {
+					//this new cell is right under the old one
+					rtn = newTd;
+				}
+			}
+		}
+		tr.parentNode.insertBefore(newTr, tr.nextSibling);
+		return rtn;
+	}
+	
+	/**
 	 * Create new line after one node and move cursor to it.
 	 * return false if not successful.
 	 */
 	CreateNewLine(node : Node) : boolean {
 		var _dummynode : Node;
+		var re = Utils.Pattern.NodeName;
+		
+		//create table row
+		if (
+			re.cell.test(node.nodeName)
+		) {
+			_dummynode = this.CreateNewCell(node);
+			Utils.move_cursor_to_end(_dummynode);
+			return true;
+		}
 		
 		//using browser way to create new line will get dirty format
 		//so we create one new line without format.
 		if (
-			Utils.Pattern.NodeName.line.test(node.nodeName) ||
-			Utils.Pattern.NodeName.hr.test(node.nodeName) ||
-			Utils.Pattern.NodeName.li.test(node.nodeName)
+			re.line.test(node.nodeName) ||
+			re.hr.test(node.nodeName)
 		) {
-			var tagName = Utils.Pattern.NodeName.li.test(node.nodeName) ? "li" : null;
+			var tagName = re.li.test(node.nodeName) ? "li" : null;
 			_dummynode = this.GenerateEmptyLine(tagName);
 			node.parentNode.insertBefore(_dummynode, node.nextSibling);
 			Utils.move_cursor_to_end(_dummynode);
@@ -290,7 +312,7 @@ export class Editor {
 		
 		//as for a new <pre>, do not create new line
 		if (
-			Utils.Pattern.NodeName.pre.test(node.nodeName)
+			re.pre.test(node.nodeName)
 		) {
 			Utils.move_cursor_to_end(node);
 			return true;

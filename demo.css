@@ -78,11 +78,31 @@ code, pre {
 	border-radius: 5px;
 }
 
+code {
+	display: inline-block;
+}
+
 blockquote {
 	background: #FAFAFA;
 	border-left: 10px solid #bbb;
 	margin: 10pt;
 	padding: 20pt;
+}
+
+table, td, th {
+	padding: 5px 10px;
+	border: 1px solid #444;
+	border-collapse: collapse;
+}
+
+table tr:nth-child(2n+1) {
+	background-color: rgba(255,255,255,0.4);
+}
+
+table th {
+	background-color: #333;
+	color: #eee;
+	font-weight: normal;
 }
 
 /* section 1 */

@@ -8,7 +8,8 @@ var MarkdownIME;
             (function (NodeName) {
                 NodeName.list = /^(UL|OL)$/i;
                 NodeName.li = /^LI$/i;
-                NodeName.line = /^(P|DIV|H\d)$/i;
+                NodeName.cell = /^T[HD]$/i;
+                NodeName.line = /^(P|DIV|H\d|T[HD])$/i;
                 NodeName.blockquote = /^BLOCKQUOTE$/i;
                 NodeName.pre = /^PRE$/i;
                 NodeName.hr = /^HR$/i;
@@ -719,6 +720,44 @@ var MarkdownIME;
                 return HeaderText;
             })(BlockRendererContainer);
             BlockRendererContainers.HeaderText = HeaderText;
+            var TableHeader = (function (_super) {
+                __extends(TableHeader, _super);
+                function TableHeader() {
+                    _super.call(this);
+                    this.name = "table header";
+                    this.featureMark = /^\|(.+)\|$/;
+                    this.removeFeatureMark = false;
+                }
+                TableHeader.prototype.Elevate = function (node) {
+                    var match = this.prepareElevate(node);
+                    if (!match)
+                        return null;
+                    //FIXME: styles inside the table header will be discarded!
+                    // (in fact, a fancy header is not good :) )
+                    //create a new table.
+                    var d = node.ownerDocument;
+                    var table = d.createElement("table");
+                    var tbody = d.createElement("tbody");
+                    var tr = d.createElement("tr");
+                    var th = match[1].split("|").map(function (text) {
+                        var rtn = d.createElement("th");
+                        rtn.textContent = text;
+                        tr.appendChild(rtn);
+                        return rtn;
+                    });
+                    table.appendChild(tbody);
+                    tbody.appendChild(tr);
+                    var container = node.parentElement;
+                    container.insertBefore(table, node);
+                    container.removeChild(node);
+                    var extraLine = d.createElement(node.nodeName);
+                    extraLine.innerHTML = '<br data-mdime-bogus="true">';
+                    container.insertBefore(extraLine, table.nextElementSibling);
+                    return { parent: table, child: th[0] };
+                };
+                return TableHeader;
+            })(BlockRendererContainer);
+            BlockRendererContainers.TableHeader = TableHeader;
         })(BlockRendererContainers = Renderer.BlockRendererContainers || (Renderer.BlockRendererContainers = {}));
         /**
          * In fact the BlockRenderer is not a renderer; it can elevate / degrade a node, changing its name, moving it from one container to another.
@@ -759,6 +798,7 @@ var MarkdownIME;
                 return this;
             };
             BlockRenderer.markdownContainers = [
+                new BlockRendererContainers.TableHeader(),
                 new BlockRendererContainers.BLOCKQUOTE(),
                 new BlockRendererContainers.HeaderText(),
                 new BlockRendererContainers.HR(),
@@ -1127,6 +1167,16 @@ var MarkdownIME;
                     node.appendChild(this.document.createElement('br'));
                     tinymce_node = null;
                 }
+                else if (MarkdownIME.Utils.Pattern.NodeName.cell.test(tinymce_node.parentElement.nodeName)) {
+                    //F**king created two <p> inside a table cell!
+                    node = tinymce_node.parentElement; //table cell
+                    var oldP = tinymce_node.previousSibling;
+                    var oldPChild;
+                    while (oldPChild = oldP.firstChild) {
+                        node.insertBefore(oldPChild, oldP);
+                    }
+                    node.removeChild(oldP);
+                }
                 else {
                     node = tinymce_node.previousSibling;
                     if (MarkdownIME.Utils.Pattern.NodeName.list.test(node.nodeName)) {
@@ -1206,7 +1256,7 @@ var MarkdownIME;
                 //ouch. it is an empty line.
                 console.log("Ouch! empty line.");
                 //create one empty line without format.
-                _dummynode = this.GenerateEmptyLine();
+                var emptyLine = this.GenerateEmptyLine();
                 if (MarkdownIME.Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
                     //it's an empty list item
                     //which means it's time to end the list
@@ -1216,7 +1266,22 @@ var MarkdownIME;
                     //create empty line
                     if (MarkdownIME.Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
                         //ouch! nested list!
-                        _dummynode = this.GenerateEmptyLine("li");
+                        emptyLine = this.GenerateEmptyLine("li");
+                    }
+                }
+                else if (MarkdownIME.Utils.Pattern.NodeName.cell.test(node.nodeName)) {
+                    //empty table cell
+                    var tr = node.parentNode;
+                    var table = tr.parentNode.parentNode; // table > tbody > tr
+                    if (tr.textContent.trim() === "") {
+                        //if the whole row is empty, end the table.
+                        tr.parentNode.removeChild(tr);
+                        node = table;
+                    }
+                    else {
+                        //otherwise, create a row. 
+                        emptyLine = this.CreateNewCell(node);
+                        node = null;
                     }
                 }
                 else if (MarkdownIME.Utils.Pattern.NodeName.blockquote.test(node.parentNode.nodeName)) {
@@ -1228,8 +1293,8 @@ var MarkdownIME;
                 }
                 else {
                 }
-                node.parentNode.insertBefore(_dummynode, node.nextSibling);
-                MarkdownIME.Utils.move_cursor_to_end(_dummynode);
+                node && node.parentNode.insertBefore(emptyLine, node.nextSibling);
+                MarkdownIME.Utils.move_cursor_to_end(emptyLine);
                 ev.preventDefault();
             }
             else {
@@ -1251,24 +1316,55 @@ var MarkdownIME;
             }
         };
         /**
+         * Create new table row.
+         * @argument {Node} refer - current cell
+         * @return   {Node} the corresponding new cell element
+         */
+        Editor.prototype.CreateNewCell = function (refer) {
+            if (!refer || !MarkdownIME.Utils.Pattern.NodeName.cell.test(refer.nodeName))
+                return null;
+            var rtn;
+            var tr = refer.parentNode;
+            var table = tr.parentNode.parentNode;
+            var newTr = this.document.createElement("tr");
+            for (var i = tr.childNodes.length; i--;) {
+                if (MarkdownIME.Utils.Pattern.NodeName.cell.test(tr.childNodes[i].nodeName)) {
+                    var newTd = newTr.insertCell(0);
+                    newTd.innerHTML = '<br data-mdime-bogus="true">';
+                    if (tr.childNodes[i] === refer) {
+                        //this new cell is right under the old one
+                        rtn = newTd;
+                    }
+                }
+            }
+            tr.parentNode.insertBefore(newTr, tr.nextSibling);
+            return rtn;
+        };
+        /**
          * Create new line after one node and move cursor to it.
          * return false if not successful.
          */
         Editor.prototype.CreateNewLine = function (node) {
             var _dummynode;
+            var re = MarkdownIME.Utils.Pattern.NodeName;
+            //create table row
+            if (re.cell.test(node.nodeName)) {
+                _dummynode = this.CreateNewCell(node);
+                MarkdownIME.Utils.move_cursor_to_end(_dummynode);
+                return true;
+            }
             //using browser way to create new line will get dirty format
             //so we create one new line without format.
-            if (MarkdownIME.Utils.Pattern.NodeName.line.test(node.nodeName) ||
-                MarkdownIME.Utils.Pattern.NodeName.hr.test(node.nodeName) ||
-                MarkdownIME.Utils.Pattern.NodeName.li.test(node.nodeName)) {
-                var tagName = MarkdownIME.Utils.Pattern.NodeName.li.test(node.nodeName) ? "li" : null;
+            if (re.line.test(node.nodeName) ||
+                re.hr.test(node.nodeName)) {
+                var tagName = re.li.test(node.nodeName) ? "li" : null;
                 _dummynode = this.GenerateEmptyLine(tagName);
                 node.parentNode.insertBefore(_dummynode, node.nextSibling);
                 MarkdownIME.Utils.move_cursor_to_end(_dummynode);
                 return true;
             }
             //as for a new <pre>, do not create new line
-            if (MarkdownIME.Utils.Pattern.NodeName.pre.test(node.nodeName)) {
+            if (re.pre.test(node.nodeName)) {
                 MarkdownIME.Utils.move_cursor_to_end(node);
                 return true;
             }
@@ -1282,9 +1378,61 @@ var MarkdownIME;
             if (!range.collapsed)
                 return; // avoid processing with strange selection
             var keyCode = ev.keyCode || ev.which;
-            if (keyCode == 13 && !ev.shiftKey && !ev.ctrlKey) {
+            var noAdditionalKeys = !(ev.shiftKey || ev.ctrlKey || ev.altKey);
+            if (noAdditionalKeys && keyCode === 13) {
                 this.ProcessCurrentLine(ev);
                 return;
+            }
+            else if ((keyCode === 9) || (keyCode >= 37 && keyCode <= 40)) {
+                var handled = false;
+                var parent_tree = MarkdownIME.Utils.build_parent_list(range.startContainer, this.editor);
+                parent_tree.unshift(range.startContainer); // for empty cells
+                var parent_tree_block = parent_tree.filter(MarkdownIME.Utils.is_node_block);
+                console.log(parent_tree);
+                if (MarkdownIME.Utils.Pattern.NodeName.cell.test(parent_tree_block[0].nodeName)) {
+                    //swift move between cells
+                    var td = parent_tree_block[0];
+                    var tr = td.parentElement;
+                    var table = tr.parentElement.parentElement;
+                    var focus_1 = null;
+                    var td_index = 0;
+                    while (td_index < tr.childElementCount && !tr.children[td_index].isSameNode(td))
+                        td_index++;
+                    if (td_index < tr.childElementCount) {
+                        switch (keyCode) {
+                            case 9:
+                                if (noAdditionalKeys)
+                                    focus_1 = td.nextElementSibling ||
+                                        (tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
+                                        table.nextElementSibling;
+                                else if (ev.shiftKey)
+                                    focus_1 = td.previousElementSibling ||
+                                        (tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||
+                                        table.previousElementSibling;
+                                break;
+                            case 38:
+                                if (noAdditionalKeys)
+                                    focus_1 = (tr.previousElementSibling && tr.previousElementSibling.children[td_index]) ||
+                                        table.previousElementSibling;
+                                break;
+                            case 40:
+                                if (noAdditionalKeys)
+                                    focus_1 = (tr.nextElementSibling && tr.nextElementSibling.children[td_index]) ||
+                                        table.nextElementSibling;
+                                break;
+                        }
+                        if (focus_1 !== null) {
+                            range.selectNodeContents(focus_1.lastChild || focus_1);
+                            range.collapse(false);
+                            this.selection.removeAllRanges();
+                            this.selection.addRange(range);
+                            handled = true;
+                        }
+                    }
+                }
+                if (handled) {
+                    ev.preventDefault();
+                }
             }
         };
         Editor.prototype.keyupHandler = function (ev) {
@@ -1360,7 +1508,7 @@ var MarkdownIME;
             function Toast(element, timeout) {
                 this.disappearing = false;
                 this.timeout = 300;
-                this.style = "\n\t\tposition: absolute; \n\t\tfont-size: 10pt; \n\t\tcolor: #363; \n\t\tborder: 1px solid #363; \n\t\tbackground: #CFC; \n\t\tpadding: 2pt 5pt; \n\t\tborder-radius: 0 0 5pt 0; \n\t\tz-index: 32760; \n\t\ttransition: .3s ease; \n\t\topacity: 0; \n\t\t";
+                this.style = "\nposition: absolute; \nfont-size: 10pt; \ncolor: #363; \nborder: 1px solid #363; \nbackground: #CFC; \npadding: 2pt 5pt; \nborder-radius: 0 0 5pt 0; \nz-index: 32760; \ntransition: .3s ease; \nopacity: 0; \n";
                 this.element = element;
                 this.timeout = timeout;
             }

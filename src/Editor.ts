@@ -106,6 +106,17 @@ export class Editor {
 				node.appendChild(this.document.createElement('br'));
 				node.appendChild(this.document.createElement('br'));
 				tinymce_node = null;
+			} else
+			if (Utils.Pattern.NodeName.cell.test(tinymce_node.parentElement.nodeName)) {
+				//F**king created two <p> inside a table cell!
+				node = tinymce_node.parentElement; //table cell
+				let oldP = tinymce_node.previousSibling;
+				let oldPChild;
+				while (oldPChild = oldP.firstChild) {
+					node.insertBefore(oldPChild, oldP);
+				}
+				node.removeChild(oldP);
+				//the tinymce_node will be removed by the following code
 			} else {
 				node = tinymce_node.previousSibling;
 				if (Utils.Pattern.NodeName.list.test(node.nodeName)) {

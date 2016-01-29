@@ -159,6 +159,43 @@ namespace MarkdownIME.Renderer {
 				return {parent: null, child: child};
 			}
 		}
+		
+		export class TableHeader extends BlockRendererContainer {
+			constructor() {
+				super();
+				this.name = "table header";
+				this.featureMark = /^\|(.+)\|$/;
+				this.removeFeatureMark = false;
+			}
+			
+			Elevate (node: Element) : {parent:Element, child:Element} {
+				var match = this.prepareElevate(node);
+				if (!match) return null;
+				
+				//FIXME: styles inside the table header will be discarded!
+				// (in fact, a fancy header is not good :) )
+				
+				//create a new table.
+				var d     = node.ownerDocument;
+				var table = d.createElement("table");
+				var tbody = d.createElement("tbody");
+				var tr    = d.createElement("tr");
+				var th    = match[1].split("|").map((text)=>{
+					let rtn = d.createElement("th");
+					rtn.textContent = text;
+					tr.appendChild(rtn);
+					return rtn;
+				})
+				
+				table.appendChild(tbody);
+				tbody.appendChild(tr);
+				
+				node.parentElement.insertBefore(table, node);
+				node.parentElement.removeChild(node);
+				
+				return {parent: table, child: th[0]};
+			}
+		}
 	}
 	
 	/**
@@ -195,6 +232,7 @@ namespace MarkdownIME.Renderer {
 		}
 		
 		static markdownContainers : BlockRendererContainer[] = [
+			new BlockRendererContainers.TableHeader(),
 			new BlockRendererContainers.BLOCKQUOTE(),
 			new BlockRendererContainers.HeaderText(),
 			new BlockRendererContainers.HR(),

@@ -190,8 +190,13 @@ namespace MarkdownIME.Renderer {
 				table.appendChild(tbody);
 				tbody.appendChild(tr);
 				
-				node.parentElement.insertBefore(table, node);
-				node.parentElement.removeChild(node);
+				var container = node.parentElement;
+				container.insertBefore(table, node);
+				container.removeChild(node);
+				
+				var extraLine = d.createElement(node.nodeName);
+				extraLine.innerHTML = '<br data-mdime-bogus="true">';
+				container.insertBefore(extraLine, table.nextElementSibling);
 				
 				return {parent: table, child: th[0]};
 			}

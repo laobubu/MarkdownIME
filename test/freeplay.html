@@ -33,10 +33,28 @@
     #editor p {
       border-bottom: 1px solid #ccc;
     }
+	table, th, td {
+		border: 1px solid #666;
+		border-collapse: collapse;
+		padding: 5pt;
+	}
   </style>
 </head>
 <body>
-  <div id="editor" contenteditable="true"><p><br></p></div>
+  <div id="editor" contenteditable="true"><p><br></p>
+  
+  <table>
+	  <tr>
+		  <th>Lorem</th>
+		  <th>Ipsue</th>
+	  </tr>
+	  <tr>
+		  <td>a</td>
+		  <td>b</td>
+	  </tr>
+  </table>
+  
+  </div>
   
   <script src="../dest/MarkdownIME.js"></script>
   <script>

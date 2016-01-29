@@ -9,18 +9,18 @@ namespace MarkdownIME.UI{
 		element : HTMLDivElement;
 		timeout : number = 300;
 		style : string = 
-		`
-		position: absolute; 
-		font-size: 10pt; 
-		color: #363; 
-		border: 1px solid #363; 
-		background: #CFC; 
-		padding: 2pt 5pt; 
-		border-radius: 0 0 5pt 0; 
-		z-index: 32760; 
-		transition: .3s ease; 
-		opacity: 0; 
-		`;
+`
+position: absolute; 
+font-size: 10pt; 
+color: #363; 
+border: 1px solid #363; 
+background: #CFC; 
+padding: 2pt 5pt; 
+border-radius: 0 0 5pt 0; 
+z-index: 32760; 
+transition: .3s ease; 
+opacity: 0; 
+`;
 		
 		constructor(element : HTMLDivElement, timeout : number) {
 			this.element = element;

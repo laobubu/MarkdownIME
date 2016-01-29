@@ -340,10 +340,63 @@ export class Editor {
 		if (!range.collapsed) return;	// avoid processing with strange selection
 		
 		var keyCode = ev.keyCode || ev.which;
+		var noAdditionalKeys = !(ev.shiftKey || ev.ctrlKey || ev.altKey);
 		
-		if (keyCode == 13 && !ev.shiftKey && !ev.ctrlKey) {
+		if (noAdditionalKeys && keyCode === 13) {
 			this.ProcessCurrentLine(ev);
 			return;
+		} else 
+		if ((keyCode === 9) || (keyCode >= 37 && keyCode <= 40)) { //Tab & arrow keys
+			let handled = false;
+			let parent_tree = Utils.build_parent_list(range.startContainer, this.editor);
+			parent_tree.unshift(range.startContainer); // for empty cells
+			let parent_tree_block = parent_tree.filter(Utils.is_node_block);
+			console.log(parent_tree)
+			if (Utils.Pattern.NodeName.cell.test(parent_tree_block[0].nodeName)) {
+				//swift move between cells
+				let td    = <HTMLElement>parent_tree_block[0];
+				let tr    = <HTMLTableRowElement>td.parentElement;
+				let table = <HTMLTableElement>tr.parentElement.parentElement;
+				let focus : Element = null;
+				let td_index = 0;
+				while (td_index < tr.childElementCount && !tr.children[td_index].isSameNode(td)) td_index++;
+				if (td_index < tr.childElementCount) {
+					switch (keyCode) {
+					case 9: //TAB
+						if (noAdditionalKeys)
+							focus = td.nextElementSibling || 
+								(tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
+								table.nextElementSibling;
+						else if (ev.shiftKey)
+							focus = td.previousElementSibling || 
+								(tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||
+								table.previousElementSibling;
+						break;
+					case 38: //UP
+						if (noAdditionalKeys)
+							focus = (tr.previousElementSibling && (<HTMLTableRowElement>tr.previousElementSibling).children[td_index]) ||
+								table.previousElementSibling;
+						break;
+					case 40: //DOWN
+						if (noAdditionalKeys)
+							focus = (tr.nextElementSibling && (<HTMLTableRowElement>tr.nextElementSibling).children[td_index]) ||
+								table.nextElementSibling;
+						break;
+					}
+					
+					if (focus !== null) {
+						range.selectNodeContents(focus.lastChild || focus);
+						range.collapse(false);
+						this.selection.removeAllRanges();
+						this.selection.addRange(range);
+						handled = true;
+					}
+				}
+			}
+			
+			if (handled) {
+				ev.preventDefault();
+			}
 		}
 	}
 	

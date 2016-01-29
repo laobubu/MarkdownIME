@@ -4,6 +4,7 @@ namespace MarkdownIME.Utils {
 		export namespace NodeName {
 			export var list = /^(UL|OL)$/i;
 			export var li = /^LI$/i;
+			export var cell = /^T[HD]$/i;
 			export var line = /^(P|DIV|H\d|T[HD])$/i;
 			export var blockquote = /^BLOCKQUOTE$/i;
 			export var pre = /^PRE$/i;

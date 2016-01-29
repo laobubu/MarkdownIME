@@ -189,7 +189,7 @@ export class Editor {
 			//ouch. it is an empty line.
 			console.log("Ouch! empty line.");
 			//create one empty line without format.
-			_dummynode = this.GenerateEmptyLine();
+			let emptyLine = this.GenerateEmptyLine();
 			if (Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
 				//it's an empty list item
 				//which means it's time to end the list
@@ -199,8 +199,34 @@ export class Editor {
 				//create empty line
 				if (Utils.Pattern.NodeName.list.test(node.parentNode.nodeName)) {
 					//ouch! nested list!
-					_dummynode = this.GenerateEmptyLine("li");
+					emptyLine = this.GenerateEmptyLine("li");
 				}
+			} else
+			if (Utils.Pattern.NodeName.cell.test(node.nodeName)) {
+				//empty table cell
+				let tr = node.parentNode;
+				let table = tr.parentNode.parentNode; // table > tbody > tr
+				if (tr.textContent.trim() === "") {
+					//if the whole row is empty, end the table.
+					tr.parentNode.removeChild(tr);
+					node = table;
+				} else {
+					let newTr = this.document.createElement("tr");
+					for (let i = tr.childNodes.length; i--;) {
+						if (Utils.Pattern.NodeName.cell.test(tr.childNodes[i].nodeName)) {
+							let newTd = newTr.insertCell(0);
+							newTd.innerHTML = '<br data-mdime-bogus="true">';
+							if (tr.childNodes[i] === node) {
+								//this new cell is right under the old one
+								emptyLine = newTd;
+							}
+						}
+					}
+					tr.parentNode.insertBefore(newTr, tr.nextSibling);
+					// ugly hack
+					node = null;
+				}
+				//get the blockquote object
 			} else
 			if (Utils.Pattern.NodeName.blockquote.test(node.parentNode.nodeName)) {
 				//empty line inside a blockquote
@@ -213,8 +239,8 @@ export class Editor {
 				//it's just one normal line.
 				//create one new line without format.
 			}
-			node.parentNode.insertBefore(_dummynode, node.nextSibling);
-			Utils.move_cursor_to_end(_dummynode);
+			node && node.parentNode.insertBefore(emptyLine, node.nextSibling);
+			Utils.move_cursor_to_end(emptyLine);
 			ev.preventDefault();
 		} else 
 		{

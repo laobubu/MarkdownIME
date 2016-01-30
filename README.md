@@ -2,15 +2,19 @@
 
 Imagine a **rich** textbox **without** any **button**, it's easy if you try.
 
-MarkdownIME provides a fresh way to write well-formatted text, by typing markdownized stuff. It will speed up writing, help you get rid of the small formatting buttons.
+MarkdownIME is a minimal & powerful web rich-text editor.
 
-Works like a charm on mobile devices, too!
+**MINIMAL**: No buttons or stylesheets. It only require one `div[contentEditable]` and two `script` tags.
 
-![](http://laobubu.github.io/MarkdownIME/demo.gif?cache2)
+**POWERFUL**: User types with Markdown, and MarkdownIME gets the text formatted, instantly!
+
+[Try out the demo](http://laobubu.github.io/MarkdownIME/). Works like a charm on desktop and mobile!
+
+![](http://laobubu.github.io/MarkdownIME/demo.gif?cache3)
 
 ## Quickstart / Guide
 
-Visit http://laobubu.github.io/MarkdownIME/ 
+Visit http://laobubu.github.io/MarkdownIME/
 
 ## Developing
 
@@ -47,6 +51,10 @@ After obtaining the tools, just run `make` and you will get the js files. If you
  - (Nested) Lists
  - (Nested) Blockquote
  - Code Block
+
+#### Tables
+
+Create a table with `| table | column | headers |` line.
 
 ### Supported Editor
 

@@ -5,7 +5,6 @@ namespace MarkdownIME{
 
 export var config = {
 	"wrapper": "p",	// the default wrapper for plain text line
-	"code_block_max_empty_lines": 5, // if there are so many continous empty lines, end the code block 
 };
 
 export class Editor {
@@ -161,39 +160,38 @@ export class Editor {
 		//finally start processing
 		//for <pre> block, special work is needed.
 		if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
-			var txtnode = range.startContainer;
-			while (txtnode.nodeType != Node.TEXT_NODE && txtnode.lastChild)
-				txtnode = txtnode.lastChild;
-			var text = txtnode.textContent;
-			var br = this.document.createElement('br');
-			var space = this.document.createTextNode("\n");
-			console.log("part", text);
+			let lineBreak = this.document.createTextNode("\n");
 			
-			if (/^[\n\s]*$/.test(text)) {
-				for (var i = 1; i <= config.code_block_max_empty_lines; i++) {
-					var testnode = node.childNodes[node.childNodes.length - i];
-					if (!testnode) break;
-					if (!Utils.is_node_empty(testnode)) break;
+			if (!this.isTinyMCE) {
+				//vanilla editor has bug.
+				range.insertNode(lineBreak);
+				let ns = lineBreak.nextSibling;
+				if (ns && (ns.nodeType === Node.TEXT_NODE) && (ns.textContent.length === 0)) {
+					lineBreak.parentNode.removeChild(ns);
 				}
-				if (i > config.code_block_max_empty_lines)
-					text = '```';
+				if (!lineBreak.nextSibling) {
+					console.log("fucking fix");
+					lineBreak.parentNode.insertBefore(this.document.createElement("br"), lineBreak);
+				}
+				Utils.move_cursor_to_end(lineBreak);
+				ev.preventDefault();
 			}
 			
-			if (text == '```') {
-				//end the code block
-				node.removeChild(txtnode);
-				while (node.lastChild && Utils.is_node_empty(node.lastChild))
-					node.removeChild(node.lastChild);
-				_dummynode = this.GenerateEmptyLine();
-				node.parentNode.insertBefore(_dummynode, node.nextSibling);
-				Utils.move_cursor_to_end(_dummynode);
-			} else {
-				//insert another line
-				node.insertBefore(br, txtnode.nextSibling);
-				node.insertBefore(space, br.nextSibling);
-				Utils.move_cursor_to_end(space);
+			let text = node.textContent;
+			if (/^\n*(`{2,3})?\n*$/.test(text.substr(text.length - 4))) {
+				let code = node.firstChild;
+				let n : Node;
+				while
+					(n = code.lastChild,
+						(
+							(n.nodeType === 1 && n.nodeName === "BR") || 
+							(n.nodeType === 3 && /^\n*(```)?\n*$/.test(n.textContent))
+						)
+					) 
+					code.removeChild(n);
+				this.CreateNewLine(node);
 			}
-			ev.preventDefault();
+			
 			return;
 		} else
 		if (Utils.is_line_empty(<HTMLElement> node)) {
@@ -316,20 +314,13 @@ export class Editor {
 		//so we create one new line without format.
 		if (
 			re.line.test(node.nodeName) ||
+			re.pre.test(node.nodeName) ||
 			re.hr.test(node.nodeName)
 		) {
 			var tagName = re.li.test(node.nodeName) ? "li" : null;
 			_dummynode = this.GenerateEmptyLine(tagName);
 			node.parentNode.insertBefore(_dummynode, node.nextSibling);
 			Utils.move_cursor_to_end(_dummynode);
-			return true;
-		}
-		
-		//as for a new <pre>, do not create new line
-		if (
-			re.pre.test(node.nodeName)
-		) {
-			Utils.move_cursor_to_end(node);
 			return true;
 		}
 		

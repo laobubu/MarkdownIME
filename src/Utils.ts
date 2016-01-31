@@ -26,7 +26,7 @@ namespace MarkdownIME.Utils {
 			if (!t) break;
 			focusNode = t;
 		}
-		range.selectNode(focusNode);
+		range.selectNodeContents(focusNode);
 		range.collapse((focusNode.nodeName == "BR" || /^\n+$/.test(focusNode.textContent)));
 		selection.removeAllRanges();
 		selection.addRange(range);

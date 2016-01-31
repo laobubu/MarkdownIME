@@ -125,7 +125,7 @@ namespace MarkdownIME.Renderer {
 				super();
 				this.isTypable = false;
 				this.name = "hr";
-				this.featureMark = /^\s*([\-\=\*])(\s*\1){2,}\s*$/;
+				this.featureMark = /^\s{0,2}([\-_\=\*])(\s*\1){2,}$/;
 			}
 			
 			Elevate (node: Element) : {parent:Element, child:Element} {

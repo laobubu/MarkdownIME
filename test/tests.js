@@ -52,8 +52,8 @@ QUnit.test("render entire line block", function( assert ) {
 QUnit.test("render a hr object", function( assert ) {
   setHTML();
   
-  var goodExamples = ['---', '* * *', ' - - - '];
-  var badExamples  = ['\\---', '* \\* *'];
+  var goodExamples = ['---', '* * *', '- - -'];
+  var badExamples  = ['\\---', '* \\* *', '- - - '];
   
   goodExamples.forEach(function(srcText) {
     var srcNode = createTextContainer(srcText);

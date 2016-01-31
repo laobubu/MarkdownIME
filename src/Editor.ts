@@ -436,10 +436,6 @@ export class Editor {
                         let result = Renderer.inlineRenderer.RenderNode(<HTMLElement>node);
                         let tail = (focusNode && focusNode.previousSibling) || (<HTMLElement> result.pop());
 						Utils.move_cursor_to_end(tail);
-                    } else
-					if (result.child.nodeName == "HR") {
-						//for <hr> something needs to be special.
-						this.CreateNewLine(result.child);
 					} else {
 						if (result.child.textContent.length == 0) 
 							(<HTMLElement>result.child).innerHTML = '<br data-mdime-bogus="true">';

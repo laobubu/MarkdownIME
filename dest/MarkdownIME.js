@@ -30,8 +30,8 @@ var MarkdownIME;
                     break;
                 focusNode = t;
             }
-            range.selectNode(focusNode);
-            range.collapse((focusNode.nodeName == "BR" || /^\n+$/.test(focusNode.textContent)));
+            range.selectNodeContents(focusNode);
+            range.collapse((focusNode.nodeName == "BR"));
             selection.removeAllRanges();
             selection.addRange(range);
         }
@@ -418,7 +418,11 @@ var MarkdownIME;
             }
             InlineWrapperRule.prototype.render = function (tree) {
                 var _this = this;
-                tree.replace(this.regex, function (whole, leading, wrapped) { return (leading + MarkdownIME.Utils.generateElementHTML(_this.nodeName, _this.nodeAttr, MarkdownIME.Utils.text2html(wrapped))); });
+                tree.replace(this.regex, function (whole, leading, wrapped) {
+                    if (wrapped === _this.rightBracket)
+                        return whole; //avoid something like ``` or ***
+                    return leading + MarkdownIME.Utils.generateElementHTML(_this.nodeName, _this.nodeAttr, MarkdownIME.Utils.text2html(wrapped));
+                });
             };
             InlineWrapperRule.prototype.unrender = function (tree) {
                 tree.screwUp(this.regex2_L, this.leftBracket);
@@ -475,7 +479,7 @@ var MarkdownIME;
                     var rule = this.rules[i];
                     rule.render(tree);
                 }
-                tree.replace(/\\/g, "<!--escaping-->");
+                tree.replace(/\\([^\w\s])/g, function (whole, char) { return ("<!--escaping-->" + char); });
             };
             /** Render a HTML part, returns a new HTML part */
             InlineRenderer.prototype.RenderHTML = function (html) {
@@ -684,7 +688,7 @@ var MarkdownIME;
                     _super.call(this);
                     this.isTypable = false;
                     this.name = "hr";
-                    this.featureMark = /^\s*([\-\=\*])(\s*\1){2,}\s*$/;
+                    this.featureMark = /^\s{0,2}([\-_\=\*])(\s*\1){2,}$/;
                 }
                 HR.prototype.Elevate = function (node) {
                     if (!this.prepareElevate(node))
@@ -697,6 +701,35 @@ var MarkdownIME;
                 return HR;
             })(BlockRendererContainer);
             BlockRendererContainers.HR = HR;
+            var CodeBlock = (function (_super) {
+                __extends(CodeBlock, _super);
+                function CodeBlock() {
+                    _super.call(this);
+                    this.name = "code block";
+                    this.featureMark = /^```(\s*(\w+)\s*)?$/;
+                    this.removeFeatureMark = false;
+                }
+                CodeBlock.prototype.Elevate = function (node) {
+                    var match = this.prepareElevate(node);
+                    if (!match)
+                        return null;
+                    //create a new tag named with childNodeName
+                    var d = node.ownerDocument;
+                    var code = d.createElement("code");
+                    var pre = d.createElement("pre");
+                    code.innerHTML = '<br data-mdime-bogus="true">';
+                    pre.appendChild(code);
+                    node.parentNode.insertBefore(pre, node);
+                    node.parentElement.removeChild(node);
+                    if (match[1]) {
+                        pre.setAttribute("lang", match[2]);
+                        code.setAttribute("class", match[2]);
+                    }
+                    return { parent: pre, child: code };
+                };
+                return CodeBlock;
+            })(BlockRendererContainer);
+            BlockRendererContainers.CodeBlock = CodeBlock;
             var HeaderText = (function (_super) {
                 __extends(HeaderText, _super);
                 function HeaderText() {
@@ -798,6 +831,7 @@ var MarkdownIME;
                 return this;
             };
             BlockRenderer.markdownContainers = [
+                new BlockRendererContainers.CodeBlock(),
                 new BlockRendererContainers.TableHeader(),
                 new BlockRendererContainers.BLOCKQUOTE(),
                 new BlockRendererContainers.HeaderText(),
@@ -1050,22 +1084,7 @@ var MarkdownIME;
             var html = MarkdownIME.Utils.trim(node.innerHTML);
             var match_result;
             var new_node;
-            var big_block;
             console.log("Render", node, html);
-            //codeblock
-            match_result = Pattern.codeblock.exec(html);
-            if (match_result) {
-                big_block = node.ownerDocument.createElement('pre');
-                if (match_result[1].length) {
-                    //language is told
-                    var typ = node.ownerDocument.createAttribute("lang");
-                    typ.value = match_result[1];
-                    big_block.attributes.setNamedItem(typ);
-                }
-                big_block.innerHTML = '<br data-mdime-bogus="true">';
-                node.parentNode.replaceChild(big_block, node);
-                return big_block;
-            }
             var elevateResult = Renderer.blockRenderer.Elevate(node);
             if (elevateResult) {
                 if (!elevateResult.containerType.isTypable)
@@ -1084,7 +1103,6 @@ var MarkdownIME;
 (function (MarkdownIME) {
     MarkdownIME.config = {
         "wrapper": "p",
-        "code_block_max_empty_lines": 5,
     };
     var Editor = (function () {
         function Editor(editor) {
@@ -1216,40 +1234,31 @@ var MarkdownIME;
             //finally start processing
             //for <pre> block, special work is needed.
             if (MarkdownIME.Utils.Pattern.NodeName.pre.test(node.nodeName)) {
-                var txtnode = range.startContainer;
-                while (txtnode.nodeType != Node.TEXT_NODE && txtnode.lastChild)
-                    txtnode = txtnode.lastChild;
-                var text = txtnode.textContent;
-                var br = this.document.createElement('br');
-                var space = this.document.createTextNode("\n");
-                console.log("part", text);
-                if (/^[\n\s]*$/.test(text)) {
-                    for (var i = 1; i <= MarkdownIME.config.code_block_max_empty_lines; i++) {
-                        var testnode = node.childNodes[node.childNodes.length - i];
-                        if (!testnode)
-                            break;
-                        if (!MarkdownIME.Utils.is_node_empty(testnode))
-                            break;
+                var lineBreak = this.document.createTextNode("\n");
+                if (!this.isTinyMCE) {
+                    //vanilla editor has bug.
+                    range.insertNode(lineBreak);
+                    var ns = lineBreak.nextSibling;
+                    if (ns && (ns.nodeType === Node.TEXT_NODE) && (ns.textContent.length === 0)) {
+                        lineBreak.parentNode.removeChild(ns);
                     }
-                    if (i > MarkdownIME.config.code_block_max_empty_lines)
-                        text = '```';
+                    if (!lineBreak.nextSibling) {
+                        console.log("fucking fix");
+                        lineBreak.parentNode.insertBefore(this.document.createElement("br"), lineBreak);
+                    }
+                    MarkdownIME.Utils.move_cursor_to_end(lineBreak);
+                    ev.preventDefault();
                 }
-                if (text == '```') {
-                    //end the code block
-                    node.removeChild(txtnode);
-                    while (node.lastChild && MarkdownIME.Utils.is_node_empty(node.lastChild))
-                        node.removeChild(node.lastChild);
-                    _dummynode = this.GenerateEmptyLine();
-                    node.parentNode.insertBefore(_dummynode, node.nextSibling);
-                    MarkdownIME.Utils.move_cursor_to_end(_dummynode);
+                var text = node.textContent;
+                if (/^\n*(`{2,3})?\n*$/.test(text.substr(text.length - 4))) {
+                    var code = node.firstChild;
+                    var n;
+                    while (n = code.lastChild,
+                        ((n.nodeType === 1 && n.nodeName === "BR") ||
+                            (n.nodeType === 3 && /^\n*(```)?\n*$/.test(n.textContent))))
+                        code.removeChild(n);
+                    this.CreateNewLine(node);
                 }
-                else {
-                    //insert another line
-                    node.insertBefore(br, txtnode.nextSibling);
-                    node.insertBefore(space, br.nextSibling);
-                    MarkdownIME.Utils.move_cursor_to_end(space);
-                }
-                ev.preventDefault();
                 return;
             }
             else if (MarkdownIME.Utils.is_line_empty(node)) {
@@ -1303,6 +1312,11 @@ var MarkdownIME;
                     node.removeChild(node.lastChild);
                 console.log("Renderer on", node);
                 node = MarkdownIME.Renderer.Render(node);
+                if (node.parentNode.nodeName === "PRE") {
+                    MarkdownIME.Utils.move_cursor_to_end(node);
+                    ev.preventDefault();
+                }
+                else 
                 //Create another line after one node and move cursor to it.
                 if (this.CreateNewLine(node)) {
                     ev.preventDefault();
@@ -1356,16 +1370,12 @@ var MarkdownIME;
             //using browser way to create new line will get dirty format
             //so we create one new line without format.
             if (re.line.test(node.nodeName) ||
+                re.pre.test(node.nodeName) ||
                 re.hr.test(node.nodeName)) {
                 var tagName = re.li.test(node.nodeName) ? "li" : null;
                 _dummynode = this.GenerateEmptyLine(tagName);
                 node.parentNode.insertBefore(_dummynode, node.nextSibling);
                 MarkdownIME.Utils.move_cursor_to_end(_dummynode);
-                return true;
-            }
-            //as for a new <pre>, do not create new line
-            if (re.pre.test(node.nodeName)) {
-                MarkdownIME.Utils.move_cursor_to_end(node);
                 return true;
             }
             return false;
@@ -1455,7 +1465,7 @@ var MarkdownIME;
                 if (keyCode == 32) {
                     //space key pressed.
                     console.log("instant render at", node);
-                    var textnode = node;
+                    var focusNode = node.nextSibling;
                     var shall_do_block_rendering = true;
                     while (!MarkdownIME.Utils.is_node_block(node)) {
                         if (shall_do_block_rendering && node != node.parentNode.firstChild) {
@@ -1469,12 +1479,8 @@ var MarkdownIME;
                         if (result == null) {
                             //failed to elevate. this is just a plian inline rendering work.
                             var result_1 = MarkdownIME.Renderer.inlineRenderer.RenderNode(node);
-                            var tail = result_1.pop();
+                            var tail = (focusNode && focusNode.previousSibling) || result_1.pop();
                             MarkdownIME.Utils.move_cursor_to_end(tail);
-                        }
-                        else if (result.child.nodeName == "HR") {
-                            //for <hr> something needs to be special.
-                            this.CreateNewLine(result.child);
                         }
                         else {
                             if (result.child.textContent.length == 0)

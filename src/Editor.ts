@@ -254,6 +254,10 @@ export class Editor {
 			
 			node = Renderer.Render(<HTMLElement> node);
 			
+			if (node.parentNode.nodeName === "PRE") {
+				Utils.move_cursor_to_end(tinymce_node || node);
+				ev.preventDefault();
+			} else
 			//Create another line after one node and move cursor to it.
 			if (this.CreateNewLine(node)) {
 				ev.preventDefault();

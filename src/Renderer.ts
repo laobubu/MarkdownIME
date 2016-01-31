@@ -26,27 +26,8 @@ export function Render(node : HTMLElement) : HTMLElement {
 	var html = Utils.trim(node.innerHTML);
 	var match_result : Array<string>;
 	var new_node : HTMLElement;
-	var big_block : Node;
 	
 	console.log("Render", node, html);
-	
-	//codeblock
-	match_result = Pattern.codeblock.exec(html);
-	if (match_result) {
-		big_block = node.ownerDocument.createElement('pre');
-		
-		if (match_result[1].length) {
-			//language is told
-			var typ = node.ownerDocument.createAttribute("lang");
-			typ.value = match_result[1];
-			big_block.attributes.setNamedItem(typ);
-		}
-		
-		(<HTMLElement>big_block).innerHTML = '<br data-mdime-bogus="true">';
-		node.parentNode.replaceChild(big_block, node);
-		
-		return (<HTMLElement>big_block);
-	}
 	
 	var elevateResult = blockRenderer.Elevate(node);
 	if (elevateResult) {

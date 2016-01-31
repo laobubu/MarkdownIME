@@ -139,6 +139,36 @@ namespace MarkdownIME.Renderer {
 			}
 		}
 		
+		export class CodeBlock extends BlockRendererContainer {
+			constructor() {
+				super();
+				this.name = "code block";
+				this.featureMark = /^```(\s*(\w+)\s*)?$/;
+				this.removeFeatureMark = false;
+			}
+			
+			Elevate (node: Element) : {parent:Element, child:Element} {
+				var match = this.prepareElevate(node);
+				if (!match) return null;
+				
+				//create a new tag named with childNodeName
+				var d    = node.ownerDocument;
+				var code = d.createElement("code");
+				var pre  = d.createElement("pre");
+				code.innerHTML = '<br data-mdime-bogus="true">';
+				pre.appendChild(code);
+				node.parentNode.insertBefore(pre, node);
+				node.parentElement.removeChild(node);
+				
+				if (match[1]) {
+					pre.setAttribute("lang", match[2]);
+					code.setAttribute("class", match[2]);
+				}
+				
+				return {parent: pre, child: code};
+			}
+		}
+		
 		export class HeaderText extends BlockRendererContainer {
 			constructor() {
 				super();
@@ -237,6 +267,7 @@ namespace MarkdownIME.Renderer {
 		}
 		
 		static markdownContainers : BlockRendererContainer[] = [
+			new BlockRendererContainers.CodeBlock(),
 			new BlockRendererContainers.TableHeader(),
 			new BlockRendererContainers.BLOCKQUOTE(),
 			new BlockRendererContainers.HeaderText(),

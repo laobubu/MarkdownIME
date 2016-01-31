@@ -420,7 +420,7 @@ export class Editor {
 			if (keyCode == 32) {
 				//space key pressed.
 				console.log("instant render at", node);
-                let textnode = node;
+                let focusNode = node.nextSibling;
                 let shall_do_block_rendering : boolean = true;
 				while (!Utils.is_node_block(node)) {
                     if (shall_do_block_rendering && node != node.parentNode.firstChild) {
@@ -434,7 +434,7 @@ export class Editor {
                     if (result == null ) {
                         //failed to elevate. this is just a plian inline rendering work.
                         let result = Renderer.inlineRenderer.RenderNode(<HTMLElement>node);
-                        let tail = <HTMLElement> result.pop();
+                        let tail = (focusNode && focusNode.previousSibling) || (<HTMLElement> result.pop());
 						Utils.move_cursor_to_end(tail);
                     } else
 					if (result.child.nodeName == "HR") {

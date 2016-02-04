@@ -2,6 +2,8 @@
 
 namespace MarkdownIME.Renderer {
 	
+	export interface ElevateResult {parent:Element, child:Element, feature?:any};
+	
 	export class BlockRendererContainer {
 		name: string;
 		
@@ -36,8 +38,9 @@ namespace MarkdownIME.Renderer {
 		removeFeatureMark: boolean = true;
 		
 		/** changing its name, moving it into proper container. return null if failed. */
-		Elevate (node: Element) : {parent:Element, child:Element} {
-			if (!this.prepareElevate(node)) return null;
+		Elevate (node: Element) : ElevateResult {
+			var feature = this.prepareElevate(node);
+			if (!feature) return null;
 			
 			var child: Element;
 			var parent: Element;
@@ -67,7 +70,7 @@ namespace MarkdownIME.Renderer {
 				}
 			}
 			
-			return {child: child, parent: parent};
+			return {child: child, parent: parent, feature: feature};
 		}
 		
 		/** 
@@ -104,9 +107,17 @@ namespace MarkdownIME.Renderer {
 			constructor() {
 				super();
 				this.name = "ordered list";
-				this.featureMark = /^\s*\d+\.\s+/;
+				this.featureMark = /^\s*(\d+)\.\s+/;
 				this.childNodeName = "LI";
 				this.parentNodeName = "OL";
+			}
+			
+			Elevate (node: Element) : ElevateResult {
+				var rtn = super.Elevate(node);
+				if (rtn) {
+					rtn.parent.setAttribute("start", rtn.feature[1]);
+				}
+				return rtn;
 			}
 		}
 		

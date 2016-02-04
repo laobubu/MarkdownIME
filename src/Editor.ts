@@ -275,7 +275,7 @@ export class Editor {
 	 */
 	CreateNewCell(refer : Node) {
 		if (!refer || !Utils.Pattern.NodeName.cell.test(refer.nodeName)) return null;
-		let rtn : Node;
+		let rtn : Element;
 		let tr = refer.parentNode;
 		let table = tr.parentNode.parentNode;
 		let newTr = this.document.createElement("tr");
@@ -361,7 +361,7 @@ export class Editor {
 						if (noAdditionalKeys)
 							focus = td.nextElementSibling || 
 								(tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
-								table.nextElementSibling;
+								(this.CreateNewCell(tr.firstElementChild));
 						else if (ev.shiftKey)
 							focus = td.previousElementSibling || 
 								(tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||

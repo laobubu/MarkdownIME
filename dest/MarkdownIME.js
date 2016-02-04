@@ -568,6 +568,7 @@ var MarkdownIME;
 (function (MarkdownIME) {
     var Renderer;
     (function (Renderer) {
+        ;
         var BlockRendererContainer = (function () {
             function BlockRendererContainer() {
                 /**
@@ -591,7 +592,8 @@ var MarkdownIME;
             }
             /** changing its name, moving it into proper container. return null if failed. */
             BlockRendererContainer.prototype.Elevate = function (node) {
-                if (!this.prepareElevate(node))
+                var feature = this.prepareElevate(node);
+                if (!feature)
                     return null;
                 var child;
                 var parent;
@@ -623,7 +625,7 @@ var MarkdownIME;
                         MarkdownIME.Utils.wrap(parent, child);
                     }
                 }
-                return { child: child, parent: parent };
+                return { child: child, parent: parent, feature: feature };
             };
             /**
              * check if one node is elevatable and remove the feature mark.
@@ -663,10 +665,17 @@ var MarkdownIME;
                 function OL() {
                     _super.call(this);
                     this.name = "ordered list";
-                    this.featureMark = /^\s*\d+\.\s+/;
+                    this.featureMark = /^\s*(\d+)\.\s+/;
                     this.childNodeName = "LI";
                     this.parentNodeName = "OL";
                 }
+                OL.prototype.Elevate = function (node) {
+                    var rtn = _super.prototype.Elevate.call(this, node);
+                    if (rtn) {
+                        rtn.parent.setAttribute("start", rtn.feature[1]);
+                    }
+                    return rtn;
+                };
                 return OL;
             })(BlockRendererContainer);
             BlockRendererContainers.OL = OL;
@@ -774,7 +783,7 @@ var MarkdownIME;
                     var tr = d.createElement("tr");
                     var th = match[1].split("|").map(function (text) {
                         var rtn = d.createElement("th");
-                        rtn.textContent = text;
+                        rtn.textContent = text.trim();
                         tr.appendChild(rtn);
                         return rtn;
                     });
@@ -1414,7 +1423,7 @@ var MarkdownIME;
                                 if (noAdditionalKeys)
                                     focus_1 = td.nextElementSibling ||
                                         (tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
-                                        table.nextElementSibling;
+                                        (this.CreateNewCell(tr.firstElementChild));
                                 else if (ev.shiftKey)
                                     focus_1 = td.previousElementSibling ||
                                         (tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||

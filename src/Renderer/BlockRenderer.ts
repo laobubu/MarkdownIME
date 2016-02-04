@@ -212,7 +212,7 @@ namespace MarkdownIME.Renderer {
 				var tr    = d.createElement("tr");
 				var th    = match[1].split("|").map((text)=>{
 					let rtn = d.createElement("th");
-					rtn.textContent = text;
+					rtn.textContent = text.trim();
 					tr.appendChild(rtn);
 					return rtn;
 				})

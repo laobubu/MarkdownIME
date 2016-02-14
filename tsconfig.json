@@ -3,6 +3,7 @@
     "target": "es5",
     "module": "system",
     "moduleResolution": "node",
+	"declaration": true,
     "rootDir": "src",
     "out": "dist/MarkdownIME.js",
     "sourceMap": true,
@@ -10,5 +11,16 @@
     "experimentalDecorators": true,
     "removeComments": false,
     "noImplicitAny": false
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "/node_modules",
+    "../node_modules",
+    "*node_modules*",
+    "/node_modules*",
+    "angular2",
+    "rxjs",
+    "typings",
+	"dist"
+  ]
 }

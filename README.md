@@ -18,19 +18,10 @@ Visit http://laobubu.github.io/MarkdownIME/
 
 ## Developing
 
-### Program
-
-[VSCode](https://code.visualstudio.com/) is favored.
-
-To test / debug, run `npm run go`.
-
-### Build
-
-This project requires `tsc` (TypeScript Compiler) and `make` to compile. Optionally, `uglifyjs` can be used to compress the output.
-
-You can get the tools via npm : `npm install --dev`
-
-After obtaining the tools, just run `make` and you will get the js files. If you are using Windows, you might need a `make` binary.
+1. Install dev tools: `npm install --dev`
+2. Code: use [VSCode](https://code.visualstudio.com/)
+3. Test on Browser: `npm run go`
+4. Build: `make`
 
 ## Features
 

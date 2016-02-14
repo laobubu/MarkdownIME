@@ -14,7 +14,8 @@
     "tsc:w": "tsc -w",
     "lite": "lite-server --open test",
     "go": "concurrent \"npm run tsc:w\" \"npm run lite\" ",
-    "make": "make all"
+    "make": "make all",
+	"test": "exit 0"
   },
   "dependencies": {},
   "devDependencies": {

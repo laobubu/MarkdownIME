@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "4.1"
+script: make
+
+deploy:
+  provider: bintray
+  file: .bintray.json
+  user: laobubu
+  key:
+    secure: U1nnzAmkMqVQ0UIKhXevIVFStolGbiYs+9hDPSrkkuXRAta/g8QFMzoO7A08Q/yTnOxxbNpTQToxqsZ8UqQXipUjoPfpU+FudEqF/UaYjpLbKSrOxIjD45cz8j5GULmok2g6jFchkK9AnF2z802abZ84B2T1eyp+apSnByWABBJ6JSWSEdSQSTjy4mosmVcS4rbHCKM2yDcpqbyMnrlQrdgEvdb4XUBby90+VPJxsD0ooNqTCZm/asjNwM4WyPNnc5x2zG/UWs0MQESE3ln63I4Cm8x98tsHlx3EjuXUV8WBNIkPKOaiN0iQ9xIfHGCfmRQ+a2Wgzc9IUjg34jwgvSoC3yJt4tdKLzir6s2NfEr5eQ+3XRucVJW2SBFWwuYFZ06XVr6mUUkOteKLJdzuHGIq8FJ1c6O5nq5tpBAiKEH21zlu6ukqZkOLka27bW20cSRKYyXWyi/3RVpyVxKOg4TKx5IAteZtatiI4JK7j8R2UMktawGdzlEeYshcdD94A9f/i//Iq8bu+EwjW0a62WSfzKSX4DsNeXRhmxCe/oYk2N9dAxB/1Y4wNEgWJzUqo+rngHlkIcuNYW6MqGmxgxsIk3D4epWUITeMNtoJZU7ceQIwLOBLX8RxwJoJaY+XJntNzTicjFDtFbMciM4Xn1cP+5ZvOFBhrrCXIUdJM4s=

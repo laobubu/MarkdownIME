@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "es5",
     "module": "system",
     "moduleResolution": "node",
     "rootDir": "src",
-	  "out": "dest/MarkdownIME.js",
+    "out": "dist/MarkdownIME.js",
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

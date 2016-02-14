@@ -4,18 +4,17 @@
 TS_COMPILER = tsc
 TS_FILES = $(wildcard src/*.ts)
 
-OUT_FULL = dest/MarkdownIME.js
-OUT_UGLIFIED = MarkdownIME.js
+OUT_FULL = dist/MarkdownIME.js
+OUT_UGLIFIED = dist/MarkdownIME.min.js
 
 UGLIFY = uglifyjs
 
 .PHONY: all clean
 
-all: MarkdownIME.js $(OUT_FULL) $(OUT_UGLIFIED)
+all: $(OUT_FULL) $(OUT_UGLIFIED)
 
 clean:
-	-rm -rf dest
-	-rm MarkdownIME.js
+	-rm -rf dist
 
 $(OUT_FULL): $(TS_FILES) tsconfig.json
 	$(TS_COMPILER)

@@ -9,8 +9,8 @@ namespace MarkdownIME.Addon {
 	 * To enable, execute this:
 	 *  `MarkdownIME.Renderer.inlineRenderer.rules.unshift(new MarkdownIME.Addon.MathAddon())`
 	 * 
-	 * Use Google Chart API to generate the picture.
-	 * @see https://developers.google.com/chart/infographics/docs/formulas
+	 * Use CODECOGS API to generate the picture.
+	 * @see http://latex.codecogs.com/eqneditor/editor.php
 	 * 
 	 * Originally planned to use http://www.mathjax.org/ , but failed due to its async proccessing.
 	 */
@@ -19,7 +19,7 @@ namespace MarkdownIME.Addon {
 		name = "MathFormula";
 		
 		//this is the formula image URL prefix.
-		imgServer = 'https://chart.googleapis.com/chart?cht=tx&chf=bg,s,00000000&chl=';
+		imgServer = 'http://latex.codecogs.com/gif.latex?';
 		
 		regex: RegExp = /([^\\]|^)(\${1,2})(.*?[^\\])\2/g;
 		

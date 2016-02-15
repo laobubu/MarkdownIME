@@ -10,4 +10,6 @@ tar zcf ../dist.tgz *
 cd ..
 
 #Upload
-curl -X PUT --data @dist.tgz ${UPLOAD_DIR}
+echo "start upload file"
+curl -X PUT -F "file=@dist.tgz" ${UPLOAD_DIR}
+rm dist.tgz

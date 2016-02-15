@@ -22,11 +22,11 @@
   <div id="bizzarebg"></div>
   <section id="s1">
     <h1 class="hide">MarkdownIME</h1>
-    <p class="subtitle hide">A FRESH WAY TO INPUT & FORMAT</p>
+    <p class="subtitle hide">A FRESH WAY TO TYPE & FORMAT</p>
     <nav class="hide">
       <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">View on GitHub</a>
-      <a id="nav_help" href="#help">Help Document</a>
-      <a id="nav_donate" href="http://laobubu.net/donate.html">Buy me a Coffee</a>
+      <a id="nav_help" href="#help">Documentation</a>
+      <a id="nav_donate" href="http://laobubu.net/donate.html">Buy me a coffee</a>
     </nav>
     <div id="editor" contenteditable="true" spellcheck="false" class="hide"></div>
   </section>
@@ -35,62 +35,62 @@
     <h2><a name="help"></a>Introducing</h2>
 	  <p><a href="./index.zh.html">中文版 MarkdownIME 介绍页面 &raquo;</a></p>
       <p>Imagine a rich textbox without any button, it's easy if you try.</p>
-      <p>MarkdownIME provides a fresh way to write well-formatted text, by typing markdownized stuff. It will speed up writing, help you get rid of the small formatting buttons.</p>
+      <p>MarkdownIME provides a fresh way to write well-formatted text, by typing markdown-ized stuff. It can speed up writing, help you to get rid of those formatting toolbars.</p>
       <p>Works like a charm on mobile devices, too!</p>
     <h2>Quickstart</h2>
-    <h3>For users who enjoy Markdown</h3>
-      <h4>Run without installing a plug-in</h4>
+    <h3>For users who know Markdown</h3>
+      <h4>It's plugin-free!</h4>
       <p align="center"><a href="javascript:(function()%7Bvar%20s%3Ddocument.createElement('script')%3Bs.setAttribute('type'%2C'text%2Fjavascript')%3Bs.setAttribute('src'%2C'https%3A%2F%2Frawgit.com%2Flaobubu%2FMarkdownIME%2Fmaster%2FMarkdownIME.js')%3Bs.onload%3Dfunction()%7BMarkdownIME.Bookmarklet(window)%7D%3Bdocument.documentElement.appendChild(s)%3B%7D)()" title="Load MarkdownIME" class="button" id="bookmarklet">Load MarkdownIME</a></p>
       <p>Drag this bookmarklet to your bookmark bar.</p>
-      <p>When you want to enhance an online editor (eg. EverNote, 云笔记...), just click the bookmark and magic!</p>
-      <p>Some website disabled external plugins so the bookmarklet might not work. If you got in trouble, <a href="https://github.com/laobubu/MarkdownIME/issues/new">submit one issue</a>, telling me the website and the problem.</p>
+      <p>When you want to use it on a rich-text editor (eg. Evernote, Google Docs...), just click the bookmark and voila!</p>
+      <p>Some websites may not allow external scripts, so it might not work everywhere. If you are in trouble, <a href="https://github.com/laobubu/MarkdownIME/issues/new">submit a issue</a>, and tell me where and how you meet the problem.</p>
       <h4>Browser Extension</h4>
-      <p>Nothing yet. if you are willing to give me a hand, please <a href="http://laobubu.net/donate.html">buy me a Coffee</a> or do whatever <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">on GitHub</a>. Thanks!</p>
-    <h3>For developer</h3>
-      <p>If you want to enhance editors on your website, <a href="manual.html">this simple manual</a> can provide big help!</p>
-      <p>Only require 1~3 lines of JavaScript code.</p>
+      <p>Not for now. If you are willing to support, you can <a href="http://laobubu.net/donate.html">buy me a coffee</a> or see what you can do <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">on GitHub</a>. Thanks!</p>
+    <h3>For developers</h3>
+      <p>If you want to use MarkdownIME on your website, <a href="manual.html">this simple manual</a> can be a big help!</p>
+      <p>Just a few lines of Javascript, and that's all.</p>
     <h2>Features</h2>
-      <p>MarkdownIME supports many Markdown syntax. Just type in Markdown style, and then press Enter.</p>
-      <p>Refer: <a href="https://help.github.com/articles/markdown-basics/">Markdown Basic</a></p>
+      <p>MarkdownIME supports most Markdown syntax. Just type in Markdown style, and press Enter.</p>
+      <p>Learn more: <a href="https://help.github.com/articles/markdown-basics/">Markdown Basic</a></p>
     <h3>Supported Markdown Syntax</h3>
-      <h4>Span Elements</h4>
+      <h4>In a line:</h4>
       <ul>
         <li>Links</li>
-        <li>Emphasis: **Bold** & *Italy*</li>
+        <li>Emphasis: **Bold** & *Italics*</li>
         <li>~~Strikethrough~~</li>
-        <li>`In-line Code`</li>
-        <li>Images</li>
-		<li>emoji <code>:-)</code> <sup>[1]</sup></li>
-		<li>Tex formulas: <code>$ E=mc^2 $</code> <sup>[2]</sup></li>
+        <li>`In-line Codes`</li>
+        <li>Pictures</li>
+	<li>Emoji <code>:-)</code> <sup>[1]</sup></li>
+	<li>Math equations (TeX): <code>$ E=mc^2 $</code> <sup>[2]</sup></li>
       </ul>
 	  <ol class="footnote">
-	  	<li>Emoji feature is provided as an add-on. System loads it automatically. Works better with <a href="https://github.com/twitter/twemoji">twemoji</a>.</li>
-		<li>Tex formulas feature is provided as an add-on, which will NOT load automatically. Read the <a href="https://github.com/laobubu/MarkdownIME/blob/master/src/Addon/MathAddon.ts">source code and the comments</a>.</li>
+	  	<li>Emoji feature is provided as an add-on. It's loaded automatically. Works better with <a href="https://github.com/twitter/twemoji">twemoji</a>.</li>
+		<li>TeX equations feature is provided as an add-on, which will NOT load by default. Learn more from <a href="https://github.com/laobubu/MarkdownIME/blob/master/src/Addon/MathAddon.ts">the source code and the comments</a>.</li>
 	  </ol>
       <h4>Block Elements</h4>
       <ul>
-        <li>Headers (beginning with<code>#</code>)</li>
-        <li>Horizontal Line ---</li>
-        <li>List & Nested list</li>
-        <li>Blockquote & Nested blockquote</li>
-        <li>Code Block</li>
+        <li>Headers (beginning with <code>#</code>s)</li>
+        <li>Horizontal rules ---</li>
+        <li>Lists & Nested lists</li>
+        <li>Blockquotes & Nested blockquotes</li>
+        <li>Code Blocks</li>
       </ul>
-	  <h4>Basic table</h4>
-	  <p>MarkdownIME support creating table with <code>| column | header | texts |</code> and more.</p>
-	  <p>When editing a cell, press Enter key to insert a row.</p>
-	  <p>Press Enter key twice to end the table and start a new line of text.</p>
-	  <p>Besides, MarkdownIME enhances the key-bindings when editing table. You can move the cursor from cell to cell swiftly, with <code>Tab</code>,  <code>Shift + Tab</code>,  <code>Up Arrow</code> and <code>Down Arrow</code> keys.</p>
-    <h3>Supported Editor</h3>
+	  <h4>Simple table</h4>
+	  <p>You can make a table by typing the header row like <code>| header | goes | here |</code>.</p>
+	  <p>When editing a cell, press Enter to insert a row below.</p>
+	  <p>Press Enter key twice to exit the table and start a new line of text.</p>
+	  <p>Besides, MarkdownIME allows you to use common hotkeys to navigate from cell to cell, with <code>Tab</code>,  <code>Shift + Tab</code>,  <code>Up Arrow</code> and <code>Down Arrow</code> keys.</p>
+    <h3>Supported Editors</h3>
       <ul>
-        <li><b>Vanilla contenteditable elements</b> - browsers solve everything.</li>
-        <li><b>TinyMCE</b> - now typing on EverNote and others is easier.</li>
+        <li><b>Vanilla 'contenteditable' elements</b> - browsers solve everything.</li>
+        <li><b>TinyMCE</b> - now it's easier to type on EverNote and more.</li>
       </ul>
     <h2>Contribute / Troubleshooting</h2>
-    <p>Well, I'm not good at javascripting and I need your help.</p>
+    <p>Well, I'm not really good at Javascript-ing and I need your help.</p>
     <ul>
       <li><a href="https://github.com/laobubu/MarkdownIME">Fork me on GitHub</a></li>
-	  <li><a href="http://laobubu.net/donate.html">Buy me a Coffee</a></li>
-      <li><a href="https://github.com/laobubu/MarkdownIME/issues/new">Submit one Issue</a></li>
+	  <li><a href="http://laobubu.net/donate.html">Buy me a coffee</a></li>
+      <li><a href="https://github.com/laobubu/MarkdownIME/issues/new">Submit an issue</a></li>
     </ul>
   </section>
   <script src="https://twemoji.maxcdn.com/twemoji.min.js" async></script>

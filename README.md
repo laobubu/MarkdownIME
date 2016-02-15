@@ -20,7 +20,7 @@ Visit http://laobubu.github.io/MarkdownIME/
 
 ## Developing
 
-1. Install dev tools: `npm install --dev`
+1. Install dev tools: `npm install`
 2. Code: use [VSCode](https://code.visualstudio.com/)
 3. Test on Browser: `npm run go`
 4. Build: `make`

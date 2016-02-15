@@ -10,4 +10,4 @@ tar zcf ../dist.tgz *
 cd ..
 
 #Upload
-curl -X PUT -d @dist.tgz $UPLOAD_URL
+curl -X PUT --data @dist.tgz ${UPLOAD_DIR}

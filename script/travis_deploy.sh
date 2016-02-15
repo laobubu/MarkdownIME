@@ -5,9 +5,7 @@ npm install typedoc
 typedoc --out dist/doc src
 
 #Compress
-cd dist
-tar zcf ../dist.tgz *
-cd ..
+tar zcf dist.tgz -C dist .
 
 #Upload
 echo "start upload file"

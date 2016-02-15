@@ -1,5 +1,7 @@
 # MarkdownIME
 
+[![Build Status](https://travis-ci.org/laobubu/MarkdownIME.svg?branch=master)](https://travis-ci.org/laobubu/MarkdownIME)
+
 Imagine a **rich** textbox **without** any **button**, it's easy if you try.
 
 MarkdownIME is a minimal & powerful web rich-text editor.

@@ -4,6 +4,10 @@
 npm install typedoc
 typedoc --out dist/doc src
 
+#Recompile. dont know why.
+npm install --dev
+make
+
 #Compress
 tar zcf dist.tgz -C dist .
 

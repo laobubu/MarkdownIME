@@ -139,6 +139,11 @@ export class Editor {
 					node = tempLi;
 				}
 			}
+		} else {
+			//judge if is half_break
+			if (node.nodeType === Node.TEXT_NODE) {
+				result.half_break = range.startOffset !== node.textContent.length;
+			}
 		}
 		
 		//normalize the node object, if the node is 
@@ -271,6 +276,9 @@ export class Editor {
 			ev.preventDefault();
 		} else 
 		{
+		
+			if (currentLine.half_break) return;
+		
 			if (node.lastChild.attributes && (
 					node.lastChild.attributes.getNamedItem("data-mdime-bogus") ||
 					node.lastChild.attributes.getNamedItem("data-mce-bogus")

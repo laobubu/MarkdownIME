@@ -35,25 +35,29 @@
     <h2><a name="help"></a>Introducing</h2>
 	  <p><a href="./index.zh.html">中文版 MarkdownIME 介绍页面 &raquo;</a></p>
       <p>Imagine a rich textbox without any button, it's easy if you try.</p>
-      <p>MarkdownIME provides a fresh way to write well-formatted text, by typing markdown-ized stuff. It can speed up writing, help you to get rid of those formatting toolbars.</p>
+      <p>MarkdownIME provides a fresh way to write well-formatted text. Just type in markdown-ized stuff, and your texts get formatted on-the-fly!</p>
       <p>Works like a charm on mobile devices, too!</p>
     <h2>Quickstart</h2>
     <h3>For users who know Markdown</h3>
       <h4>It's plugin-free!</h4>
       <p align="center"><a href="javascript:(function()%7Bvar%20s%3Ddocument.createElement('script')%3Bs.setAttribute('type'%2C'text%2Fjavascript')%3Bs.setAttribute('src'%2C'https%3A%2F%2Frawgit.com%2Flaobubu%2FMarkdownIME%2Fmaster%2FMarkdownIME.js')%3Bs.onload%3Dfunction()%7BMarkdownIME.Bookmarklet(window)%7D%3Bdocument.documentElement.appendChild(s)%3B%7D)()" title="Load MarkdownIME" class="button" id="bookmarklet">Load MarkdownIME</a></p>
       <p>Drag this bookmarklet to your bookmark bar.</p>
-      <p>When you want to use it on a rich-text editor (eg. Evernote, Google Docs...), just click the bookmark and voila!</p>
-      <p>Some websites may not allow external scripts, so it might not work everywhere. If you are in trouble, <a href="https://github.com/laobubu/MarkdownIME/issues/new">submit a issue</a>, and tell me where and how you meet the problem.</p>
+      <p>When you want to use it on a rich-text editor (eg. Evernote), just click the bookmark and start Markdown!</p>
+      <p>If you are in trouble, <a href="https://github.com/laobubu/MarkdownIME/issues/new">submit an issue</a>, and tell me where and how you meet the problem.</p>
+	  <ol class="footnote">
+		  <li>Some websites may not allow external scripts and the magic bookmarklet might not work.</li>
+		  <li>Only <code>contentEditable</code> editors are supported yet; MarkdownIME will not work on the editors with other technology (eg. OneNote, Google Doc).</li>
+	  </ol>
       <h4>Browser Extension</h4>
       <p>Not for now. If you are willing to support, you can <a href="http://laobubu.net/donate.html">buy me a coffee</a> or see what you can do <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">on GitHub</a>. Thanks!</p>
     <h3>For developers</h3>
-      <p>If you want to use MarkdownIME on your website, <a href="manual.html">this simple manual</a> can be a big help!</p>
+      <p>Interested in using MarkdownIME on your website? Read <a href="manual.html">this simple manual</a>!</p>
       <p>Just a few lines of Javascript, and that's all.</p>
     <h2>Features</h2>
       <p>MarkdownIME supports most Markdown syntax. Just type in Markdown style, and press Enter.</p>
       <p>Learn more: <a href="https://help.github.com/articles/markdown-basics/">Markdown Basic</a></p>
     <h3>Supported Markdown Syntax</h3>
-      <h4>In a line:</h4>
+      <h4>Inline Elements</h4>
       <ul>
         <li>Links</li>
         <li>Emphasis: **Bold** & *Italics*</li>

@@ -148,7 +148,7 @@ var bookmarklet_script =
 	"document.documentElement.appendChild(s);" + 
 "})()";
 var bookmarklet = document.getElementById('bookmarklet');
-bookmarklet.setAttribute('src', 'javascript:' + encodeURIComponent(bookmarklet_script));
+bookmarklet.setAttribute('href', 'javascript:' + encodeURIComponent(bookmarklet_script));
 bookmarklet.addEventListener('click', function(ev){
 	alert('Oops. This magic bookmarklet shall be opened from bookmark bar.')
 	ev.preventDefault();

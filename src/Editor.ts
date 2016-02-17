@@ -3,20 +3,35 @@
 
 namespace MarkdownIME{
 
-export var config = {
-	"wrapper": "p",	// the default wrapper for plain text line
+export interface EditorConfig {
+	/** the wrapper tagName of a line. usually "p" or "div" */
+	wrapper?: string;
+	
+	/** the outterHTML of a `<br>` placeholder. on Chrome/Firefox, an empty line must has at least one `<br>` */
+	emptyBreak?: string;
+	
+	/** use proto chain to apply default config. */
+	__proto__?: EditorConfig;
 };
 
 export class Editor {
+	
+	static globalConfig: EditorConfig = {
+		wrapper: 'p',
+		emptyBreak: '<br data-mdime-bogus="true">'
+	};
+	
+	config: EditorConfig;
+	
 	editor: Element;
 	document: Document;
 	window: Window;
 	
 	selection: Selection;
 	
-	isTinyMCE: boolean;
+	isTinyMCE: boolean;	
 	
-	constructor(editor: Element) {
+	constructor(editor: Element, config?: EditorConfig) {
 		this.editor = editor;
 		
 		this.document = editor.ownerDocument;
@@ -24,6 +39,9 @@ export class Editor {
 		this.selection = this.window.getSelection();
 		
 		this.isTinyMCE = /tinymce/i.test(editor.id);
+		
+		this.config = config || {};
+		this.config.__proto__ = Editor.globalConfig;
 	}
 	
 	/**
@@ -41,16 +59,27 @@ export class Editor {
 		return true;
 	}
 	
+	
 	/**
-	 * Process the line on the cursor.
-	 * call this from the event handler.
+	 * get the line element where the cursor is in.
+	 * 
+	 * @note when half_break is true, other things might not be correct.
 	 */
-	ProcessCurrentLine(ev : KeyboardEvent) {
+	GetCurrentLine(range: Range) : {
+		line: Element,
+		parent_tree: Element[],
+		half_break: boolean
+	} {
 		var _dummynode : Node;
-		var tinymce_node : Node;
-		
-		var range = this.selection.getRangeAt(0);
-		if (!range.collapsed) return;	// avoid processing with strange selection
+		var result : {
+			line: Element,
+			parent_tree: Element[],
+			half_break: boolean
+		} = {
+			line: null,
+			parent_tree: [],
+			half_break: false
+		};
 		
 		// assuming not using tinymce:
 		// interesting, the node is always a TextNode.
@@ -58,69 +87,54 @@ export class Editor {
 		// 1. there is no text.
 		// 2. not on a text. might be after an image or sth.
 		// 3. the cursor was set by some script. (eg. tinymce)
+		
 		var node = range.startContainer;
 		
-		if (node.nodeType == Node.TEXT_NODE && range.startOffset != node.textContent.length) {
-			_dummynode = node;
-			while (!Utils.is_node_block(_dummynode)) _dummynode = _dummynode.parentNode;
-			if (Utils.Pattern.NodeName.pre.test(_dummynode.nodeName)) {
-				//safe insert <br> for <pre>, for browser always screw up
-				//insert right half text
-				node.parentNode.insertBefore(this.document.createTextNode(node.textContent.substr(range.startOffset)), node.nextSibling);
-				_dummynode = this.document.createElement('br');
-				node.parentNode.insertBefore(_dummynode, node.nextSibling);
-				node.textContent = node.textContent.substr(0, range.startOffset);
-				
-				range.selectNode(_dummynode.nextSibling);
-				range.collapse(true);
-				this.selection.removeAllRanges();
-				this.selection.addRange(range);
-				
-				ev.preventDefault();
-			}
-			return;
-		}
-		//if (node != node.parentNode.lastChild) return;
-		
+		// proccess tinymce, after this part, the node will be the line element
 		if (this.isTinyMCE) {
+			/** the block element tinymce created */
+			let tinymce_node:Element = node.parentElement;
+			while (!Utils.is_node_block(tinymce_node)) {
+				tinymce_node = tinymce_node.parentElement;
+			}
+			
 			//according to test, node will become <sth><br bogus="true"></sth>
+			
 			//if this is half-break, then return
 			if (
-				!(Utils.Pattern.NodeName.pre.test(node.nodeName)) &&
 				!(node.childNodes.length == 1 && node.firstChild.nodeName == "BR")
-			)
-				return;
-			//so we get rid of it.
-			tinymce_node = node;
-			while (!Utils.is_node_block(tinymce_node)) {
-				tinymce_node = tinymce_node.parentNode;
-			}
-			//the we get the real and normalized node.
-			if (Utils.Pattern.NodeName.pre.test(tinymce_node.nodeName)) {
-				//<pre> is special
+			) {
 				node = tinymce_node;
-				while (node.lastChild && Utils.is_node_empty(node.lastChild)) {
-					node.removeChild(node.lastChild);
-				}
-				node.appendChild(this.document.createElement('br'));
-				node.appendChild(this.document.createElement('br'));
-				tinymce_node = null;
+				result.half_break = true;
 			} else
+			
+			//otherwise we get the real and normalized node.
+			
+			if (Utils.Pattern.NodeName.pre.test(tinymce_node.nodeName)) {
+				//<pre> is special and tinymce handles it well
+				node = tinymce_node;
+			} else
+			
 			if (Utils.Pattern.NodeName.cell.test(tinymce_node.parentElement.nodeName)) {
 				//F**king created two <p> inside a table cell!
 				node = tinymce_node.parentElement; //table cell
+				
 				let oldP = tinymce_node.previousSibling;
 				let oldPChild;
 				while (oldPChild = oldP.firstChild) {
 					node.insertBefore(oldPChild, oldP);
 				}
+				
 				node.removeChild(oldP);
-				//the tinymce_node will be removed by the following code
+				node.removeChild(tinymce_node);
 			} else {
 				node = tinymce_node.previousSibling;
+				tinymce_node.parentElement.removeChild(tinymce_node);
+				
 				if (Utils.Pattern.NodeName.list.test(node.nodeName)) {
 					//tinymce helps us get rid of a list.
-					return;
+					//but we must get back to it.
+					node = node.lastChild;
 				}
 			}
 		}
@@ -129,33 +143,42 @@ export class Editor {
 		// 1. editor > #text , then create one wrapper and use the wrapper.
 		// 2. blockwrapper > [wrapper >] #text , then use the blockwrapper.
 		// 3. editor , which means editor is empty. then f**k user.
-		//cond 3
-		if (node == this.editor) {
-			node = this.document.createElement(config.wrapper || "div");
-			(<HTMLElement>node).innerHTML = (<HTMLElement>this.editor).innerHTML;
-			(<HTMLElement>this.editor).innerHTML = "";
-			this.editor.appendChild(node);
-		}
 		//cond 2
-		while (!Utils.is_node_block(node) && node.parentNode != this.editor) {
+		while (!Utils.is_node_block(node) && node !== this.editor) {
 			node = node.parentNode;
 		}
-		//cond 1
-		if (!Utils.is_node_block(node) && node.parentNode == this.editor) {
-			_dummynode = this.document.createElement(config.wrapper || "div");
-			Utils.wrap(_dummynode, node);
-			node = _dummynode;
+		//cond 3
+		if (node === this.editor) {
+			node = this.document.createElement(this.config.wrapper);
+			let r1 = this.document.createRange();
+			r1.selectNodeContents(this.editor);
+			r1.surroundContents(node);
 		}
-	
 		
 		//generate the parent tree to make things easier
 		var parent_tree = Utils.build_parent_list(node, this.editor);
 		console.log(node, parent_tree);
 		
-		//further normalizing.
-		//now node shall be a block node
-		while (!Utils.is_node_block(node)) 
-			node = parent_tree.shift();
+		result.line = <Element>node;
+		result.parent_tree = parent_tree;
+		return result;
+	}
+	
+	
+	
+	
+	/**
+	 * Process the line on the cursor.
+	 * call this from the event handler.
+	 */
+	ProcessCurrentLine(ev : KeyboardEvent) {
+		
+		var range = this.selection.getRangeAt(0);
+		if (!range.collapsed) return;	// avoid processing with strange selection
+		
+		var currentLine = this.GetCurrentLine(range);
+		var node = currentLine.line;
+		var parent_tree = currentLine.parent_tree;
 			
 		//finally start processing
 		//for <pre> block, special work is needed.
@@ -213,8 +236,8 @@ export class Editor {
 			} else
 			if (Utils.Pattern.NodeName.cell.test(node.nodeName)) {
 				//empty table cell
-				let tr = node.parentNode;
-				let table = tr.parentNode.parentNode; // table > tbody > tr
+				let tr = node.parentElement;
+				let table = tr.parentElement.parentElement; // table > tbody > tr
 				if (tr.textContent.trim() === "") {
 					//if the whole row is empty, end the table.
 					tr.parentNode.removeChild(tr);
@@ -259,11 +282,10 @@ export class Editor {
 			//Create another line after one node and move cursor to it.
 			if (this.CreateNewLine(node)) {
 				ev.preventDefault();
-				tinymce_node && tinymce_node.parentNode.removeChild(tinymce_node);
 			} else {
 				//let browser deal with strange things
 				console.error("MarkdownIME Cannot Handle Line Creating");
-				Utils.move_cursor_to_end(tinymce_node || node);
+				Utils.move_cursor_to_end(node);
 			}
 		}
 	}
@@ -282,7 +304,7 @@ export class Editor {
 		for (let i = tr.childNodes.length; i--;) {
 			if (Utils.Pattern.NodeName.cell.test(tr.childNodes[i].nodeName)) {
 				let newTd = newTr.insertCell(0);
-				newTd.innerHTML = '<br data-mdime-bogus="true">';
+				newTd.innerHTML = this.config.emptyBreak;
 				if (tr.childNodes[i] === refer) {
 					//this new cell is right under the old one
 					rtn = newTd;
@@ -344,7 +366,7 @@ export class Editor {
 		if ((keyCode === 9) || (keyCode >= 37 && keyCode <= 40)) { //Tab & arrow keys
 			let handled = false;
 			let parent_tree = Utils.build_parent_list(range.startContainer, this.editor);
-			parent_tree.unshift(range.startContainer); // for empty cells
+			parent_tree.unshift(<Element>range.startContainer); // for empty cells
 			let parent_tree_block = parent_tree.filter(Utils.is_node_block);
 			console.log(parent_tree)
 			if (Utils.Pattern.NodeName.cell.test(parent_tree_block[0].nodeName)) {
@@ -433,7 +455,7 @@ export class Editor {
 						Utils.move_cursor_to_end(tail);
 					} else {
 						if (result.child.textContent.length == 0) 
-							(<HTMLElement>result.child).innerHTML = '<br data-mdime-bogus="true">';
+							(<HTMLElement>result.child).innerHTML = this.config.emptyBreak;
 						Utils.move_cursor_to_end(result.child);
 					}
 				}
@@ -446,8 +468,8 @@ export class Editor {
 	 */
 	GenerateEmptyLine(tagName : string = null) : HTMLElement {
 		var rtn : HTMLElement;
-		rtn = this.document.createElement(tagName || config.wrapper || "div");
-		rtn.innerHTML = '<br data-mdime-bogus="true">';
+		rtn = this.document.createElement(tagName || this.config.wrapper || "div");
+		rtn.innerHTML = this.config.emptyBreak;
 		return rtn;
 	}
 }

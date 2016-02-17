@@ -28,8 +28,8 @@ namespace MarkdownIME {
 			var repFun = this.createProxy.bind(this);
 
 			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
-			html = html.replace(/<!--protect-->.*?<--\/protect-->/g, repFun); //regard a part of HTML as a entity. Wrap with `<--protect-->` and `<--/protect-->`
-			html = html.replace(/<!--.+?-->/g, repFun);	//comment tags
+			html = html.replace(/<!--protect-->[\d\D]*?<--\/protect-->/g, repFun); //regard a part of HTML as a entity. Wrap with `<--protect-->` and `<--/protect-->`
+			html = html.replace(/<!--[\d\D]+?-->/g, repFun);	//comment tags
 			
 			html = Utils.html_entity_decode(html);
 

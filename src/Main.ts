@@ -29,14 +29,17 @@ export function Scan(window : Window) : Array<Element>{
 	var document = window.document;
 	var editors : Array<Element>;
 	
-	editors = [].slice.call(document.querySelectorAll('[contenteditable]'));
+	editors = [].slice.call(document.querySelectorAll('[contenteditable], [designMode]'));
 	
 	[].forEach.call(
 		document.querySelectorAll('iframe'), 
 		function(i){
-			var result = Scan(i.contentWindow);
-			if (result.length)
+			try {
+				var result = Scan(i.contentWindow);
 				editors = editors.concat(result);
+			} catch (err) {
+				//security limit, cannot scan the iframe
+			}
 		}
 	);
 	
@@ -46,8 +49,8 @@ export function Scan(window : Window) : Array<Element>{
 /**
  * Enhance one or more editor.
  */
-export function Enhance(editor: Element | Element[]) : Editor {
-	if (typeof editor['length'] === "number") {
+export function Enhance(editor: Element | Element[]) : Editor | Editor[] {
+	if (typeof editor['length'] === "number" && editor[0]) {
 		return [].map.call(editor, Enhance);
 	}
 	
@@ -63,19 +66,10 @@ export function Enhance(editor: Element | Element[]) : Editor {
  * Bookmarklet Entry
  */
 export function Bookmarklet(window: Window) {
-	[].forEach.call(Enhance(Scan(window)),
-	function(editor : Editor){
+	(<Editor[]>Enhance(Scan(window))).forEach((editor: Editor) => {
+		if (!editor) return;
 		UI.Toast.makeToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT).show();
 	});
 }
-
-/**
- * Function alias, just for compatibility
- * @deprecated since version 0.2
- */
-export var bookmarklet = Bookmarklet;
-export var enhance = (window, element)=>{Enhance(element)};
-export var prepare = enhance;
-export var scan = (window)=>{Enhance(Scan(window))};
 
 }

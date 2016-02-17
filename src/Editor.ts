@@ -93,7 +93,7 @@ export class Editor {
 		// proccess tinymce, after this part, the node will be the line element
 		if (this.isTinyMCE) {
 			/** the block element tinymce created */
-			let tinymce_node:Element = node.parentElement;
+			let tinymce_node:Element = <Element>node;
 			while (!Utils.is_node_block(tinymce_node)) {
 				tinymce_node = tinymce_node.parentElement;
 			}
@@ -183,24 +183,29 @@ export class Editor {
 		//finally start processing
 		//for <pre> block, special work is needed.
 		if (Utils.Pattern.NodeName.pre.test(node.nodeName)) {
-			let lineBreak = this.document.createTextNode("\n");
+			let lineBreak = this.document.createElement('br');
 			
 			if (!this.isTinyMCE) {
 				//vanilla editor has bug.
+				range.deleteContents();
 				range.insertNode(lineBreak);
 				let ns = lineBreak.nextSibling;
 				if (ns && (ns.nodeType === Node.TEXT_NODE) && (ns.textContent.length === 0)) {
 					lineBreak.parentNode.removeChild(ns);
 				}
 				if (!lineBreak.nextSibling) {
-					console.log("fucking fix");
-					lineBreak.parentNode.insertBefore(this.document.createElement("br"), lineBreak);
+					lineBreak.parentNode.appendChild(this.document.createElement("br"));
 				}
-				Utils.move_cursor_to_end(lineBreak);
+				
+				range.selectNodeContents(lineBreak.nextSibling);
+				range.collapse(true);
+				this.selection.removeAllRanges();
+				this.selection.addRange(range);
+				
 				ev.preventDefault();
 			}
 			
-			let text = node.textContent;
+			let text = (<HTMLPreElement>node).innerText;
 			if (/^\n*(`{2,3})?\n*$/.test(text.substr(text.length - 4))) {
 				let code = node.firstChild;
 				let n : Node;

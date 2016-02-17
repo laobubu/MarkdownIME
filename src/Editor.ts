@@ -134,7 +134,9 @@ export class Editor {
 				if (Utils.Pattern.NodeName.list.test(node.nodeName)) {
 					//tinymce helps us get rid of a list.
 					//but we must get back to it.
-					node = node.lastChild;
+					let tempLi = this.document.createElement('li');
+					node.appendChild(tempLi);
+					node = tempLi;
 				}
 			}
 		}
@@ -341,7 +343,7 @@ export class Editor {
 		//so we create one new line without format.
 		if (
 			re.line.test(node.nodeName) ||
-			re.pre.test(node.nodeName) ||
+			re.li.test(node.nodeName) ||
 			re.hr.test(node.nodeName)
 		) {
 			var tagName = re.li.test(node.nodeName) ? "li" : null;

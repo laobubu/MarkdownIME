@@ -343,6 +343,7 @@ export class Editor {
 		//so we create one new line without format.
 		if (
 			re.line.test(node.nodeName) ||
+			re.pre.test(node.nodeName) ||
 			re.li.test(node.nodeName) ||
 			re.hr.test(node.nodeName)
 		) {

@@ -123,17 +123,17 @@ namespace MarkdownIME.Utils {
 	}
 	
 	/**
-	 * Find the path to one certain container.
-	 * @return {Array<Node>} 
+	 * Get all parent elements.
+	 * 
+	 * @returns {Element[]} the parents, exclude `node`, include `end`.
 	 */
-	export function build_parent_list(node : Node, end : Node) : Array<Node> {
-		var rtn : Array<Node> = [];
-		var iter : Node = node;
-		while (true) {
-			iter = iter.parentNode;
-			if (!iter) break;
+	export function build_parent_list(node : Node, end : Element) : Element[] {
+		var rtn : Element[] = [];
+		var iter : Element = node.parentElement;
+		while (iter) {
 			rtn.push(iter);
-			if (iter == end) break;
+			if (iter === end) break;
+			iter = iter.parentElement;
 		}
 		return rtn;
 	}

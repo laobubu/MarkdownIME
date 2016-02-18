@@ -20,14 +20,31 @@ namespace MarkdownIME.Utils {
 		var selection = ele.ownerDocument.defaultView.getSelection();
 		var range = ele.ownerDocument.createRange();
 		var focusNode = ele;
-		while (focusNode.nodeType == 1) {
-			var children = focusNode.childNodes;
-			var t = children[children.length - 1];
-			if (!t) break;
-			focusNode = t;
+		
+		while (focusNode.nodeType === Node.ELEMENT_NODE) {
+			//find the last non-autoClose child element node, or child text node
+			let i = focusNode.childNodes.length;
+			while (--i !== -1) {
+				let c = focusNode.childNodes[i];
+				if (
+					(c.nodeType === Node.TEXT_NODE) ||
+					(c.nodeType === Node.ELEMENT_NODE)
+				) {
+					focusNode = c;
+					break;
+				}
+			}
+			if (i === -1) {
+				break; //not found...
+			}
 		}
-		range.selectNodeContents(focusNode);
-		range.collapse((focusNode.nodeName == "BR"));
+		
+		if (Pattern.NodeName.autoClose.test(focusNode.nodeName))
+			range.selectNode(focusNode);
+		else
+			range.selectNodeContents(focusNode);
+		range.collapse(focusNode.nodeName === "BR");
+		
 		selection.removeAllRanges();
 		selection.addRange(range);
 	}

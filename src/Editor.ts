@@ -21,7 +21,7 @@ export class Editor {
 	
 	static globalConfig: EditorConfig = {
 		wrapper: 'p',
-		emptyBreak: '<br data-mdime-bogus="true">',
+		emptyBreak: /MSIE (9|10)\./.test(navigator.appVersion) ? '' : '<br data-mdime-bogus="true">',
 		__proto_check__: true
 	};
 	

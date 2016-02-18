@@ -27,7 +27,6 @@ namespace MarkdownIME {
 		digestHTML(html: string): string {
 			var repFun = this.createProxy.bind(this);
 
-			html = html.trim();
 			html = html.replace(/<\/?\w+(\s+[^>]*)?>/g, repFun); //normal tags
 			html = html.replace(/<!--protect-->[\d\D]*?<--\/protect-->/g, repFun); //regard a part of HTML as a entity. Wrap with `<--protect-->` and `<--/protect-->`
 			html = html.replace(/<!--[\d\D]+?-->/g, repFun);	//comment tags

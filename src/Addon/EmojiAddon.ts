@@ -59,7 +59,7 @@ namespace MarkdownIME.Addon {
 				for (let s_i = shortcut_phrases.length - 1; s_i >= 0; s_i--) {
 					let regex = shortcut_phrases[s_i];
 					if (!(regex instanceof RegExp)) {
-						regex = new RegExp(Utils.text2regex(<string>regex), "g");
+						regex = new RegExp("\\b" + Utils.text2regex(<string>regex) + "\\b", "g");
 					}
 					this.shortcuts_cache.push({
 						regexp: <RegExp>regex,
@@ -201,7 +201,7 @@ namespace MarkdownIME.Addon {
 			cry: [":'(", ":'-(", ':,(', ':,-('],
 			frowning: [':(', ':-('],
 			heart: ['<3'],
-			two_hearts: [/(<3|❤){2}/g],
+			two_hearts: [/\b(<3|❤){2}\b/g],
 			imp: [']:(', ']:-('],
 			innocent: ['o:)', 'O:)', 'o:-)', 'O:-)', '0:)', '0:-)'],
 			joy: [":')", ":'-)", ':,)', ':,-)', ":'D", ":'-D", ':,D', ':,-D'],

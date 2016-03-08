@@ -10,6 +10,49 @@ namespace MarkdownIME.Renderer {
         data: string | Node;
     }
 
+    export class InlineRenderProcess {
+        renderer: InlineRenderer;
+        tokens: IInlineToken[];
+        document: Document;
+
+        //iter. the index of current token.
+        i: number = 0;
+
+        //the stack that save i
+        iStack: number[] = [];
+
+        constructor(renderer, document, tokens) {
+            this.renderer = renderer;
+            this.document = document;
+            this.tokens = tokens;
+        }
+
+        /** turn tokens into plain string */
+        toString(tokens?: IInlineToken[]) {
+            var _t = tokens || this.tokens;
+            return _t.map(t => (typeof (t.data) === "string" ? t.data : (<Node>t.data).textContent)).join('');
+        }
+
+        /** turn tokens into DocumentFragment */
+        toFragment(tokens?: IInlineToken[]): DocumentFragment {
+            var _t = tokens || this.tokens;
+            var rtn = this.document.createDocumentFragment();
+            _t.map(t => {
+                var node: Node;
+                if (typeof (t.data) === "string") {
+                    node = this.document.createTextNode(<string>t.data);
+                } else {
+                    node = <Node>t.data;
+                }
+                rtn.appendChild(node);
+            })
+            return rtn;
+        }
+
+        pushi() { this.iStack.push(this.i); }
+        popi() { this.i = this.iStack.pop(); }
+    }
+
     /**
      * InlineRenderer: Renderer for inline objects
      * 
@@ -43,8 +86,10 @@ namespace MarkdownIME.Renderer {
          * ```
          */
         public RenderNode(node: HTMLElement) {
-            
+
         }
+
+
 
         /**
          * Extract tokens.

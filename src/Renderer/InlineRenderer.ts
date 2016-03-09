@@ -72,6 +72,14 @@ namespace MarkdownIME.Renderer {
                 this.i++;
             }
         }
+
+        debugDump(output?: boolean) {
+            var str = `I = ${proc.i}\nSTACK = ${proc.iStack.join(" -> ")} \n` + JSON.stringify(proc.tokens).replace(/},{/g, "},\n{")
+            if (output) {
+                console.log(str);
+            }
+            return str;
+        }
     }
 
     /**

@@ -1,58 +1,26 @@
 <!DOCTYPE html>
 <!-- open this page on a browser and test. -->
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MarkdownIME Test</title>
-  <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
   <base href="/test/">
-  <style>
-    body {
-      background: #CCC;
-      font-family: "DejaVu Sans Mono", "Courier New", Courier, monospace;
-    }
-    #editor, #editor blockquote, #editor pre {
-      margin: 10pt;
-      padding: 10pt;
-      border: 1px solid #666;
-    }
-    #editor blockquote {
-      border-left-width: 10px;
-    }
-    #editor p {
-      border-bottom: 1px solid #999;
-    }
-    #testlines {
-      zoom: .5;
-    }
-    #testlines > * {
-      margin: 10pt;
-      padding: 10pt;
-      padding-top: 25pt;
-      position: relative;
-      border:1px solid #999;
-    }
-    #testlines > *:before{
-      color: #999;
-      position: absolute;
-      left: 5pt;
-      top: 5pt;
-      font-size: 10pt;
-      content: attr(id);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
-  
-  <div id="editor" contenteditable="true"></div>
-  
-  <a href="freeplay.html">Free playground &raquo;</a>
-  
-  <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+  <h1>MarkdownIME Test</h1>
+  <p>
+    This webpage is designed to run tests only. To play with MarkdownIME,  
+    <a href="freeplay.html">visit the playground</a>.
+  </p>
+
+  <div id="editor" spellcheck="false" contenteditable="true"></div>
+
   <script src="../dist/MarkdownIME.js"></script>
   <script src="tests.js"></script>
 </body>
+
 </html>

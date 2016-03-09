@@ -1,0 +1,39 @@
+body {
+    background: #EEE;
+    font-size: 12pt;
+    line-height: 1.4em;
+    font-family: "DejaVu Sans", "微软雅黑", Arial, Helvetica, sans-serif;
+}
+pre, code {
+    font-family: "DejaVu Sans Mono", "Courier New", Courier, monospace;
+}
+.emoji {
+    height: 1.3em;
+    vertical-align: middle;
+}
+#editor {
+    margin: 30pt auto;
+    padding: 10pt 20pt;
+    max-width: 860px;
+    box-shadow: 0 1px 4px #666;
+    background: #FAFAFA;
+}
+#editor blockquote,
+#editor pre {
+    margin: 10pt;
+    padding: 10pt;
+    border: 1px solid #666;
+}
+#editor blockquote {
+    border-left-width: 10px;
+}
+#editor p {
+    border-bottom: 1px solid #999;
+}
+#editor table,
+#editor th,
+#editor td {
+    border: 1px solid #666;
+    border-collapse: collapse;
+    padding: 5pt;
+}

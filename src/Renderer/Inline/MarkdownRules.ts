@@ -5,7 +5,8 @@ namespace MarkdownIME.Renderer {
         /** the name list of built-in Markdown inline rules */
         export var InlineRules: string[] = [
             "Emphasis",
-            "StrikeThrough"
+            "StrikeThrough",
+            "LinkAndImage"
         ];
 
         /** basic support of **Bold** and **Emphasis** */
@@ -123,6 +124,48 @@ namespace MarkdownIME.Renderer {
 
                 UE.appendChild(fragment);
                 proc.tokens.splice(i1 - 1, 0, {
+                    isToken: false,
+                    data: UE
+                });
+            }
+        }
+
+        /** link and image with `[]`
+         * 
+         * Notice: the `src` OR `href` is not implemented here.
+         */
+        export class LinkAndImage extends InlineBracketRuleBase {
+            name: string = "Markdown Link and Image";
+            tokens: string[] = ['[', ']', '!'];
+
+            isLeftBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
+                return proc.isToken(token, this.tokens[0])
+            }
+
+            isRightBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
+                return proc.isToken(token, this.tokens[1])
+            }
+
+            ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number) {
+                if (i2 === i1 + 1) return;
+
+                var document = proc.document;
+                var UE: Element;
+
+                var innerTokens = proc.tokens.slice(i1 + 1, i2);
+
+                if (proc.isToken(proc.tokens[i1 - 1], this.tokens[2])) {
+                    UE = document.createElement("img");
+                    UE.setAttribute("alt", proc.toString(innerTokens))
+                    i1--;
+                } else {
+                    var fragment = proc.toFragment(innerTokens);
+                    UE = document.createElement("a");
+                    UE.appendChild(fragment);
+                }
+
+                proc.tokens.splice(i1, i2 - i1 + 1);
+                proc.tokens.splice(i1, 0, {
                     isToken: false,
                     data: UE
                 });

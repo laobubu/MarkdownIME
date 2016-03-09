@@ -1,12 +1,10 @@
 /// <reference path="../InlineRenderer.ts" />
 
 namespace MarkdownIME.Renderer {
-    export interface IInlineRule {
-        name: string;
-    }
 
-    export class InlineBracketRuleBase implements IInlineRule {
+    export class InlineBracketRuleBase implements IInlineTokenRule {
         name: string;
+        tokens: string[];
 
         leftBracket: string;
         rightBracket: string;

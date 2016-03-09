@@ -1,9 +1,17 @@
-/// <reference path="Inline/Rule.ts" />
-
 namespace MarkdownIME.Renderer {
     export interface IInlineToken {
         isToken: boolean;
         data: string | Node;
+    }
+
+    export interface IInlineRule {
+        name: string;
+    }
+
+    export interface IInlineTokenRule extends IInlineRule {
+        /** token chars that this rule needs */
+        tokens: string[];
+        Proc(InlineRenderProcess): boolean;
     }
 
     export class InlineRenderProcess {
@@ -87,7 +95,7 @@ namespace MarkdownIME.Renderer {
         rules: IInlineRule[] = [];
 
         /** The chars that could be a token */
-        tokenChars: { [char: string]: InlineBracketRuleBase[] } = {};
+        tokenChars: { [char: string]: IInlineTokenRule[] } = {};
 
         /**
          * do render on a Node
@@ -172,11 +180,17 @@ namespace MarkdownIME.Renderer {
         /** Add one extra replacing rule */
         public AddRule(rule: IInlineRule) {
             this.rules.push(rule);
-            if (rule instanceof InlineBracketRuleBase) {
-                let mem = this.tokenChars, l = rule.leftBracket, r = rule.rightBracket;
-                l && (mem[l] ? mem[l].push(rule) : (mem[l] = [rule]));
-                r && (mem[r] ? mem[r].push(rule) : (mem[r] = [rule]));
+            if (rule['Proc'] && rule['tokens']) {
+                let mem = this.tokenChars;
+                rule['tokens'].forEach(tokenChar => {
+                    if (mem[tokenChar]) {
+                        mem[tokenChar].push(<IInlineTokenRule>rule);
+                    } else {
+                        mem[tokenChar] = [<IInlineTokenRule>rule];
+                    }
+                })
             }
         }
+        
     }
 }

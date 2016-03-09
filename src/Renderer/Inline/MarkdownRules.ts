@@ -8,7 +8,8 @@ namespace MarkdownIME.Renderer {
             "Emphasis",
             "StrikeThrough",
             "LinkAndImage",
-            "LinkAndImageData"
+            "LinkAndImageData",
+            "InlineCode"
         ];
 
         /** basic support of **Bold** and **Emphasis** */
@@ -203,6 +204,37 @@ namespace MarkdownIME.Renderer {
 
                         proc.tokens.splice(i1, proc.i - i1 + 1);
                         proc.i = i1 - 1;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        export class InlineCode implements IInlineTokenRule {
+            name: string = "Markdown Inline Code";
+            tokens: string[] = ["`"];
+
+            Proc(proc: InlineRenderProcess): boolean {
+                var i1 = proc.i, leftToken = proc.tokens[i1];
+                if (!proc.isToken(leftToken, this.tokens[0])) return false;
+
+                while (++proc.i < proc.tokens.length) {
+                    var rightToken = proc.tokens[proc.i];
+                    if (proc.isToken(rightToken, this.tokens[0])) {
+                        if (proc.i === i1 + 1) {
+                            // something like ``
+                            return false;
+                        }
+
+                        var code = proc.document.createElement('code');
+                        code.textContent = proc.toString(proc.tokens.slice(i1 + 1, proc.i)).trim();
+
+                        proc.tokens.splice(i1, proc.i - i1 + 1, {
+                            isToken: false,
+                            data: code
+                        });
                         return true;
                     }
                 }

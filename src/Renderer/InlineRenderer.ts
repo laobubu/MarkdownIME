@@ -1,10 +1,6 @@
-/// <reference path="../Utils.ts" />
+/// <reference path="Inline/Rule.ts" />
 
 namespace MarkdownIME.Renderer {
-    export interface IInlineRule {
-        name: string;
-    }
-
     export interface IInlineToken {
         isToken: boolean;
         data: string | Node;
@@ -51,6 +47,9 @@ namespace MarkdownIME.Renderer {
 
         pushi() { this.iStack.push(this.i); }
         popi() { this.i = this.iStack.pop(); }
+        stacki(level: number) { return this.iStack[this.iStack.length - level] || 0; }
+
+        isToken(token: IInlineToken, tokenChar: string) { return token && token.isToken && token.data === tokenChar; }
     }
 
     /**
@@ -74,7 +73,7 @@ namespace MarkdownIME.Renderer {
         rules: IInlineRule[] = [];
 
         /** The chars that could be a token */
-        tokenChars: { [char: string]: any } = {};
+        tokenChars: { [char: string]: InlineBracketRuleBase } = {};
 
         /**
          * do render on a Node
@@ -159,6 +158,10 @@ namespace MarkdownIME.Renderer {
         /** Add one extra replacing rule */
         public AddRule(rule: IInlineRule) {
             this.rules.push(rule);
+            if (rule instanceof InlineBracketRuleBase) {
+                this.tokenChars[rule.leftBracket] = rule;
+                this.tokenChars[rule.rightBracket] = rule;
+            }
         }
     }
 }

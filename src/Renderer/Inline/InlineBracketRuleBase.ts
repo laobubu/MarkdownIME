@@ -2,31 +2,27 @@
 
 namespace MarkdownIME.Renderer {
 
-    export class InlineBracketRuleBase implements IInlineTokenRule {
+    export abstract class InlineBracketRuleBase implements IInlineTokenRule {
         name: string;
         tokens: string[];
 
-        leftBracket: string;
-        rightBracket: string;
-
-        ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number) {
-            //This function needs to be overwritten
-            throw new Error("Not implemented ProcWrappedContent of MarkdownIME.Renderer.InlineBracketRuleBase");
-        }
+        abstract isLeftBracket(proc: InlineRenderProcess, token: IInlineToken): boolean;
+        abstract isRightBracket(proc: InlineRenderProcess, token: IInlineToken): boolean;
+        abstract ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number);
 
         Proc(proc: InlineRenderProcess): boolean {
             var si = proc.tokens[proc.stacki(1)];
             var t = proc.tokens[proc.i];
 
-            if (si.isToken && si.data === this.leftBracket) {
-                if (t.isToken && t.data === this.rightBracket) {
+            if (si.isToken && this.isLeftBracket(proc, si)) {
+                if (t.isToken && this.isRightBracket(proc, si)) {
                     let i1 = proc.stacki(1), i2 = proc.i;
                     this.ProcWrappedContent(proc, i1, i2);
                     proc.popi();
 
                     return true;
                 }
-            } else if (t.isToken && t.data === this.leftBracket) {
+            } else if (t.isToken && this.isLeftBracket(proc, si)) {
                 proc.pushi();
                 return true;
             }

@@ -79,8 +79,10 @@ namespace MarkdownIME.Renderer {
      * 
      * Flow:
      * 
-     * 1. Parse: `HTMLElement.childNodes => IInlineToken[]`
-     * 2. 
+     * 1. Parse: `Renderer.parse(HTMLElement) => IInlineToken[]`
+     * 2. Create a Process: `new InlineRenderProcess(...)`
+     * 3. Execute: `InlineRenderProcess.execute()`
+     * 4. Update HTMLElement
      * 
      * @example 
      * ```
@@ -107,7 +109,7 @@ namespace MarkdownIME.Renderer {
          * ```
          */
         public RenderNode(node: HTMLElement) {
-
+            
         }
 
 
@@ -125,7 +127,7 @@ namespace MarkdownIME.Renderer {
          * //...
          * ```
          */
-        public Parse(contentContainer: Element): IInlineToken[] {
+        public parse(contentContainer: Element): IInlineToken[] {
             var rtn: IInlineToken[] = [];
 
             var childNodes = contentContainer.childNodes, childCount = childNodes.length, i = -1;
@@ -178,7 +180,7 @@ namespace MarkdownIME.Renderer {
         }
 
         /** Add one extra replacing rule */
-        public AddRule(rule: IInlineRule) {
+        public addRule(rule: IInlineRule) {
             this.rules.push(rule);
             if (rule['Proc'] && rule['tokens']) {
                 let mem = this.tokenChars;

@@ -2,6 +2,11 @@
 
 namespace MarkdownIME.Renderer {
     export module Markdown {
+        /** the name list of built-in Markdown inline rules */
+        export var InlineRules: string[] = [
+            "Emphasis",
+            "StrikeThrough"
+        ];
 
         /** basic support of **Bold** and **Emphasis** */
         export class Emphasis extends InlineBracketRuleBase {

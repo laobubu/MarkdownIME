@@ -1,6 +1,7 @@
 /// <reference path="Utils.ts" />
 /// <reference path="Renderer/InlineRenderer.ts" />
 /// <reference path="Renderer/BlockRenderer.ts" />
+/// <reference path="Renderer/Inline/MarkdownRules.ts" />
 
 //people <3 emoji
 /// <reference path="Addon/EmojiAddon.ts" />
@@ -14,8 +15,11 @@ namespace Pattern {
 export var inlineRenderer: InlineRenderer = new InlineRenderer();
 export var blockRenderer : BlockRenderer  = new BlockRenderer();
 
-inlineRenderer.AddMarkdownRules();
-inlineRenderer.AddRule(new MarkdownIME.Addon.EmojiAddon());
+Markdown.InlineRules.forEach(RuleName => {
+    var Rule = Markdown[RuleName];
+    inlineRenderer.addRule(new Rule());
+})
+inlineRenderer.addRule(new MarkdownIME.Addon.EmojiAddon());
 
 blockRenderer.AddMarkdownRules();
 

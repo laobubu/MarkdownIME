@@ -1,4 +1,5 @@
 /// <reference path="InlineBracketRuleBase.ts" />
+/// <reference path="../InlineRenderer.ts" />
 
 namespace MarkdownIME.Renderer {
     export module Markdown {
@@ -6,7 +7,8 @@ namespace MarkdownIME.Renderer {
         export var InlineRules: string[] = [
             "Emphasis",
             "StrikeThrough",
-            "LinkAndImage"
+            "LinkAndImage",
+            "LinkAndImageData"
         ];
 
         /** basic support of **Bold** and **Emphasis** */
@@ -158,6 +160,7 @@ namespace MarkdownIME.Renderer {
                     UE = document.createElement("img");
                     UE.setAttribute("alt", proc.toString(innerTokens))
                     i1--;
+                    proc.iStack[proc.iStack.length - 1]--;
                 } else {
                     var fragment = proc.toFragment(innerTokens);
                     UE = document.createElement("a");
@@ -169,6 +172,42 @@ namespace MarkdownIME.Renderer {
                     isToken: false,
                     data: UE
                 });
+            }
+        }
+
+        export class LinkAndImageData implements IInlineTokenRule {
+            name: string = "Markdown Link and Image Data";
+            tokens: string[] = ["(", ")"];
+
+            Proc(proc: InlineRenderProcess): boolean {
+                var i1 = proc.i, leftToken = proc.tokens[i1];
+                if (!proc.isToken(leftToken, this.tokens[0])) return false;
+
+                var pt = proc.tokens[i1 - 1];
+                if (!pt || pt.isToken || !pt.data['nodeName']) return false;
+                var ele: Element = <Element>pt.data;
+                var attrName: string;
+                if (ele.tagName === "IMG") {
+                    attrName = "src";
+                } else if (ele.tagName === "A") {
+                    attrName = "href";
+                } else {
+                    return false;
+                }
+
+                while (++proc.i < proc.tokens.length) {
+                    var rightToken = proc.tokens[proc.i];
+                    if (proc.isToken(rightToken, this.tokens[1])) {
+                        var attrData = proc.toString(proc.tokens.slice(i1 + 1, proc.i)).trim();
+                        ele.setAttribute(attrName, attrData);
+
+                        proc.tokens.splice(i1, proc.i - i1 + 1);
+                        proc.i = i1;
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
     }

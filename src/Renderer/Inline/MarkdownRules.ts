@@ -1,8 +1,8 @@
 /// <reference path="InlineBracketRuleBase.ts" />
 
 namespace MarkdownIME.Renderer {
-    namespace Markdown {
-        class Emphasis extends InlineBracketRuleBase {
+    export module Markdown {
+        export class Emphasis extends InlineBracketRuleBase {
             name: string = "Markdown Emphasis";
             tokens: string[] = ['*'];
 
@@ -26,7 +26,12 @@ namespace MarkdownIME.Renderer {
                     //something like `*<i>To Be Bold</i>*`
                     proc.tokens.splice(i2, 1);
                     proc.tokens.splice(i1, 1);
-                    (<Node>proc.tokens[i1].data).nodeName = "B";
+
+                    let srcElement = <Element>proc.tokens[i1].data;
+                    let newElement = proc.document.createElement("b");
+                    while (srcElement.firstChild) newElement.appendChild(srcElement.firstChild);
+                    proc.tokens[i1].data = newElement;
+
                     proc.i -= 2;
                     return;
                 }

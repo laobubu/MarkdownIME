@@ -5,6 +5,9 @@ namespace MarkdownIME.Renderer {
         export class Emphasis extends InlineBracketRuleBase {
             name: string = "Markdown Emphasis";
             tokens: string[] = ['*'];
+            
+            tagNameEmphasis = "i";
+            tagNameStrong = "b";
 
             isLeftBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
                 return proc.isToken(token, '*')
@@ -22,13 +25,13 @@ namespace MarkdownIME.Renderer {
                     return;
                 }
 
-                if (i2 === i1 + 2 && (<Node>proc.tokens[i1 + 1].data).nodeName === "I") {
+                if (i2 === i1 + 2 && /^(EM|I)$/.test((<Node>proc.tokens[i1 + 1].data).nodeName)) {
                     //something like `*<i>To Be Bold</i>*`
                     proc.tokens.splice(i2, 1);
                     proc.tokens.splice(i1, 1);
 
                     let srcElement = <Element>proc.tokens[i1].data;
-                    let newElement = proc.document.createElement("b");
+                    let newElement = proc.document.createElement(this.tagNameStrong);
                     while (srcElement.firstChild) newElement.appendChild(srcElement.firstChild);
                     proc.tokens[i1].data = newElement;
 
@@ -41,7 +44,7 @@ namespace MarkdownIME.Renderer {
                 tokens.shift();
 
                 var fragment = proc.toFragment(tokens);
-                var UE = document.createElement("i");
+                var UE = document.createElement(this.tagNameEmphasis);
 
                 UE.appendChild(fragment);
                 proc.tokens.splice(i1, 0, {

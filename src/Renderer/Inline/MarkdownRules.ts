@@ -202,7 +202,7 @@ namespace MarkdownIME.Renderer {
                         ele.setAttribute(attrName, attrData);
 
                         proc.tokens.splice(i1, proc.i - i1 + 1);
-                        proc.i = i1;
+                        proc.i = i1 - 1;
                         return true;
                     }
                 }

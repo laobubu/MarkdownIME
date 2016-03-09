@@ -57,9 +57,10 @@ namespace MarkdownIME.Renderer {
             while (this.i < this.tokens.length) {
                 let t = this.tokens[this.i];
                 if (t.isToken) {
-                    this.renderer.tokenChars[<string>t.data].Proc(this);
+                    //call every Rule.Proc() until someone handled the data (returning `true`)
+                    this.renderer.tokenChars[<string>t.data].some(rule => rule.Proc(this));
                 }
-                
+
                 this.i++;
             }
         }
@@ -86,7 +87,7 @@ namespace MarkdownIME.Renderer {
         rules: IInlineRule[] = [];
 
         /** The chars that could be a token */
-        tokenChars: { [char: string]: InlineBracketRuleBase } = {};
+        tokenChars: { [char: string]: InlineBracketRuleBase[] } = {};
 
         /**
          * do render on a Node
@@ -172,8 +173,9 @@ namespace MarkdownIME.Renderer {
         public AddRule(rule: IInlineRule) {
             this.rules.push(rule);
             if (rule instanceof InlineBracketRuleBase) {
-                this.tokenChars[rule.leftBracket] = rule;
-                this.tokenChars[rule.rightBracket] = rule;
+                let mem = this.tokenChars, l = rule.leftBracket, r = rule.rightBracket;
+                l && (mem[l] ? mem[l].push(rule) : (mem[l] = [rule]));
+                r && (mem[r] ? mem[r].push(rule) : (mem[r] = [rule]));
             }
         }
     }

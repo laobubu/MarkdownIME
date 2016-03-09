@@ -14,14 +14,13 @@ namespace MarkdownIME.Renderer {
             var sti = proc.stacki(1), st = proc.tokens[sti];
             var tti = proc.i, tt = proc.tokens[tti];
 
-            if (st.isToken && this.isLeftBracket(proc, st, sti)) {
-                if (tt.isToken && this.isRightBracket(proc, tt, tti)) {
-                    let i1 = proc.stacki(1), i2 = proc.i;
-                    this.ProcWrappedContent(proc, i1, i2);
-                    proc.popi();
+            if (st.isToken && this.isLeftBracket(proc, st, sti) &&
+                tt.isToken && this.isRightBracket(proc, tt, tti)) {
+                let i1 = proc.stacki(1), i2 = proc.i;
+                this.ProcWrappedContent(proc, i1, i2);
+                proc.popi();
 
-                    return true;
-                }
+                return true;
             } else if (tt.isToken && this.isLeftBracket(proc, tt, tti)) {
                 proc.pushi();
                 return true;

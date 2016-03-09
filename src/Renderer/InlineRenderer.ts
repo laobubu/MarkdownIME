@@ -108,8 +108,13 @@ namespace MarkdownIME.Renderer {
          * assert(node.innerHTML == "Hello <b>World<img src=...></b>")
          * ```
          */
-        public RenderNode(node: HTMLElement) {
-            
+        public RenderNode(node: HTMLElement | DocumentFragment) {
+            var tokens = this.parse(node);
+            var proc = new InlineRenderProcess(this, node.ownerDocument, tokens);
+            proc.execute();
+            var fragment = proc.toFragment();
+            node['innerHTML'] && ((<HTMLElement>node).innerHTML = "");
+            node.appendChild(fragment);
         }
 
 
@@ -127,7 +132,7 @@ namespace MarkdownIME.Renderer {
          * //...
          * ```
          */
-        public parse(contentContainer: Element): IInlineToken[] {
+        public parse(contentContainer: Element | DocumentFragment): IInlineToken[] {
             var rtn: IInlineToken[] = [];
 
             var childNodes = contentContainer.childNodes, childCount = childNodes.length, i = -1;
@@ -193,6 +198,6 @@ namespace MarkdownIME.Renderer {
                 })
             }
         }
-        
+
     }
 }

@@ -475,8 +475,8 @@ export class Editor {
 					let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>node) : null;
                     if (result == null ) {
                         //failed to elevate. this is just a plian inline rendering work.
-                        let result = Renderer.inlineRenderer.RenderNode(<HTMLElement>node);
-                        let tail = (focusNode && focusNode.previousSibling) || (<HTMLElement> result.pop());
+                        Renderer.inlineRenderer.RenderNode(<HTMLElement>node);
+                        let tail = (focusNode && focusNode.previousSibling) || (<HTMLElement>node).lastElementChild;
 						Utils.move_cursor_to_end(tail);
 					} else {
 						if (result.child.textContent.length == 0) 

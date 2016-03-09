@@ -8,19 +8,25 @@
   <title>MarkdownIME Test</title>
   <base href="/test/">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
 </head>
 
 <body>
-  <h1>MarkdownIME Test</h1>
-  <p>
-    This webpage is designed to run tests only. To play with MarkdownIME,  
-    <a href="freeplay.html">visit the playground</a>.
-  </p>
+  <header>
+    <h1>MarkdownIME Test</h1>
+    <p>
+      This webpage is designed to run tests only. To play with MarkdownIME,
+      <a href="freeplay.html">visit the playground</a>.
+    </p>
+  </header>
+  
+  <div id="mocha"></div>
 
   <div id="editor" spellcheck="false" contenteditable="true"></div>
 
   <script src="../dist/MarkdownIME.js"></script>
-  <script src="tests.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="index.js"></script>
 </body>
 
 </html>

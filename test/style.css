@@ -4,6 +4,9 @@ body {
     line-height: 1.4em;
     font-family: "DejaVu Sans", "微软雅黑", Arial, Helvetica, sans-serif;
 }
+header, section {
+    margin: 20pt;
+}
 pre, code {
     font-family: "DejaVu Sans Mono", "Courier New", Courier, monospace;
 }
@@ -12,7 +15,7 @@ pre, code {
     vertical-align: middle;
 }
 #editor {
-    margin: 30pt auto;
+    margin: auto;
     padding: 10pt 20pt;
     max-width: 860px;
     box-shadow: 0 1px 4px #666;

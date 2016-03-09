@@ -50,6 +50,19 @@ namespace MarkdownIME.Renderer {
         stacki(level: number) { return this.iStack[this.iStack.length - level] || 0; }
 
         isToken(token: IInlineToken, tokenChar: string) { return token && token.isToken && token.data === tokenChar; }
+
+        /** Iterate through all tokens, calling corresponding `InlineBracketRuleBase.Proc()` */
+        execute() {
+            this.i = 0;
+            while (this.i < this.tokens.length) {
+                let t = this.tokens[this.i];
+                if (t.isToken) {
+                    this.renderer.tokenChars[<string>t.data].Proc(this);
+                }
+                
+                this.i++;
+            }
+        }
     }
 
     /**

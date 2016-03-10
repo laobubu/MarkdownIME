@@ -59,6 +59,27 @@ namespace MarkdownIME.Renderer {
 
         isToken(token: IInlineToken, tokenChar: string) { return token && token.isToken && token.data === tokenChar; }
 
+        /** a safe splice for `this.token`; it updates the stack */
+        splice(startIndex: number, delCount: number, ...adding: IInlineToken[]): IInlineToken[] {
+            // console.log(`%cARGUMENT: ${startIndex}, ${delCount}, ${adding.length}`, 'background:#666;color:#FFF')
+            // this.debugDump(true);
+
+            var addCount = adding.length;
+            function newValue(i: number): number {
+                //dont know why minus 1 but it works
+                if (i >= startIndex - 1 + delCount) return i - 1 - delCount + addCount;
+                if (i > startIndex - 1) return startIndex - 1; //the deleted stuffs 
+                return i;
+            }
+
+            this.i = newValue(this.i);
+            this.iStack = this.iStack.map(newValue);
+
+            var rtn = [].splice.apply(this.tokens, arguments);
+            // this.debugDump(true);
+            return rtn;
+        }
+
         /** Iterate through all tokens, calling corresponding `InlineBracketRuleBase.Proc()` */
         execute() {
             this.i = 0;
@@ -66,7 +87,9 @@ namespace MarkdownIME.Renderer {
                 let t = this.tokens[this.i];
                 if (t.isToken) {
                     //call every Rule.Proc() until someone handled the data (returning `true`)
-                    this.renderer.tokenChars[<string>t.data].some(rule => rule.Proc(this));
+                    let handled = this.renderer.tokenChars[<string>t.data].some(
+                        rule => rule.Proc(this)
+                    )
                 }
 
                 this.i++;
@@ -74,7 +97,12 @@ namespace MarkdownIME.Renderer {
         }
 
         debugDump(output?: boolean) {
-            var str = `I = ${proc.i}\nSTACK = ${proc.iStack.join(" -> ")} \n` + JSON.stringify(proc.tokens).replace(/},{/g, "},\n{")
+            var counter = 0;
+            var str =
+                `I = ${proc.i}\nSTACK = ${proc.iStack.join(" -> ")} \n 0\t ` +
+                JSON.stringify(proc.tokens)
+                    .slice(1, -1)
+                    .replace(/},{/g, _ => `}\n ${++counter}\t {`)
             if (output) {
                 console.log(str);
             }

@@ -72,11 +72,11 @@ namespace MarkdownIME.Renderer {
                         proc.pushi();
                         proc.pushi(); //one more stack push because of the following `proc.popi();`
                     } else {
-                        proc.tokens.splice(i1, i2 - i1 + 1);
+                        proc.splice(i1, i2 - i1 + 1);
                         let src = <Element>innerTokens[0].data;
                         let dst = document.createElement(this.tagNameStrong);
                         while (src.firstChild) dst.appendChild(src.firstChild);
-                        proc.tokens.splice(i1, 0, {
+                        proc.splice(i1, 0, {
                             isToken: false,
                             data: dst
                         });
@@ -84,13 +84,13 @@ namespace MarkdownIME.Renderer {
                     return;
                 }
 
-                proc.tokens.splice(i1, i2 - i1 + 1);
+                proc.splice(i1, i2 - i1 + 1);
 
                 var fragment = proc.toFragment(innerTokens);
                 var UE = document.createElement(tagName);
 
                 UE.appendChild(fragment);
-                proc.tokens.splice(i1, 0, {
+                proc.splice(i1, 0, {
                     isToken: false,
                     data: UE
                 });
@@ -119,14 +119,14 @@ namespace MarkdownIME.Renderer {
 
                 var document = proc.document;
 
-                var tokens = proc.tokens.splice(i1 - 1, i2 - i1 + 3);
+                var tokens = proc.splice(i1 - 1, i2 - i1 + 3);
                 tokens = tokens.slice(2, -2);
 
                 var fragment = proc.toFragment(tokens);
                 var UE = document.createElement(this.tagName);
 
                 UE.appendChild(fragment);
-                proc.tokens.splice(i1 - 1, 0, {
+                proc.splice(i1 - 1, 0, {
                     isToken: false,
                     data: UE
                 });
@@ -161,7 +161,6 @@ namespace MarkdownIME.Renderer {
                     UE = document.createElement("img");
                     UE.setAttribute("alt", proc.toString(innerTokens))
                     i1--;
-                    proc.iStack[proc.iStack.length - 1]--;
                 } else {
                     var fragment = proc.toFragment(innerTokens);
                     UE = document.createElement("a");
@@ -169,8 +168,7 @@ namespace MarkdownIME.Renderer {
                     UE.appendChild(fragment);
                 }
 
-                proc.tokens.splice(i1, i2 - i1 + 1);
-                proc.tokens.splice(i1, 0, {
+                proc.splice(i1, i2 - i1 + 1, {
                     isToken: false,
                     data: UE
                 });
@@ -203,8 +201,7 @@ namespace MarkdownIME.Renderer {
                         var attrData = proc.toString(proc.tokens.slice(i1 + 1, proc.i)).trim();
                         ele.setAttribute(attrName, attrData);
 
-                        proc.tokens.splice(i1, proc.i - i1 + 1);
-                        proc.i = i1 - 1;
+                        proc.splice(i1, proc.i - i1 + 1);
                         return true;
                     }
                 }
@@ -232,7 +229,7 @@ namespace MarkdownIME.Renderer {
                         var code = proc.document.createElement('code');
                         code.textContent = proc.toString(proc.tokens.slice(i1 + 1, proc.i)).trim();
 
-                        proc.tokens.splice(i1, proc.i - i1 + 1, {
+                        proc.splice(i1, proc.i - i1 + 1, {
                             isToken: false,
                             data: code
                         });

@@ -165,6 +165,7 @@ namespace MarkdownIME.Renderer {
                 } else {
                     var fragment = proc.toFragment(innerTokens);
                     UE = document.createElement("a");
+                    UE.setAttribute("href", "");
                     UE.appendChild(fragment);
                 }
 

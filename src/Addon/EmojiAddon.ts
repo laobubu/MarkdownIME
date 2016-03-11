@@ -24,6 +24,18 @@ namespace MarkdownIME.Addon {
 		use_twemoji: boolean = true;
 		twemoji_config = {};
 
+		constructor() {
+			super();
+			for (var key in this.chars) {
+				var ck: string[] = <string[]>this.chars[key];
+				if (ck && ck['length'] && ck['length'] > 1 && ck[1]['length'] > 1) { //mixed alias. expanding is required
+					let ch = ck.shift();
+					ck.push(key);
+					ck.forEach(key => this.chars[key] = ch);
+				}
+			}
+		}
+
 		isLeftBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
 			return proc.isToken(token, this.tokens[0])
 		}
@@ -112,6 +124,9 @@ namespace MarkdownIME.Addon {
 			"grinning": "😀",
 			"blush": "😊",
 			"wink": "😉",
+			"sad": "😔",
+			"+1": "👍",
+			"-1": "👎",
 			"heart_eyes": "😍",
 			"kissing_heart": "😘",
 			"kissing_closed_eyes": "😚",
@@ -136,7 +151,7 @@ namespace MarkdownIME.Addon {
 			"sweat_smile": "😅",
 			"sweat": "😓",
 			"weary": "😩",
-			"tired_face": "😫",
+			"tired": "😫",
 			"fearful": "😨",
 			"scream": "😱",
 			"angry": "😠",

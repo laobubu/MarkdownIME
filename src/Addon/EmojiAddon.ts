@@ -35,8 +35,6 @@ namespace MarkdownIME.Addon {
 		ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number) {
 			var key: string = <string>proc.tokens[i1 + 1].data;
 
-			proc.debugDump(true);
-
 			if (i2 !== i1 + 2) return false;
 			if (typeof (key) !== 'string') return false;
 
@@ -53,7 +51,34 @@ namespace MarkdownIME.Addon {
 			return true;
 		}
 
+		afterProc(proc: InlineRenderProcess) {
+			if (!this.shortcuts_cache.length) this.UpdateShortcutCache();
+			for (var i = 0; i < proc.tokens.length; i++) {
+				var token = proc.tokens[i];
+				if (token.isToken || token.data !== 'string') continue;
+				var str = <string>token.data;
+
+				for (let i = this.shortcuts_cache.length - 1; i >= 0; i--) {
+					str = str.replace(
+						this.shortcuts_cache[i].regexp,
+						_ => this.shortcuts_cache[i].targetName
+					);
+				}
+
+				if (this.use_twemoji && typeof twemoji !== "undefined") {
+					let div = document.createElement('div');
+					div.innerHTML = twemoji.parse(str, this.twemoji_config);
+					let args: any[] = proc.renderer.parse(div);
+					[].splice.apply(proc.tokens, [i, 0].concat(args));
+				} else {
+					token.data = str;
+				}
+
+			}
+		}
+
 		char2twemoji(document: Document, char: string): string | Element {
+			if (typeof twemoji === "undefined") return char;
 			var div = document.createElement('div');
 			div.innerHTML = twemoji.parse(char, this.twemoji_config);
 			return div.firstElementChild || char;

@@ -12,6 +12,9 @@ namespace MarkdownIME.Renderer {
         /** token chars that this rule needs */
         tokens: string[];
         Proc(InlineRenderProcess): boolean;
+
+        /** callback when process is finished */
+        afterProc?(InlineRenderProcess);
     }
 
     export class InlineRenderProcess {
@@ -94,6 +97,11 @@ namespace MarkdownIME.Renderer {
 
                 this.i++;
             }
+
+            this.renderer.rules.forEach(rule => {
+                var func = rule && rule['afterProc'];
+                if (typeof func === 'function') func.call(rule, this);
+            })
         }
 
         debugDump(output?: boolean) {

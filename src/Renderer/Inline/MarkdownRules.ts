@@ -150,8 +150,6 @@ namespace MarkdownIME.Renderer {
             }
 
             ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number) {
-                if (i2 === i1 + 1) return;
-
                 var document = proc.document;
                 var UE: Element;
 
@@ -162,6 +160,7 @@ namespace MarkdownIME.Renderer {
                     UE.setAttribute("alt", proc.toString(innerTokens))
                     i1--;
                 } else {
+                    if (innerTokens.length === 0) return;
                     var fragment = proc.toFragment(innerTokens);
                     UE = document.createElement("a");
                     UE.setAttribute("href", "");

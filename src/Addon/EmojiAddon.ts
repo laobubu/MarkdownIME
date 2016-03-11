@@ -1,56 +1,67 @@
 /// <reference path="../Renderer/InlineRenderer.ts" />
 
-declare var twemoji : {parse(text:string, ...args:any[]):string};
+declare var twemoji: { parse(text: string, ...args: any[]): string };
 
 namespace MarkdownIME.Addon {
+	export declare type InlineRenderProcess = MarkdownIME.Renderer.InlineRenderProcess;
+	export declare type IInlineToken = MarkdownIME.Renderer.IInlineToken;
+
 	/**
 	 * EmojiAddon is an add-on for InlineRenderer, translating `8-)` into ![😎](https://twemoji.maxcdn.com/36x36/1f60e.png)
+	 * 
 	 * Part of the code comes from `markdown-it/markdown-it-emoji`
 	 * 
 	 * @see https://github.com/markdown-it/markdown-it-emoji/
 	 */
-	export class EmojiAddon implements MarkdownIME.Renderer.IInlineRule {
+	export class EmojiAddon extends MarkdownIME.Renderer.InlineBracketRuleBase {
 
 		name = "Emoji";
+		tokens = [":"];
 
 		use_shortcuts: boolean = true;
-		
+
 		/** use twemoji to get `img` tags if possible. if it bothers, disable it. */
 		use_twemoji: boolean = true;
 		twemoji_config = {};
-		
-		render(tree: DomChaos){
-			tree.replace(this.full_syntax, this.magic1.bind(this));
-			
-			if (this.use_shortcuts) {			
-				if (!this.shortcuts_cache.length) this.UpdateShortcutCache();
-				var self = this;
-				
-				for (var i = this.shortcuts_cache.length - 1; i >= 0; i--) {
-					tree.replace(
-						this.shortcuts_cache[i].regexp,
-						function() {return self.magic1(null, self.shortcuts_cache[i].targetName)}
-					);
-				}
-			}
-		}
-		
-		unrender(tree: DomChaos){}
 
-		full_syntax = /:(\w+):/g;
-		
-		/** magic1 translates `:name:` into proper emoji char */
-		magic1(fulltext: string, name: string): string {
-			var rtnval = this.chars[name] || fulltext;
-			if (this.use_twemoji && typeof twemoji != "undefined") {
-				rtnval = twemoji.parse(rtnval, this.twemoji_config);
-			}
-			return rtnval;
+		isLeftBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
+			return proc.isToken(token, this.tokens[0])
 		}
-		
+
+		isRightBracket(proc: InlineRenderProcess, token: IInlineToken, tokenIndex?: number): boolean {
+			return proc.isToken(token, this.tokens[0])
+		}
+
+		ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number) {
+			var key: string = <string>proc.tokens[i1 + 1].data;
+
+			proc.debugDump(true);
+
+			if (i2 !== i1 + 2) return false;
+			if (typeof (key) !== 'string') return false;
+
+			var char = this.chars[key];
+			if (typeof (char) !== 'string') return false;
+
+			if (this.use_twemoji) char = this.char2twemoji(proc.document, char);
+
+			proc.splice(i1, 3, {
+				isToken: false,
+				data: char
+			})
+
+			return true;
+		}
+
+		char2twemoji(document: Document, char: string): string | Element {
+			var div = document.createElement('div');
+			div.innerHTML = twemoji.parse(char, this.twemoji_config);
+			return div.firstElementChild || char;
+		}
+
 		/** shortcuts RegExp cache. Order: [shortest, ..., longest] */
 		shortcuts_cache: { regexp: RegExp, length: number, targetName: string }[] = [];
-		
+
 		/** update the shortcuts RegExp cache. Run this after modifing the shortcuts! */
 		UpdateShortcutCache() {
 			this.shortcuts_cache = [];

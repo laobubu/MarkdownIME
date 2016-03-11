@@ -55,7 +55,7 @@ namespace MarkdownIME.Renderer {
 
         pushi() { this.iStack.push(this.i); }
         popi() { this.i = this.iStack.pop(); }
-        stacki(level: number) { return this.iStack[this.iStack.length - level] || 0; }
+        stacki(level: number) { return this.iStack[this.iStack.length - level]; }
 
         isToken(token: IInlineToken, tokenChar: string) { return token && token.isToken && token.data === tokenChar; }
 
@@ -99,8 +99,8 @@ namespace MarkdownIME.Renderer {
         debugDump(output?: boolean) {
             var counter = 0;
             var str =
-                `I = ${proc.i}\nSTACK = ${proc.iStack.join(" -> ")} \n 0\t ` +
-                JSON.stringify(proc.tokens)
+                `I = ${this.i}\nSTACK = ${this.iStack.join(" -> ")} \n 0\t ` +
+                JSON.stringify(this.tokens)
                     .slice(1, -1)
                     .replace(/},{/g, _ => `}\n ${++counter}\t {`)
             if (output) {

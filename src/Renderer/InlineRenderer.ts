@@ -98,10 +98,24 @@ namespace MarkdownIME.Renderer {
                 this.i++;
             }
 
+            this.mergeTextNode();
+
             this.renderer.rules.forEach(rule => {
                 var func = rule && rule['afterProc'];
                 if (typeof func === 'function') func.call(rule, this);
             })
+        }
+
+        /** merge adjacent text nodes into one */
+        mergeTextNode() {
+            let tks = this.tokens, i = tks.length;
+            while (--i >= 1) {
+                let thisToken = tks[i];
+                let prevToken = tks[i - 1];
+                if (typeof thisToken.data !== 'string' || typeof prevToken.data !== 'string') continue;
+                prevToken.data += <string>thisToken.data;
+                tks.splice(i, 1);
+            }
         }
 
         debugDump(output?: boolean) {

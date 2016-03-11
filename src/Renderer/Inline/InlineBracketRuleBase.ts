@@ -11,7 +11,7 @@ namespace MarkdownIME.Renderer {
         abstract ProcWrappedContent(proc: InlineRenderProcess, i1: number, i2: number);
 
         Proc(proc: InlineRenderProcess): boolean {
-            var sti = proc.stacki(1), st = proc.tokens[sti];
+            var sti = proc.stacki(1), st = proc.tokens[sti] || { isToken: false };
             var tti = proc.i, tt = proc.tokens[tti];
 
             if (st.isToken && this.isLeftBracket(proc, st, sti) &&

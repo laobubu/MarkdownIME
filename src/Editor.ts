@@ -453,22 +453,36 @@ export class Editor {
 	instantRender(range: Range): boolean {
 		var element: Node = range.startContainer.parentNode;
 		var blockNode: Element = <Element>element;
-		
+
 		while (!Utils.is_node_block(blockNode)) {
 			blockNode = <Element>blockNode.parentNode;
 		}
 		if (blockNode.nodeName === "PRE") return false;
-		
+
+		if (
+			element === blockNode &&
+			range.startContainer.nodeType === Node.TEXT_NODE &&
+			range.startContainer === blockNode.firstChild
+		) {
+			//execute blockRenderer.Elevate
+			let blockRendererResult = Renderer.blockRenderer.Elevate(blockNode);
+			if (blockRendererResult) {
+				let newBlock = blockRendererResult.child;
+				if (newBlock.textContent.length === 0) {
+					(<HTMLElement>newBlock).innerHTML = this.config.emptyBreak;
+				}
+				Utils.move_cursor_to_end(newBlock);
+				return;
+			}
+		}
 		range.setStart(element, 0);
-		
-		// let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>blockNode) : null;
-		
+
 		var fragment = range.extractContents();
 		Renderer.inlineRenderer.RenderNode(fragment);
-		
+
 		var focusNode = fragment.lastChild;
 		element.insertBefore(fragment, element.firstChild);
-		
+
 		Utils.move_cursor_to_end(focusNode);
 	}
 	

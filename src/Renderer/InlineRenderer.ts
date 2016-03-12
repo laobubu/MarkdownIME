@@ -104,6 +104,8 @@ namespace MarkdownIME.Renderer {
                 var func = rule && rule['afterProc'];
                 if (typeof func === 'function') func.call(rule, this);
             })
+
+            this.mergeTextNode();
         }
 
         /** merge adjacent text nodes into one */

@@ -29,7 +29,7 @@ namespace MarkdownIME.Addon {
 			for (var key in this.chars) {
 				var ck: string[] = <string[]>this.chars[key];
 				if (ck && ck['length'] && ck['length'] > 1 && ck[1]['length'] > 1) { //mixed alias. expanding is required
-					let ch = ck.shift();
+					var ch = ck.shift();
 					ck.push(key);
 					ck.forEach(key => this.chars[key] = ch);
 				}

@@ -9,20 +9,13 @@ export interface EditorConfig {
 	
 	/** the outterHTML of a `<br>` placeholder. on Chrome/Firefox, an empty line must has at least one `<br>` */
 	emptyBreak?: string;
-	
-	/** use proto chain to apply default config. */
-	__proto__?: EditorConfig;
-	
-	/** a tester for IE9, DO NOT SET TO TRUE */
-	__proto_check__?: boolean;
 };
 
 export class Editor {
 	
 	static globalConfig: EditorConfig = {
 		wrapper: 'p',
-		emptyBreak: /MSIE (9|10)\./.test(navigator.appVersion) ? '' : '<br data-mdime-bogus="true">',
-		__proto_check__: true
+		emptyBreak: /MSIE (9|10)\./.test(navigator.appVersion) ? '' : '<br data-mdime-bogus="true">'
 	};
 	
 	config: EditorConfig;
@@ -37,19 +30,16 @@ export class Editor {
 	
 	constructor(editor: Element, config?: EditorConfig) {
 		this.editor = editor;
-		
+
 		this.document = editor.ownerDocument;
 		this.window = editor.ownerDocument.defaultView;
 		this.selection = this.window.getSelection();
-		
+
 		this.isTinyMCE = /tinymce/i.test(editor.id);
-		
+
 		this.config = config || {};
-		this.config.__proto__ = Editor.globalConfig;
-		if (!this.config.__proto_check__) {
-			for (var key in Editor.globalConfig) {
-				this.config[key] = this.config[key] || Editor.globalConfig[key];
-			}
+		for (var key in Editor.globalConfig) {
+			this.config.hasOwnProperty(key) || (this.config[key] = Editor.globalConfig[key]);
 		}
 	}
 	

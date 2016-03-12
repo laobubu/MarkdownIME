@@ -171,7 +171,13 @@ namespace MarkdownIME.Renderer {
             var proc = new InlineRenderProcess(this, node.ownerDocument, tokens);
             proc.execute();
             var fragment = proc.toFragment();
-            node['innerHTML'] && ((<HTMLElement>node).innerHTML = "");
+            if (node['innerHTML']) {
+                (<HTMLElement>node).innerHTML = "";
+            } else {
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+            }
             node.appendChild(fragment);
         }
 

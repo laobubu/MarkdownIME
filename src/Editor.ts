@@ -442,49 +442,47 @@ export class Editor {
 		}
 	}
 	
-	keyupHandler(ev : KeyboardEvent) {
+	/** 
+	 * execute the instant rendering. 
+	 * 
+	 * this will not work inside a `<pre>` element.
+	 * 
+	 * @param {Range} range where the caret(cursor) is. You can get it from `window.getSelection().getRangeAt(0)`
+	 * @return {boolean} successful or not.
+	 */
+	instantRender(range: Range): boolean {
+		var element: Node = range.startContainer.parentNode;
+		var blockNode: Element = <Element>element;
+		
+		while (!Utils.is_node_block(blockNode)) {
+			blockNode = <Element>blockNode.parentNode;
+		}
+		if (blockNode.nodeName === "PRE") return false;
+		
+		range.setStart(element, 0);
+		
+		// let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>blockNode) : null;
+		
+		var fragment = range.extractContents();
+		Renderer.inlineRenderer.RenderNode(fragment);
+		
+		var focusNode = fragment.lastChild;
+		element.insertBefore(fragment, element.firstChild);
+		
+		Utils.move_cursor_to_end(focusNode);
+	}
+	
+	/**
+	 * keyupHandler
+	 * 
+	 * 1. call `instantRender` when space key is released.
+	 */
+	keyupHandler(ev: KeyboardEvent) {
 		var keyCode = ev.keyCode || ev.which;
 		var range = this.selection.getRangeAt(0);
-		
-		if (!range.collapsed) return;	// avoid processing with strange selection
-		
-		//if is typing, process special instant transform.
-		var node : Node = range.startContainer;
-		if (node.nodeType == Node.TEXT_NODE) {
-			var text = node.textContent;
-			var text_after = text.substr(range.startOffset + 1);
-			var text_before = text.substr(0, range.startOffset);
-			
-			if (text_after.length) return; //instant render only work at the end of line, yet.
-			if (text_before.length < 2) return; //too young, too simple
-			if (text_before.charAt(text_before.length - 2) == "\\") return; //escaping. run faster than others.
-			
-			if (keyCode == 32) {
-				//space key pressed.
-				console.log("instant render at", node);
-                let focusNode = node.nextSibling;
-                let shall_do_block_rendering : boolean = true;
-				while (!Utils.is_node_block(node)) {
-                    if (shall_do_block_rendering && node != node.parentNode.firstChild) {
-                        shall_do_block_rendering = false;
-                    }
-					node = node.parentNode;
-                }
-				console.log("fix to ", node);
-				if (node != this.editor && node.nodeName != "PRE") {
-					let result = shall_do_block_rendering ? Renderer.blockRenderer.Elevate(<HTMLElement>node) : null;
-                    if (result == null ) {
-                        //failed to elevate. this is just a plian inline rendering work.
-                        Renderer.inlineRenderer.RenderNode(<HTMLElement>node);
-                        let tail = (focusNode && focusNode.previousSibling) || (<HTMLElement>node).lastElementChild;
-						Utils.move_cursor_to_end(tail);
-					} else {
-						if (result.child.textContent.length == 0) 
-							(<HTMLElement>result.child).innerHTML = this.config.emptyBreak;
-						Utils.move_cursor_to_end(result.child);
-					}
-				}
-			}
+
+		if (keyCode === 32 && range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE) {
+			this.instantRender(range);
 		}
 	}
 	

@@ -10,6 +10,12 @@ export interface EditorConfig {
 	/** the outterHTML of a `<br>` placeholder. on Chrome/Firefox, an empty line must has at least one `<br>` */
 	emptyBreak?: string;
 };
+	
+export interface IGetCurrentLineResult {
+	line: Element,
+	parent_tree: Element[],
+	half_break: boolean
+};
 
 export class Editor {
 	
@@ -58,47 +64,38 @@ export class Editor {
 		return true;
 	}
 	
-	
 	/**
 	 * get the line element where the cursor is in.
 	 * 
 	 * @note when half_break is true, other things might not be correct.
 	 */
-	GetCurrentLine(range: Range) : {
-		line: Element,
-		parent_tree: Element[],
-		half_break: boolean
-	} {
-		var _dummynode : Node;
-		var result : {
-			line: Element,
-			parent_tree: Element[],
-			half_break: boolean
-		} = {
+	GetCurrentLine(range: Range): IGetCurrentLineResult {
+		var _dummynode: Node;
+		var result: IGetCurrentLineResult = {
 			line: null,
 			parent_tree: [],
 			half_break: false
 		};
-		
+
 		// assuming not using tinymce:
 		// interesting, the node is always a TextNode.
 		// sometimes it became the editor itself / the wrapper, because : 
 		// 1. there is no text.
 		// 2. not on a text. might be after an image or sth.
 		// 3. the cursor was set by some script. (eg. tinymce)
-		
+
 		var node = range.startContainer;
-		
+
 		// proccess tinymce, after this part, the node will be the line element
 		if (this.isTinyMCE) {
 			/** the block element tinymce created */
-			let tinymce_node:Element = <Element>node;
+			let tinymce_node: Element = <Element>node;
 			while (!Utils.is_node_block(tinymce_node)) {
 				tinymce_node = tinymce_node.parentElement;
 			}
-			
+
 			//according to test, node will become <sth><br bogus="true"></sth>
-			
+
 			//if this is half-break, then return
 			if (
 				!(node.childNodes.length == 1 && node.firstChild.nodeName == "BR")
@@ -106,45 +103,45 @@ export class Editor {
 				node = tinymce_node;
 				result.half_break = true;
 			} else
-			
-			//otherwise we get the real and normalized node.
-			
-			if (Utils.Pattern.NodeName.pre.test(tinymce_node.nodeName)) {
-				//<pre> is special and tinymce handles it well
-				node = tinymce_node;
-			} else
-			
-			if (Utils.Pattern.NodeName.cell.test(tinymce_node.parentElement.nodeName)) {
-				//F**king created two <p> inside a table cell!
-				node = tinymce_node.parentElement; //table cell
-				
-				let oldP = tinymce_node.previousSibling;
-				let oldPChild;
-				while (oldPChild = oldP.firstChild) {
-					node.insertBefore(oldPChild, oldP);
-				}
-				
-				node.removeChild(oldP);
-				node.removeChild(tinymce_node);
-			} else {
-				node = tinymce_node.previousSibling;
-				tinymce_node.parentElement.removeChild(tinymce_node);
-				
-				if (Utils.Pattern.NodeName.list.test(node.nodeName)) {
-					//tinymce helps us get rid of a list.
-					//but we must get back to it.
-					let tempLi = this.document.createElement('li');
-					node.appendChild(tempLi);
-					node = tempLi;
-				}
-			}
+
+				//otherwise we get the real and normalized node.
+
+				if (Utils.Pattern.NodeName.pre.test(tinymce_node.nodeName)) {
+					//<pre> is special and tinymce handles it well
+					node = tinymce_node;
+				} else
+
+					if (Utils.Pattern.NodeName.cell.test(tinymce_node.parentElement.nodeName)) {
+						//F**king created two <p> inside a table cell!
+						node = tinymce_node.parentElement; //table cell
+
+						let oldP = tinymce_node.previousSibling;
+						let oldPChild;
+						while (oldPChild = oldP.firstChild) {
+							node.insertBefore(oldPChild, oldP);
+						}
+
+						node.removeChild(oldP);
+						node.removeChild(tinymce_node);
+					} else {
+						node = tinymce_node.previousSibling;
+						tinymce_node.parentElement.removeChild(tinymce_node);
+
+						if (Utils.Pattern.NodeName.list.test(node.nodeName)) {
+							//tinymce helps us get rid of a list.
+							//but we must get back to it.
+							let tempLi = this.document.createElement('li');
+							node.appendChild(tempLi);
+							node = tempLi;
+						}
+					}
 		} else {
 			//judge if is half_break
 			if (node.nodeType === Node.TEXT_NODE) {
 				result.half_break = range.startOffset !== node.textContent.length;
 			}
 		}
-		
+
 		//normalize the node object, if the node is 
 		// 1. editor > #text , then create one wrapper and use the wrapper.
 		// 2. blockwrapper > [wrapper >] #text , then use the blockwrapper.
@@ -160,19 +157,19 @@ export class Editor {
 			r1.selectNodeContents(this.editor);
 			r1.surroundContents(node);
 		}
-		
+
 		//generate the parent tree to make things easier
 		var parent_tree = Utils.build_parent_list(node, this.editor);
 		console.log(node, parent_tree);
-		
+
 		result.line = <Element>node;
 		result.parent_tree = parent_tree;
 		return result;
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Process the line on the cursor.
 	 * call this from the event handler.

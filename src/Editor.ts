@@ -435,9 +435,10 @@ export class Editor {
 	 * this will not work inside a `<pre>` element.
 	 * 
 	 * @param {Range} range where the caret(cursor) is. You can get it from `window.getSelection().getRangeAt(0)`
+	 * @param {boolean} moveCursor true if you want to move the caret(cursor) after rendering.
 	 * @return {boolean} successful or not.
 	 */
-	instantRender(range: Range): boolean {
+	instantRender(range: Range, moveCursor?: boolean): boolean {
 		var element: Node = range.startContainer.parentNode;
 		var blockNode: Element = <Element>element;
 
@@ -458,7 +459,7 @@ export class Editor {
 				if (newBlock.textContent.length === 0) {
 					(<HTMLElement>newBlock).innerHTML = this.config.emptyBreak;
 				}
-				Utils.move_cursor_to_end(newBlock);
+				moveCursor && Utils.move_cursor_to_end(newBlock);
 				return;
 			}
 		}
@@ -470,7 +471,7 @@ export class Editor {
 		var focusNode = fragment.lastChild;
 		element.insertBefore(fragment, element.firstChild);
 
-		Utils.move_cursor_to_end(focusNode);
+		moveCursor && Utils.move_cursor_to_end(focusNode);
 	}
 	
 	/**
@@ -483,7 +484,7 @@ export class Editor {
 		var range = this.selection.getRangeAt(0);
 
 		if (keyCode === 32 && range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE) {
-			this.instantRender(range);
+			this.instantRender(range, true);
 		}
 	}
 	

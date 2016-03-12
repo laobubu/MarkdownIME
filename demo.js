@@ -124,7 +124,7 @@ setTimeout(function showStart() {
 	if (shallPlay) {
 		var magic = demoStartLines(editor, demotext || [
 			"# Hello World 8-)", 
-			"Just **directly type in** your *Markdown* text like `\\*this\\*`, then press Enter or Space."
+			"Just **directly type in** your *Markdown* text like `*this*`, then press Enter or Space."
 		]);
 		editor.addEventListener("keydown", function(){magic.stop();}, false);
 	}

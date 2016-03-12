@@ -119,7 +119,7 @@ setTimeout(function showStart() {
 		return;
 	}
 	editor.innerHTML = "";
-	MarkdownIME.Renderer.inlineRenderer.rules.unshift(new MarkdownIME.Addon.MathAddon())
+	MarkdownIME.Renderer.inlineRenderer.addRule(new MarkdownIME.Addon.MathAddon())
 	mdime_editor = MarkdownIME.Enhance(editor);
 	if (shallPlay) {
 		var magic = demoStartLines(editor, demotext || [

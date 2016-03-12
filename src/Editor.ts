@@ -468,8 +468,14 @@ export class Editor {
 		var fragment = range.extractContents();
 		Renderer.inlineRenderer.RenderNode(fragment);
 
+		let firstChild = element.firstChild;
+		if (firstChild.nodeType === Node.TEXT_NODE && firstChild.textContent === "") {
+			element.removeChild(firstChild);
+			firstChild = element.firstChild;
+		}
+		
 		var focusNode = fragment.lastChild;
-		element.insertBefore(fragment, element.firstChild);
+		element.insertBefore(fragment, firstChild);
 
 		moveCursor && Utils.move_cursor_to_end(focusNode);
 	}

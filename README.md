@@ -2,9 +2,7 @@
 
 [![Build Status](https://travis-ci.org/laobubu/MarkdownIME.svg?branch=master)](https://travis-ci.org/laobubu/MarkdownIME)
 
-Imagine a **rich** textbox **without** any **button**, it's easy if you try.
-
-MarkdownIME is a minimal & powerful web rich-text editor.
+MarkdownIME is a fresh and fast way to make text formatted, and a minimal & powerful web rich-text editor.
 
 **MINIMAL**: No buttons or stylesheets. It only require one `div[contentEditable]` and two `script` tags.
 
@@ -17,6 +15,13 @@ MarkdownIME is a minimal & powerful web rich-text editor.
 ## Quickstart / Guide
 
 Visit http://laobubu.github.io/MarkdownIME/
+
+## Download
+
+Newest build form Travis-CI:
+
+ - Uncompressed version: <http://build.laobubu.net/MarkdownIME/MarkdownIME.js>
+ - Uglified version: <http://build.laobubu.net/MarkdownIME/MarkdownIME.min.js>
 
 ## Developing
 
@@ -47,7 +52,7 @@ Visit http://laobubu.github.io/MarkdownIME/
 
 #### Tables
 
-Create a table with `| table | column | headers |` line.
+Create a table with `| table | column | headers |`
 
 ### Supported Editor
 

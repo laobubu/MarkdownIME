@@ -1,7 +1,3 @@
-/// <reference path="../typings/mocha/mocha.d.ts" />
-
-mocha.setup("bdd")
-
 var scripts = [
     "basic"
 ]
@@ -17,9 +13,7 @@ function loadScript(name) {
 
 function loadScriptCallback() {
     if (--awaitingScriptCount) return;
-    mocha.checkLeaks()
-    mocha.globals(['MarkdownIME'])
-    mocha.run()
+    //Adding POST Test Code Here
 }
 
 scripts.forEach(loadScript);

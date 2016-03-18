@@ -1,5 +1,7 @@
 var scripts = [
-    "basic"
+    "basic",
+    "block-renderer",
+    "inline-renderer"
 ]
 
 var awaitingScriptCount = scripts.length;

@@ -6,17 +6,20 @@ var scripts = [
     "basic"
 ]
 
+var awaitingScriptCount = scripts.length;
+
 function loadScript(name) {
-    return new Promise(function (solve) {
-        var s = document.createElement("script");
-        s.src = "test/test." + name + ".js";
-        s.onload = solve;
-        document.body.appendChild(s)}
-    )
+    var s = document.createElement("script");
+    s.src = "test." + name + ".js";
+    s.onload = loadScriptCallback;
+    document.body.appendChild(s)
 }
 
-Promise.all(scripts.map(loadScript)).then(function() {
+function loadScriptCallback() {
+    if (--awaitingScriptCount) return;
     mocha.checkLeaks()
     mocha.globals(['MarkdownIME'])
     mocha.run()
-})
+}
+
+scripts.forEach(loadScript);

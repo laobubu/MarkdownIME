@@ -10,16 +10,25 @@
 </head>
 <body>
   <div id="editor" spellcheck="false" contenteditable="true"><p><br></p></div>
+  <pre id="logOut"></pre>
   
   <script src="../dist/MarkdownIME.js"></script>
   <script>
 	  var editor = document.getElementById('editor');
+    var logOut = document.getElementById('logOut');
 	  MarkdownIME.Enhance(editor)
 	  editor.focus();
 	  MarkdownIME.Utils.move_cursor_to_end(editor);
 	  
 	  //Load MathAddon.
 	  MarkdownIME.Renderer.inlineRenderer.addRule(new MarkdownIME.Addon.MathAddon());
+    
+    function log() {
+      console.log.apply(console, arguments);
+      var str = [].join.call(arguments,"");
+      var text = document.createTextNode(str + "\n");
+      logOut.insertBefore(text, logOut.firstChild);
+    }
   </script>
   
   <script src="//twemoji.maxcdn.com/twemoji.min.js" async></script>

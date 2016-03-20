@@ -445,6 +445,7 @@ export class Editor {
 		while (!Utils.is_node_block(blockNode)) {
 			blockNode = <Element>blockNode.parentNode;
 		}
+		if (blockNode === this.editor) return false;
 		if (blockNode.nodeName === "PRE") return false;
 		if (element.nodeName === "CODE") return false;
 

@@ -1,7 +1,10 @@
+var editor = document.getElementById('editor');
+
 var scripts = [
     "basic",
     "block-renderer",
-    "inline-renderer"
+    "inline-renderer",
+    "editor"
 ]
 
 var awaitingScriptCount = scripts.length;

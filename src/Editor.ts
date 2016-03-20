@@ -32,7 +32,8 @@ export class Editor {
 	
 	selection: Selection;
 	
-	isTinyMCE: boolean;	
+	isTinyMCE: boolean;
+	isIE: boolean;
 	
 	constructor(editor: Element, config?: EditorConfig) {
 		this.editor = editor;
@@ -42,6 +43,7 @@ export class Editor {
 		this.selection = this.window.getSelection();
 
 		this.isTinyMCE = /tinymce/i.test(editor.id);
+		this.isIE = /MSIE|Trident\//.test(this.window.navigator.userAgent);
 
 		this.config = config || {};
 		for (var key in Editor.globalConfig) {
@@ -59,7 +61,7 @@ export class Editor {
 		
 		this.editor.addEventListener('keydown', this.keydownHandler.bind(this), false);
 		this.editor.addEventListener('keyup', this.keyupHandler.bind(this), false);
-		this.editor.addEventListener('keypress', this.keypressHandler.bind(this), false);
+		this.editor.addEventListener('input', this.inputHandler.bind(this), false);
 		this.editor.setAttribute('mdime-enhanced', 'true');
 		
 		return true;
@@ -501,17 +503,20 @@ export class Editor {
 		var keyCode = ev.keyCode || ev.which;
 		var range = this.selection.getRangeAt(0);
 
-		if (keyCode === 32 && range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE) {
+		if (this.isIE && keyCode === 32 && range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE) {
 			this.instantRender(range, true);
 		}
 	}
 
 	/**
-	 * keypressHnadler
+	 * inputHandler
 	 */
-	keypressHandler(ev: KeyboardEvent) {
-		var keyCode = ev.keyCode || ev.which;
+	inputHandler(ev) {
 		var range = this.selection.getRangeAt(0);
+		console.log(ev,ev.data);
+		if (range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE && /\s$/.test(range.startContainer.textContent)) {
+			this.instantRender(range, true);
+		}
 	}
 
 	/**

@@ -22,6 +22,7 @@ Newest build form Travis-CI:
 
  - Uncompressed version: <http://build.laobubu.net/MarkdownIME/MarkdownIME.js>
  - Uglified version: <http://build.laobubu.net/MarkdownIME/MarkdownIME.min.js>
+ - Documentation: <http://build.laobubu.net/MarkdownIME/doc/>
 
 ## Developing
 

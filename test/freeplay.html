@@ -16,6 +16,7 @@
 	  var editor = document.getElementById('editor');
 	  MarkdownIME.Enhance(editor)
 	  editor.focus();
+	  MarkdownIME.Utils.move_cursor_to_end(editor);
 	  
 	  //Load MathAddon.
 	  MarkdownIME.Renderer.inlineRenderer.addRule(new MarkdownIME.Addon.MathAddon());

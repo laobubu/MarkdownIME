@@ -46,9 +46,9 @@ var testBlockRenderer = function(assert, text, expectChildTag, expectChildText, 
 
     assert.notEqual(result, null, "Testing " + text);
 
-    eq(newNode.nodeName, expectChildTag, "Child's tagName is <" + expectChildTag + ">");
-    eq(newNode.textContent, expectChildText, "Child's textContent is " + expectChildText);
-    expectParentTag && eq(result.parent && result.parent.nodeName, expectParentTag, "Parent's tagName is <" + expectParentTag + ">");
+    (typeof expectChildTag === "string") && eq(newNode.nodeName, expectChildTag, "Child's tagName is <" + expectChildTag + ">");
+    (typeof expectChildText === "string") && eq(newNode.textContent, expectChildText, "Child's textContent is " + expectChildText);
+    (typeof expectParentTag === "string") && eq(result.parent && result.parent.nodeName, expectParentTag, "Parent's tagName is <" + expectParentTag + ">");
 
     return result;
 }
@@ -63,7 +63,7 @@ QUnit.test("Horizontal Rules", function(assert) {
     });
 
     badExamples.forEach(function(srcText) {
-        testBlockRenderer(assert, srcText, "HR", "", null, true);
+        testBlockRenderer(assert, srcText, "HR", null, null, true);
     });
 })
 
@@ -84,4 +84,9 @@ QUnit.test("Unordered list", function(assert) {
     var result3 = testBlockRenderer(assert, "* **pure test**", "LI", "**pure test**", "UL");
     assert.equal(result2.parent, result1.parent, "Combine to the last list");
     assert.equal(result3.parent, result1.parent, "Combine to the last list (2)");
+})
+
+QUnit.test("BlockQuote", function(assert) {
+    testBlockRenderer(assert, "> Hello Yahhh", "P", "Hello Yahhh", "BLOCKQUOTE");
+    testBlockRenderer(assert, ">> Much better", "P", "Much better", "BLOCKQUOTE");
 })

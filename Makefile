@@ -20,4 +20,4 @@ $(OUT_FULL): $(TS_FILES) tsconfig.json
 	$(TS_COMPILER)
 
 $(OUT_UGLIFIED): $(OUT_FULL)
-	-cat $(OUT_FULL)|grep -v console\.|$(UGLIFY) --mangle --comments -o $(OUT_UGLIFIED)
+	$(UGLIFY) $(OUT_FULL) --compress drop_console=true --mangle --comments -o $(OUT_UGLIFIED)

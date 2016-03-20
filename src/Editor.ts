@@ -59,6 +59,7 @@ export class Editor {
 		
 		this.editor.addEventListener('keydown', this.keydownHandler.bind(this), false);
 		this.editor.addEventListener('keyup', this.keyupHandler.bind(this), false);
+		this.editor.addEventListener('keypress', this.keypressHandler.bind(this), false);
 		this.editor.setAttribute('mdime-enhanced', 'true');
 		
 		return true;
@@ -476,15 +477,24 @@ export class Editor {
 			firstChild = element.firstChild;
 		}
 		
-		var focusNode = fragment.lastChild;
+		var lastNode = fragment.lastChild;
 		element.insertBefore(fragment, firstChild);
-
-		moveCursor && Utils.move_cursor_to_end(focusNode);
+		if (moveCursor){
+			if (lastNode.nodeType === Node.TEXT_NODE) {
+				Utils.move_cursor_to_end(lastNode);
+			} else {
+				let range = this.document.createRange();
+				range.selectNode(lastNode);
+				range.collapse(false);
+				this.selection.removeAllRanges();
+				this.selection.addRange(range);
+			}
+		}
 	}
 	
 	/**
 	 * keyupHandler
-	 * 
+	 *
 	 * 1. call `instantRender` when space key is released.
 	 */
 	keyupHandler(ev: KeyboardEvent) {
@@ -495,7 +505,15 @@ export class Editor {
 			this.instantRender(range, true);
 		}
 	}
-	
+
+	/**
+	 * keypressHnadler
+	 */
+	keypressHandler(ev: KeyboardEvent) {
+		var keyCode = ev.keyCode || ev.which;
+		var range = this.selection.getRangeAt(0);
+	}
+
 	/**
 	 * Generate Empty Line
 	 */

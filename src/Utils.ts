@@ -62,7 +62,7 @@ namespace MarkdownIME.Utils {
 		selection.removeAllRanges();
 		selection.addRange(range);
 		
-		focusNode.parentElement.scrollIntoViewIfNeeded(true);
+		focusNode.parentElement && focusNode.parentElement.scrollIntoViewIfNeeded(true);
 	}
 	
 	/**

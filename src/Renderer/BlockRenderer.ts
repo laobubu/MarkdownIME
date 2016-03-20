@@ -114,7 +114,7 @@ namespace MarkdownIME.Renderer {
 			
 			Elevate (node: Element) : ElevateResult {
 				var rtn = super.Elevate(node);
-				if (rtn) {
+				if (rtn && rtn.parent.childElementCount === 1) {
 					rtn.parent.setAttribute("start", rtn.feature[1]);
 				}
 				return rtn;

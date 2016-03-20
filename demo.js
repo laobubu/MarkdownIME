@@ -11,8 +11,6 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 	var p = lineObject || document.createElement("p");
 	var text_arr = text.split("");
 	
-	var fakeSpaceEvent = {keyCode: 32, preventDefault: function(){}};
-	
 	var selection = window.getSelection();
 	var range = document.createRange();
     
@@ -47,7 +45,7 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 		} else if (ch == ' ') {
 			//emulate space keyup
 			setTimeout(function() {
-				mdime_editor.keyupHandler(fakeSpaceEvent);
+				mdime_editor.inputHandler();
                 
 			    p.innerHTML = p.innerHTML.replace(/(\w)&nbsp;(?=[^&\s\r\n])/g, '$1 ');
 				

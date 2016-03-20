@@ -2,7 +2,12 @@
 
 namespace MarkdownIME.Renderer {
 	
-	export interface ElevateResult {parent:Element, child:Element, feature?:any};
+	export interface ElevateResult {
+		parent:Element; 
+		child:Element; 
+		feature?:any;
+		containerType?: BlockRendererContainer;
+	};
 	
 	export class BlockRendererContainer {
 		name: string;
@@ -248,14 +253,26 @@ namespace MarkdownIME.Renderer {
 	 * In fact the BlockRenderer is not a renderer; it can elevate / degrade a node, changing its name, moving it from one container to another.
 	 */
 	export class BlockRenderer {
-		
-		containers : BlockRendererContainer[] = [];
-		
+
+		containers: BlockRendererContainer[] = [];
+
 		/** Elevate a node. Make sure the node is a block node. */
-		Elevate (node : Element) : {containerType: BlockRendererContainer, parent:Element, child:Element} {
-			for (var i = 0; i< this.containers.length; i++) {
+		Elevate(node: Element): ElevateResult {
+			var finalResult: ElevateResult = null;
+			var elevateOn: Element = node;
+			var newestResult: ElevateResult;
+			while (newestResult = this.ElevateOnce(elevateOn)) {
+				elevateOn = newestResult.child;
+				finalResult = newestResult;
+			}
+			return finalResult;
+		}
+
+		/** Elevate once. Not work with `> ## this situation` */
+		ElevateOnce(node: Element): ElevateResult {
+			for (var i = 0; i < this.containers.length; i++) {
 				let container = this.containers[i];
-				var rtn : any = container.Elevate(node);
+				var rtn: ElevateResult = container.Elevate(node);
 				if (rtn) {
 					rtn.containerType = container;
 					return rtn;

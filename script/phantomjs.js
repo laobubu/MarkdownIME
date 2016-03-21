@@ -17,6 +17,9 @@ if (typeof phantom === "undefined") {
     var app = connect();
     app.use(serveStatic('.', { 'index': ['index.html'] }));
     app.listen(6041);
+    
+    console.log('=== MarkdownIME PhantomJS Runner ===')
+    console.log('Server loaded on http://localhost:6041');
 
     var child = require('child_process').exec('phantomjs ' + __filename);
     child.stdout.pipe(process.stdout);

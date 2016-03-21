@@ -1,7 +1,9 @@
 language: node_js
 node_js:
   - "4.1"
-script: make
+script:
+  - make
+  - npm test
 
 env:
   global:

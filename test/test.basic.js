@@ -7,7 +7,7 @@ QUnit.test("Scan", function(assert) {
     var loadedIframes = 0;
     var done = assert.async();
     frameDiv.innerHTML = 
-        '<iframe src="http://lab.laobubu.net/markdownime/blocking"></iframe>' +
+        '<iframe src="http://0.0.0.0:0/"></iframe>' +
         '<iframe src="freeplay.html"></iframe>' ;
     document.body.appendChild(frameDiv);
     [].forEach.call(frameDiv.children, function(iframe){

@@ -12,10 +12,12 @@
   "scripts": {
     "go": "node script/live.js",
     "make": "make all",
-    "test": "exit 0"
+    "test": "node script/phantomjs.js"
   },
   "dependencies": {},
   "devDependencies": {
+    "connect": "^3.4.1",
+    "serve-static": "^1.10.2",
     "browser-sync": "^2.11.1",
     "opn": "*",
     "qunitjs": "^1.22.0",

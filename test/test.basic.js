@@ -5,9 +5,9 @@ QUnit.module("Basic");
 QUnit.test("Scan", function(assert) {
     var frameDiv = document.createElement('div');
     var loadedIframes = 0;
-    var done = assert.async();
+    var done = assert.async(1);
     frameDiv.innerHTML = 
-        '<iframe src="http://0.0.0.0:0/"></iframe>' +
+        '<iframe src="http://lab.laobubu.net/mdime/forbid"></iframe>' +
         '<iframe src="freeplay.html"></iframe>' ;
     document.body.appendChild(frameDiv);
     [].forEach.call(frameDiv.children, function(iframe){

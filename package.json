@@ -19,7 +19,7 @@
     "connect": "^3.4.1",
     "serve-static": "^1.10.2",
     "browser-sync": "^2.11.1",
-    "opn": "*",
+    "opn": "^3.0.3",
     "qunitjs": "^1.22.0",
     "typescript": "^1.8.7",
     "uglify-js": "^2.6.2"

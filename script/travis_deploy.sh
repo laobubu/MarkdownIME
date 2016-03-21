@@ -5,7 +5,7 @@ npm install typedoc
 typedoc --out dist/doc src
 
 #Recompile. dont know why.
-npm install
+npm install --no-optional
 make
 
 #Compress

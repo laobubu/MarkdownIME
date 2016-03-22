@@ -68,7 +68,7 @@ export function Enhance(editor: Element | Element[]) : Editor | Editor[] {
 export function Bookmarklet(window: Window) {
 	(<Editor[]>Enhance(Scan(window))).forEach((editor: Editor) => {
 		if (!editor) return;
-		UI.Toast.makeToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT).show();
+		UI.Toast.showToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT);
 	});
 }
 

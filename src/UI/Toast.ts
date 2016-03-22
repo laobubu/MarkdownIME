@@ -8,7 +8,7 @@ namespace MarkdownIME.UI {
     /**
      * Tooltip Box, or a Toast on Android.
      * 
-     * Providing a static method `makeToast(text, coveron[, timeout])`, or you can construct one and control its visibility.
+     * Providing a static method `showToast(text, coveron[, timeout])`, or you can construct one and control its visibility.
      */
     export class Toast {
         static SHORT: number = 1500;
@@ -72,7 +72,7 @@ opacity: 0;
         }
 
         /** A Quick way to show a temporary Toast over an Element. */
-        static makeToast(text: string, coveron: HTMLElement, timeout?: number): Toast {
+        static showToast(text: string, coveron: HTMLElement, timeout?: number): Toast {
             var document: Document = coveron.ownerDocument;
 
             var rect = coveron['getBoundingClientRect'] && coveron.getBoundingClientRect() || { left: 0, top: 0 };

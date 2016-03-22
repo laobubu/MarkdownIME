@@ -303,15 +303,15 @@ export class Editor {
 			}
 		}
 	}
-	
+
 	/**
 	 * Create new table row.
-	 * @argument {Node} refer - current cell
-	 * @return   {Node} the corresponding new cell element
+	 * @argument {Element} refer - current cell
+	 * @returns  {Element} the corresponding new cell element
 	 */
-	CreateNewCell(refer : Node) {
+	CreateNewCell(refer: Element): Element {
 		if (!refer || !Utils.Pattern.NodeName.cell.test(refer.nodeName)) return null;
-		let rtn : Element;
+		let rtn: Element;
 		let tr = refer.parentNode;
 		let table = tr.parentNode.parentNode;
 		let newTr = this.document.createElement("tr");
@@ -328,24 +328,26 @@ export class Editor {
 		tr.parentNode.insertBefore(newTr, tr.nextSibling);
 		return rtn;
 	}
-	
+
 	/**
 	 * Create new line after one node and move cursor to it.
-	 * return false if not successful.
+	 * 
+	 * @param   {Element} node - current line element.
+	 * @returns {boolean} successful or not.
 	 */
-	CreateNewLine(node : Node) : boolean {
-		var _dummynode : Node;
+	CreateNewLine(node: Element): boolean {
+		var newElement: Element;
 		var re = Utils.Pattern.NodeName;
-		
+
 		//create table row
 		if (
 			re.cell.test(node.nodeName)
 		) {
-			_dummynode = this.CreateNewCell(node);
-			Utils.move_cursor_to_end(_dummynode);
+			newElement = this.CreateNewCell(node);
+			Utils.move_cursor_to_end(newElement);
 			return true;
 		}
-		
+
 		//using browser way to create new line will get dirty format
 		//so we create one new line without format.
 		if (
@@ -355,12 +357,12 @@ export class Editor {
 			re.hr.test(node.nodeName)
 		) {
 			var tagName = re.li.test(node.nodeName) ? "li" : null;
-			_dummynode = this.GenerateEmptyLine(tagName);
-			node.parentNode.insertBefore(_dummynode, node.nextSibling);
-			Utils.move_cursor_to_end(_dummynode);
+			newElement = this.GenerateEmptyLine(tagName);
+			node.parentNode.insertBefore(newElement, node.nextSibling);
+			Utils.move_cursor_to_end(newElement);
 			return true;
 		}
-		
+
 		return false;
 	}
 	

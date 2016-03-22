@@ -1,66 +1,90 @@
-/// <reference path="Utils.ts" />
+namespace MarkdownIME.UI {
+    export enum ToastStatus {
+        Hidden,
+        Shown,
+        Hiding
+    };
 
-namespace MarkdownIME.UI{
-	export class Toast {
-		static SHORT : number = 800;
-		static LONG : number = 2000;
-		
-		disappearing : boolean = false;
-		element : HTMLDivElement;
-		timeout : number = 300;
-		style : string = 
-`
-position: absolute; 
-font-size: 10pt; 
-color: #363; 
-border: 1px solid #363; 
-background: #CFC; 
-padding: 2pt 5pt; 
-border-radius: 0 0 5pt 0; 
-z-index: 32760; 
-transition: .3s ease; 
-opacity: 0; 
+    /**
+     * Tooltip Box, or a Toast on Android.
+     * 
+     * Providing a static method `makeToast(text, coveron[, timeout])`, or you can construct one and control its visibility.
+     */
+    export class Toast {
+        static SHORT: number = 1500;
+        static LONG: number = 3500;
+
+        static style: string =
+        `
+position: absolute;
+font-family: sans-serif;
+padding: 5px 10px;
+background: #e4F68F;
+font-size: 10pt;
+line-height: 1.4em;
+color: #000;
+z-index: 32760;
+transition: .2s ease;
+opacity: 0;
 `;
-		
-		constructor(element : HTMLDivElement, timeout : number) {
-			this.element = element;
-			this.timeout = timeout;
-		}
-		
-		public show() { 
-			requestAnimationFrame((function(){
-				var dismiss = this.dismiss.bind(this);
-				this.element.style.opacity = '1';
-				this.element.addEventListener('mousemove', dismiss, false);
-				if (this.timeout) 
-					setTimeout(dismiss, this.timeout);
-			}).bind(this));
-		}
-		
-		public dismiss() {
-			if (this.disappearing) return;
-			this.disappearing = true;
-			this.element.style.opacity = '0';
-			setTimeout((function() {
-				this.element.parentNode.removeChild(this.element);
-			}).bind(this), 300);
-		}
-		
-		public static makeToast(text : string, coveron : HTMLElement, timeout : number = 0) : Toast {
-			var document = coveron.ownerDocument || (coveron['createElement'] && coveron) || document;
-			var container = coveron.parentNode || (coveron['createElement'] && coveron['body']);
-			
-			var toast_div : HTMLDivElement = document.createElement("div");
-			var toast = new Toast(toast_div, timeout);
-			
-			toast_div.setAttribute("style", toast.style);
-			toast_div.textContent = text;
-			toast_div.style.left = (coveron.offsetLeft || 0) + 'px';
-			toast_div.style.top  = (coveron.offsetTop  || 0) + 'px';
-			
-			container.appendChild(toast_div);
-			
-			return toast;
-		}
-	}
+
+        document: Document;
+        element: HTMLDivElement;
+        status: ToastStatus = ToastStatus.Hidden;
+
+        constructor(document: Document, text: string) {
+            this.document = document;
+
+            var ele = document.createElement("div");
+            ele.setAttribute("style", Toast.style);
+            ele.textContent = text;
+
+            this.element = ele;
+        }
+
+        show(x: string, y: string, timeout?: number) {
+            var ele = this.element;
+            var dismiss = this.dismiss.bind(this);
+            if (!ele.parentElement)
+                this.document.body.appendChild(ele);
+
+            ele.style.left = x;
+            ele.style.top = y;
+            ele.addEventListener('mousemove', dismiss, false);
+
+            setTimeout(() => {
+                this.status = ToastStatus.Shown;
+                ele.style.opacity = '1';
+                if (timeout) setTimeout(dismiss, timeout);
+            }, 10);
+        }
+
+        dismiss() {
+            if (this.status !== ToastStatus.Shown) return;
+
+            this.status = ToastStatus.Hiding;
+            this.element.style.opacity = '0';
+
+            setTimeout(() => {
+                this.element.parentNode.removeChild(this.element);
+                this.status = ToastStatus.Hidden;
+            }, 300);
+        }
+
+        /** A Quick way to show a temporary Toast over an Element. */
+        static makeToast(text: string, coveron: HTMLElement, timeout?: number): Toast {
+            var document: Document = coveron.ownerDocument;
+
+            var rect = coveron['getBoundingClientRect'] && coveron.getBoundingClientRect() || { left: 0, top: 0 };
+            var toast = new Toast(document, text);
+
+            toast.show(
+                rect.left + 'px',
+                rect.top + 'px',
+                timeout || Toast.SHORT
+            );
+
+            return toast;
+        }
+    }
 }

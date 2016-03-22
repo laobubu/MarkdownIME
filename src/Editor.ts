@@ -19,7 +19,7 @@ export interface IGetCurrentLineResult {
 
 export class Editor {
 	
-	static globalConfig: EditorConfig = {
+	static defaultConfig: EditorConfig = {
 		wrapper: 'p',
 		emptyBreak: /MSIE (9|10)\./.test(navigator.appVersion) ? '' : '<br data-mdime-bogus="true">'
 	};
@@ -46,8 +46,8 @@ export class Editor {
 		this.isIE = /MSIE|Trident\//.test(this.window.navigator.userAgent);
 
 		this.config = config || {};
-		for (var key in Editor.globalConfig) {
-			this.config.hasOwnProperty(key) || (this.config[key] = Editor.globalConfig[key]);
+		for (var key in Editor.defaultConfig) {
+			this.config.hasOwnProperty(key) || (this.config[key] = Editor.defaultConfig[key]);
 		}
 	}
 	
@@ -377,59 +377,9 @@ export class Editor {
 		if (noAdditionalKeys && keyCode === 13) {
 			this.ProcessCurrentLine(ev);
 			return;
-		} else 
-		if ((keyCode === 9) || (keyCode >= 37 && keyCode <= 40)) { //Tab & arrow keys
-			let handled = false;
-			let parent_tree = Utils.build_parent_list(range.startContainer, this.editor);
-			parent_tree.unshift(<Element>range.startContainer); // for empty cells
-			let parent_tree_block = parent_tree.filter(Utils.is_node_block);
-			console.log(parent_tree)
-			if (Utils.Pattern.NodeName.cell.test(parent_tree_block[0].nodeName)) {
-				//swift move between cells
-				let td    = <HTMLElement>parent_tree_block[0];
-				let tr    = <HTMLTableRowElement>td.parentElement;
-				let table = <HTMLTableElement>tr.parentElement.parentElement;
-				let focus : Element = null;
-				let td_index = 0;
-				while (td_index < tr.childElementCount && !tr.children[td_index].isSameNode(td)) td_index++;
-				if (td_index < tr.childElementCount) {
-					switch (keyCode) {
-					case 9: //TAB
-						if (noAdditionalKeys)
-							focus = td.nextElementSibling || 
-								(tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
-								(this.CreateNewCell(tr.firstElementChild));
-						else if (ev.shiftKey)
-							focus = td.previousElementSibling || 
-								(tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||
-								table.previousElementSibling;
-						break;
-					case 38: //UP
-						if (noAdditionalKeys)
-							focus = (tr.previousElementSibling && (<HTMLTableRowElement>tr.previousElementSibling).children[td_index]) ||
-								table.previousElementSibling;
-						break;
-					case 40: //DOWN
-						if (noAdditionalKeys)
-							focus = (tr.nextElementSibling && (<HTMLTableRowElement>tr.nextElementSibling).children[td_index]) ||
-								table.nextElementSibling;
-						break;
-					}
-					
-					if (focus !== null) {
-						range.selectNodeContents(focus.lastChild || focus);
-						range.collapse(false);
-						this.selection.removeAllRanges();
-						this.selection.addRange(range);
-						handled = true;
-					}
-				}
-			}
-			
-			if (handled) {
-				ev.preventDefault();
-			}
 		}
+		
+		this.keydownHandler_Table(ev);
 	}
 	
 	/** 
@@ -513,7 +463,6 @@ export class Editor {
 	 */
 	inputHandler(ev) {
 		var range = this.selection.getRangeAt(0);
-		console.log(ev,ev.data);
 		if (range.collapsed && range.startContainer.nodeType === Node.TEXT_NODE && /\s$/.test(range.startContainer.textContent)) {
 			this.instantRender(range, true);
 		}
@@ -527,6 +476,72 @@ export class Editor {
 		rtn = this.document.createElement(tagName || this.config.wrapper || "div");
 		rtn.innerHTML = this.config.emptyBreak;
 		return rtn;
+	}
+	
+	/**
+	 * KeyDown Event Handler for Tables
+	 * 
+	 * Move cursor using TAB, Shift+TAB, UP and DOWN
+	 * 
+	 * @returns {boolean} handled or not.
+	 */
+	keydownHandler_Table(ev : KeyboardEvent): boolean {
+		var keyCode = ev.keyCode || ev.which;
+		var noAdditionalKeys = !(ev.shiftKey || ev.ctrlKey || ev.altKey);
+		
+		if ((keyCode !== 9) && (keyCode < 37 || keyCode > 40)) return false;
+		
+		var range = this.selection.getRangeAt(0);
+		
+		var parent_tree = Utils.build_parent_list(range.startContainer, this.editor);
+		parent_tree.unshift(<Element>range.startContainer); // for empty cells
+		var parent_tree_block = parent_tree.filter(Utils.is_node_block);
+		
+		let td    = <HTMLElement>parent_tree_block[0];
+		let tr    = <HTMLTableRowElement>td.parentElement;
+		let table = <HTMLTableElement>tr.parentElement.parentElement;
+		
+		if (!Utils.Pattern.NodeName.cell.test(td.nodeName)) return false;
+		
+		let td_index = 0; // the index of current td
+		let td_count = tr.childElementCount;
+		while (td_index < td_count && tr.children[td_index] !== td) td_index++;
+
+		if (td_index >= td_count) return false; // not found the cell. awkward but shall not happen
+		
+		var focus: Element = null;
+		
+		switch (keyCode) {
+			case 9: //TAB
+				if (noAdditionalKeys)
+					focus = td.nextElementSibling ||
+						(tr.nextElementSibling && tr.nextElementSibling.firstElementChild) ||
+						(this.CreateNewCell(tr.firstElementChild));
+				else if (ev.shiftKey)
+					focus = td.previousElementSibling ||
+						(tr.previousElementSibling && tr.previousElementSibling.lastElementChild) ||
+						table.previousElementSibling;
+				break;
+			case 38: //UP
+				if (noAdditionalKeys)
+					focus = (tr.previousElementSibling && (<HTMLTableRowElement>tr.previousElementSibling).children[td_index]) ||
+						table.previousElementSibling;
+				break;
+			case 40: //DOWN
+				if (noAdditionalKeys)
+					focus = (tr.nextElementSibling && (<HTMLTableRowElement>tr.nextElementSibling).children[td_index]) ||
+						table.nextElementSibling;
+				break;
+		}
+
+		if (focus) {
+			Utils.move_cursor_to_end(focus);
+			ev.preventDefault();
+			
+			return true;
+		}
+		
+		return false;
 	}
 }
 

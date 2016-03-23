@@ -20,56 +20,52 @@
 /// <reference path="Editor.ts" />
 /// <reference path="UI.ts" />
 
-namespace MarkdownIME{
+namespace MarkdownIME {
+	/**
+	 * Fetching contenteditable elements from the window and its iframe.
+	 */
+	export function Scan(window: Window): Element[] {
+		var document = window.document;
+		var editors: Element[] = [].slice.call(document.querySelectorAll('[contenteditable], [designMode]'));
 
-/**
- * Fetching contenteditable elements from the window and its iframe.
- */
-export function Scan(window : Window) : Array<Element>{
-	var document = window.document;
-	var editors : Array<Element>;
-	
-	editors = [].slice.call(document.querySelectorAll('[contenteditable], [designMode]'));
-	
-	[].forEach.call(
-		document.querySelectorAll('iframe'), 
-		function(i){
-			try {
-				var result = Scan(i.contentWindow);
-				editors = editors.concat(result);
-			} catch (err) {
-				//security limit, cannot scan the iframe
+		[].forEach.call(
+			document.querySelectorAll('iframe'),
+			(i) => {
+				try {
+					var result = Scan(i.contentWindow);
+					[].push.apply(editors, result);
+				} catch (err) {
+					//security limit, cannot scan the iframe
+				}
 			}
-		}
-	);
-	
-	return editors;
-}
+		);
 
-/**
- * Enhance one or more editor.
- */
-export function Enhance(editor: Element | Element[]) : Editor | Editor[] {
-	if (typeof editor['length'] === "number" && editor[0]) {
-		return [].map.call(editor, Enhance);
+		return editors;
 	}
-	
-	var rtn : Editor;
-	rtn = new Editor(<Element>editor);
-	if (rtn.Init())	
-		return rtn;
-		
-	return null;
-}
 
-/**
- * Bookmarklet Entry
- */
-export function Bookmarklet(window: Window) {
-	(<Editor[]>Enhance(Scan(window))).forEach((editor: Editor) => {
-		if (!editor) return;
-		UI.Toast.showToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT, true);
-	});
-}
+	/**
+	 * Enhance one or more editor.
+	 */
+	export function Enhance(editor: Element | Element[]): Editor | Editor[] {
+		if (typeof editor['length'] === "number" && editor[0]) {
+			return [].map.call(editor, Enhance);
+		}
 
+		var rtn: Editor;
+		rtn = new Editor(<Element>editor);
+		if (rtn.Init())
+			return rtn;
+
+		return null;
+	}
+
+	/**
+	 * Bookmarklet Entry
+	 */
+	export function Bookmarklet(window: Window) {
+		(<Editor[]>Enhance(Scan(window))).forEach((editor: Editor) => {
+			if (!editor) return;
+			UI.Toast.showToast("MarkdownIME Activated", <HTMLElement>editor.editor, UI.Toast.SHORT, true);
+		});
+	}
 }

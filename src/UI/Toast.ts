@@ -24,6 +24,7 @@ font-size: 10pt;
 line-height: 1.4em;
 color: #000;
 z-index: 32760;
+margin-top: -10px;
 transition: .2s ease;
 opacity: 0;
 `;
@@ -38,23 +39,28 @@ opacity: 0;
             var ele = document.createElement("div");
             ele.setAttribute("style", Toast.style);
             ele.textContent = text;
+            ele.addEventListener('mousedown', this.dismiss.bind(this), false);
 
             this.element = ele;
         }
 
-        show(x: string, y: string, timeout?: number) {
+        setPosition(left: number, topOrBottom: number, isBottom?: boolean) {
+            var ele = this.element;
+            ele.style.left = left + 'px';
+            ele.style.top = isBottom && 'initial' || (topOrBottom + 'px');
+            ele.style.bottom = isBottom && (topOrBottom + 'px') || 'initial';
+        }
+
+        show(timeout?: number) {
             var ele = this.element;
             var dismiss = this.dismiss.bind(this);
             if (!ele.parentElement)
                 this.document.body.appendChild(ele);
 
-            ele.style.left = x;
-            ele.style.top = y;
-            ele.addEventListener('mousemove', dismiss, false);
-
             setTimeout(() => {
                 this.status = ToastStatus.Shown;
                 ele.style.opacity = '1';
+                ele.style.marginTop = '0';
                 if (timeout) setTimeout(dismiss, timeout);
             }, 10);
         }
@@ -63,26 +69,35 @@ opacity: 0;
             if (this.status !== ToastStatus.Shown) return;
 
             this.status = ToastStatus.Hiding;
-            this.element.style.opacity = '0';
+            var ele = this.element;
+            ele.style.opacity = '0';
+            ele.style.marginTop = '-10px';
 
             setTimeout(() => {
-                this.element.parentNode.removeChild(this.element);
+                ele.parentNode.removeChild(ele);
                 this.status = ToastStatus.Hidden;
             }, 300);
         }
 
-        /** A Quick way to show a temporary Toast over an Element. */
-        static showToast(text: string, coveron: HTMLElement, timeout?: number): Toast {
-            var document: Document = coveron.ownerDocument;
+        /** 
+         * A Quick way to show a temporary Toast over an Element.
+         * 
+         * @param {string} text     message to be shown
+         * @param {Element} ref     the location reference
+         * @param {number} timeout  time in ms. 0 = do not dismiss.
+         * @param {boolean} cover   true = cover on the ref. false = shown on top of the ref.
+         */
+        static showToast(text: string, ref: HTMLElement, timeout: number, cover?: boolean): Toast {
+            var document: Document = ref.ownerDocument;
 
-            var rect = coveron['getBoundingClientRect'] && coveron.getBoundingClientRect() || { left: 0, top: 0 };
+            var rect = ref['getBoundingClientRect'] && ref.getBoundingClientRect() || { left: 0, top: 0 };
             var toast = new Toast(document, text);
 
-            toast.show(
-                rect.left + 'px',
-                rect.top + 'px',
-                timeout || Toast.SHORT
-            );
+            rect.left += document.body.scrollLeft;
+            rect.top += document.body.scrollTop;
+            toast.setPosition(rect.left, rect.top, !cover);
+
+            toast.show(timeout);
 
             return toast;
         }

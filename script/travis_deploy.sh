@@ -1,12 +1,12 @@
 #!/bin/sh
 
-#Generate Document
-npm install typedoc
-typedoc --out dist/doc src
-
 #Recompile. dont know why.
 npm install --no-optional
 make
+
+#Generate Document
+npm install typedoc
+typedoc --out dist/doc src
 
 #Compress
 tar zcf dist.tgz -C dist .

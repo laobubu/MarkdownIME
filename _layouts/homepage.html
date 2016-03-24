@@ -1,0 +1,31 @@
+---
+layout: default
+---
+
+<div id="bizzarebg"></div>
+
+<section id="s1">
+    <h1 class="hide">MarkdownIME</h1>
+    <p class="subtitle hide">{{page.subtitle}}</p>
+    <nav class="hide">
+        <a id="nav_github" href="https://github.com/laobubu/MarkdownIME">{{page.github}}</a>
+        <a id="nav_help" href="#help">{{page.doc}}</a>
+        <a id="nav_donate" href="//laobubu.net/donate.html">{{page.donate}}</a>
+    </nav>
+    <div id="editor" contenteditable="true" spellcheck="false" class="hide"></div>
+</section>
+
+<div id="toc"></div>
+<section id="s2">
+    <a name="help"></a>
+    {{ content }}
+</section>
+
+<script>
+    var demotext = [{% for str in page.demotext %}"{{ str }}",{% endfor %}""];
+    demotext.pop();
+</script>
+<script src="https://twemoji.maxcdn.com/twemoji.min.js" async></script>
+<script id="s_mdime" src="//build.laobubu.net/MarkdownIME/MarkdownIME.min.js" async></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="demo.js"></script>

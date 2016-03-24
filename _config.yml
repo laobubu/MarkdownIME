@@ -1,0 +1,11 @@
+title: MarkdownIME on Web
+author: laobubu
+
+permalink: /archivers/:title
+
+highlighter: rouge
+markdown: kramdown
+
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge

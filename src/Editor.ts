@@ -333,9 +333,9 @@ export class Editor {
 	 * Create new line after one node and move cursor to it.
 	 * 
 	 * @param   {Element} node - current line element.
-	 * @returns {boolean} successful or not.
+	 * @returns {Element} new line element or `null`
 	 */
-	CreateNewLine(node: Element): boolean {
+	CreateNewLine(node: Element): Element {
 		var newElement: Element;
 		var re = Utils.Pattern.NodeName;
 
@@ -345,7 +345,7 @@ export class Editor {
 		) {
 			newElement = this.CreateNewCell(node);
 			Utils.move_cursor_to_end(newElement);
-			return true;
+			return newElement;
 		}
 
 		//using browser way to create new line will get dirty format
@@ -360,10 +360,10 @@ export class Editor {
 			newElement = this.GenerateEmptyLine(tagName);
 			node.parentNode.insertBefore(newElement, node.nextSibling);
 			Utils.move_cursor_to_end(newElement);
-			return true;
+			return newElement;
 		}
 
-		return false;
+		return null;
 	}
 	
 	/**
@@ -490,8 +490,14 @@ export class Editor {
 	keydownHandler_Table(ev : KeyboardEvent): boolean {
 		var keyCode = ev.keyCode || ev.which;
 		var noAdditionalKeys = !(ev.shiftKey || ev.ctrlKey || ev.altKey);
-		
-		if ((keyCode !== 9) && (keyCode < 37 || keyCode > 40)) return false;
+
+		if (
+			(keyCode !== 8) && //BACKSPACE
+			(keyCode !== 45) && //INSERT
+			(keyCode !== 46) && //DELETE
+			(keyCode !== 9) && //TAB
+			(keyCode < 37 || keyCode > 40)
+		) return false;
 		
 		var range = this.selection.getRangeAt(0);
 		
@@ -514,6 +520,27 @@ export class Editor {
 		var focus: Element = null;
 		
 		switch (keyCode) {
+			case 46: //DELETE
+			case 8: //BACKSPACE
+				if (noAdditionalKeys && td.nodeName === "TH" && !td.textContent.trim()) {
+					focus = td.nextElementSibling || td.previousElementSibling;
+					if (!focus) {
+						//the whole table is deleted.
+						focus = table.nextElementSibling || this.CreateNewLine(table);
+						table.parentElement.removeChild(table);
+					} else {
+						for (let i = 0, c = table.childElementCount; i < c; i++) {
+							let tbody = <HTMLElement>table.children[i];
+							for (let i = 0, c = tbody.childElementCount; i < c; i++) {
+								let tr = <HTMLElement>tbody.children[i];
+								tr.removeChild(tr.children[td_index]);
+							}
+						} 
+					}
+				} else { 
+					return false;
+				}
+				break;
 			case 9: //TAB
 				if (noAdditionalKeys)
 					focus = td.nextElementSibling ||

@@ -248,6 +248,14 @@ table th {
 	margin-right: 10pt;
 }
 
+#bookmarklet {
+	font-size: 0;
+}
+#bookmarklet:before {
+	content: 'Magic Bookmarklet! ';
+	font-size: 14pt;
+}
+
 .button {
 	background: rgba(255,180,0,0.6);
 	color: #000!important;
@@ -257,14 +265,4 @@ table th {
 }
 .button:hover,.button:active,.button:focus {
 	background: #FFB400;
-}
-
-#bookmarklet {
-	font-size: 0;
-	display: block;
-	margin: 0 auto;
-}
-#bookmarklet:before {
-	content: 'Magic Bookmarklet! ';
-	font-size: 14pt;
 }

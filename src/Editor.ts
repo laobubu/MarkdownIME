@@ -523,7 +523,7 @@ export class Editor {
 			case 46: //DELETE
 			case 8: //BACKSPACE
 				if (noAdditionalKeys && td.nodeName === "TH" && !td.textContent.trim()) {
-					focus = td.nextElementSibling || td.previousElementSibling;
+					focus = (keyCode === 46 && td.nextElementSibling) || td.previousElementSibling;
 					if (!focus) {
 						//the whole table is deleted.
 						focus = table.nextElementSibling || this.CreateNewLine(table);
@@ -540,6 +540,21 @@ export class Editor {
 				} else { 
 					return false;
 				}
+				break;
+			case 45: //INSERT
+				if (!ev.shiftKey) td_index++; //insert column after the current
+				
+				for (let i = 0, c = table.childElementCount; i < c; i++) {
+					let tbody = <HTMLElement>table.children[i];
+					for (let i = 0, c = tbody.childElementCount; i < c; i++) {
+						let tr = <HTMLElement>tbody.children[i];
+						let ref = tr.children[td_index];
+						let newTd = this.document.createElement(tr.children[0].tagName);
+						tr.insertBefore(newTd, ref);
+					}
+				}
+				
+				focus = td.parentElement.children[td_index];
 				break;
 			case 9: //TAB
 				if (noAdditionalKeys)

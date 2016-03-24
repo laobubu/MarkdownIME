@@ -41,7 +41,7 @@ Works like a charm on mobile devices, too!
 
 #### It's plugin-free!
 
-<a title="Load MarkdownIME" class="button" id="bookmarklet">Load MarkdownIME</a>
+<p style="text-align:center"><a title="Load MarkdownIME" class="button" id="bookmarklet">Load MarkdownIME</a></p>
 
 Drag this bookmarklet to your bookmark bar.
 

@@ -29,7 +29,7 @@ MarkdownIME 就是干这种事情的：只需要照着 Markdown 的写法输入�
 
 #### 不用安装任何插件就能使用
 
-<a title="加载 MarkdownIME" class="button" id="bookmarklet">载入 MarkdownIME</a>
+<p style="text-align:center"><a title="加载 MarkdownIME" class="button" id="bookmarklet">载入 MarkdownIME</a></p>
 
 把上面那个 Magic Bookmarklet 拖到浏览器的书签栏里。
 

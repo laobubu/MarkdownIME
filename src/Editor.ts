@@ -350,20 +350,12 @@ export class Editor {
 
 		//using browser way to create new line will get dirty format
 		//so we create one new line without format.
-		if (
-			re.line.test(node.nodeName) ||
-			re.pre.test(node.nodeName) ||
-			re.li.test(node.nodeName) ||
-			re.hr.test(node.nodeName)
-		) {
-			var tagName = re.li.test(node.nodeName) ? "li" : null;
-			newElement = this.GenerateEmptyLine(tagName);
-			node.parentNode.insertBefore(newElement, node.nextSibling);
-			Utils.move_cursor_to_end(newElement);
-			return newElement;
-		}
-
-		return null;
+		var tagName = null;
+		if (re.li.test(node.nodeName)) tagName = "li";
+		newElement = this.GenerateEmptyLine(tagName);
+		node.parentNode.insertBefore(newElement, node.nextSibling);
+		Utils.move_cursor_to_end(newElement);
+		return newElement;
 	}
 	
 	/**
@@ -537,8 +529,11 @@ export class Editor {
 							}
 						} 
 					}
-				} else { 
-					return false;
+				} else
+				if (noAdditionalKeys && !tr.textContent.trim()) {
+					focus = tr.nextElementSibling || table.nextElementSibling || this.CreateNewLine(table);
+					if (focus.firstElementChild) focus = focus.firstElementChild;
+					tr.parentElement.removeChild(tr);
 				}
 				break;
 			case 45: //INSERT

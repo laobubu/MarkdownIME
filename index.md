@@ -72,13 +72,13 @@ Learn more: [Markdown Basic](https://help.github.com/articles/markdown-basics/)
 
 #### Inline Elements
 
-*   Links
+*   [Links](http://laobubu.net)
 *   Emphasis: **Bold** & *Italics*
 *   ~~Strikethrough~~
 *   `In-line Codes`
 *   Pictures
 *   Emoji `:-)` <sup>[1]</sup>
-*   Math equations (TeX): `$ E=mc^2 <section id="s2" <sup>[2]</sup>
+*   Math equations (TeX): `$ E=mc^2 $` <sup>[2]</sup>
 
 Notes:
 
@@ -88,7 +88,7 @@ Notes:
 #### Block Elements
 
 *   Headers (beginning with `#`s)
-*   Horizontal rules ---
+*   Horizontal rules `---`
 *   Lists & Nested lists
 *   Blockquotes & Nested blockquotes
 *   Code Blocks

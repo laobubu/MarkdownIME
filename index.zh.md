@@ -15,7 +15,7 @@ donate: 赏一杯咖啡
 
 ## 介绍
 
-[Read the terrible English version »](./?ncr) or [edit / improve it](https://github.com/laobubu/MarkdownIME/edit/gh-pages/index.html).
+[Read the English version »](./?ncr) 或者 [帮忙翻译它](https://github.com/laobubu/MarkdownIME/edit/gh-pages/index.md).
 
 想象一下，是否可以做一个<u>没有任何按钮</u>的富文本编辑器？
 
@@ -57,7 +57,7 @@ MarkdownIME 支持许多 Markdown 语法。直接按照其写法输入就可以�
 
 #### 行内元素
 
-*   链接
+*   [链接](http://laobubu.net)
 *   强调: **加粗** & *倾斜*
 *   ~~删除线~~
 *   `行内代码`
@@ -73,10 +73,10 @@ MarkdownIME 支持许多 Markdown 语法。直接按照其写法输入就可以�
 #### 块元素
 
 *   标题 (使用 `#` 开头)
-*   水平分割线 ---
+*   水平分割线 `---`
 *   列表（支持子列表）
 *   段落引用（Blockquote，支持盖楼）
-*   代码块（不提供高亮功能；你可以协助开发）
+*   代码块（不提供高亮功能）
 
 #### 普通表格
 
@@ -92,6 +92,7 @@ MarkdownIME 可以使用 `| 表格 | 表头 | 文字 |` 这种格式创建表格
 
 *   **普通的 contenteditable 元素** - 所有浏览器提供的最简单的“编辑器”。
 *   **TinyMCE** - 一种漂亮又强大的富文本编辑器。如果有了 MarkdownIME 配合会更强大！
+*   **Discuz 高级模式** - 论坛回帖也能轻松排版。
 
 ## 共同开发 / 疑难解答
 

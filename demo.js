@@ -2,9 +2,9 @@
 
 /**
  * Starts play a magic.
- * @param {div} editor the div element
+ * @param {HTMLDivElement} editor the div element
  * @param {string} text text to be shown
- * @param {function(editor,text)} callback (optional) called when the magic is end
+ * @param {(HTMLDivElement,string)=>void} callback (optional) called when the magic is end
  * @param {HTMLElement} lineObject (optional) the container of current line.
  */
 function demoStartOneLine(editor, text, callback, lineObject) {
@@ -66,9 +66,9 @@ function demoStartOneLine(editor, text, callback, lineObject) {
 
 /**
  * Start a script playing.
- * @param {div} editor the div element
+ * @param {HTMLDivElement} editor the div element
  * @param {string[]} stringArray the text lines.
- * @param {function(editor)} _callback the callback when the magic is end
+ * @param {(editor:HTMLDivElement)=>void} callback the callback when the magic is end
  */
 function demoStartLines(editor, stringArray, callback) {
     var going = true;
@@ -152,24 +152,6 @@ bookmarklet.addEventListener('click', function(ev){
 	ev.preventDefault();
 }, true);
 
-////////////TOC
-var $toc = $('#toc');
-(function makeTOC(parent) {
-	var titles = $(parent).children('h1,h2,h3,h4,h5');
-	titles.each(function(i,ele){
-		var anchor = document.createElement('a');
-		anchor.name = (ele.textContent);
-		ele.insertBefore(anchor, ele.firstChild);
-		
-		var link = document.createElement('a');
-		link.textContent = ele.textContent;
-		link.href = '#' + encodeURIComponent(anchor.name)
-		link.style.marginLeft = (1 * (ele.nodeName.substr(1) - 2)) + 'em';
-		
-		$toc.append(link);
-	})
-})('#s2');
-
 
 setTimeout(function () { $('#s1>h1, #s1>p, #s1>nav').removeClass("hide"); }, 50);
 setTimeout(function () { $(editor).removeClass("hide"); }, 850);
@@ -184,8 +166,6 @@ $window.scroll(function(){
 	var biz = 1 - wst / (wh*0.5);
 	if (biz < 0) biz = 0;
 	$bizzarebg.style.opacity = biz.toString();
-	
-	$toc.css({top: Math.max(document.getElementById('s2').offsetTop-wst,0) + 'px'})
 }).scroll();
 
 $(editor).keyup(function(){$window.scroll()})

@@ -107,8 +107,6 @@ var demotext;
 var loading = "|/-\\";
 var loading_i = 0;
 
-var shallPlay = ($(window).scrollTop() < $('#s2').offset().top);
-
 setTimeout(function showStart() {
 	if (typeof MarkdownIME !== "object") {
 		setTimeout(showStart, 100);
@@ -119,6 +117,8 @@ setTimeout(function showStart() {
 	editor.innerHTML = "";
 	MarkdownIME.Renderer.inlineRenderer.addRule(new MarkdownIME.Addon.MathAddon())
 	mdime_editor = MarkdownIME.Enhance(editor);
+
+	var shallPlay = ($(window).scrollTop() < $('#s2').offset().top);
 	if (shallPlay) {
 		var magic = demoStartLines(editor, demotext || [
 			"# Hello World 8-)",

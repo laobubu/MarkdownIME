@@ -2,6 +2,7 @@
 layout: default
 ---
 
+<h1 id="title">{{ page.title }}</h1>
 <div id="toc"></div>
 <section id="s2" class="toc-source">
     {{ content }}
@@ -9,3 +10,8 @@ layout: default
 
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script src="toc.js"></script>
+
+<style>
+    #title{ margin: 10px;  color: #FAFAFA; font-weight: normal; }
+    #toc  { padding-left: 20px; }
+</style>

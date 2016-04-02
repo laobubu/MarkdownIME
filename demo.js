@@ -169,21 +169,3 @@ $window.scroll(function(){
 }).scroll();
 
 $(editor).keyup(function(){$window.scroll()})
-
-// a tweak to scroll smooth for bookmarks
-function smoothGo(ev){
-	var name = decodeURIComponent(this.getAttribute("href").substr(1));
-	if (history.pushState) {
-		history.pushState(null, name, this.getAttribute("href"));
-		ev.preventDefault();
-	}
-	var t=$(document.getElementsByName(name)[0]);
-	var pos=t.offset().top;
-	$("html, body").animate({scrollTop: pos+'px'}, 500);
-}
-$('a').each(function(i,e){
-	if ((e.getAttribute("href")||"").indexOf('#')!=0) return;
-	if (e.hasAttribute('data-sg-enhanced')) return;
-	e.setAttribute('data-sg-enhanced', '1');
-	e.addEventListener('click', smoothGo, false);
-})

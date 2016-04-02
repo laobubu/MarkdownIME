@@ -18,6 +18,6 @@ var $tocTarget = $('.toc-source');
 
     var $window = $(window);
     $window.scroll(function() {
-        $toc.css({ top: Math.max(parent.offset().top - $window.scrollTop(), 0) + 'px' });
+        $toc.css({ top: Math.max($tocTarget.offset().top - $window.scrollTop(), 0) + 'px' });
     })
 })();

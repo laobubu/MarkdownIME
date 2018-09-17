@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>MarkdownIME with KaTeX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./simple.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0-rc.1/dist/katex.min.css" integrity="sha384-D+9gmBxUQogRLqvARvNLmA9hS2x//eK1FhVb9PiU86gmcrBrJAQT8okdJ4LMp2uv"
+    crossorigin="anonymous">
+</head>
+
+<body>
+  <div contenteditable="true" id="editor">
+    <p>Using KaTeX to render Math Formula...</p>
+    <p><b>Notice</b> this might not work with other rich editors, like TinyMCE.</p>
+    <p>Try it out: $\LaTeX$</p>
+  </div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0-rc.1/dist/katex.min.js" integrity="sha384-483A6DwYfKeDa0Q52fJmxFXkcPCFfnXMoXblOkJ4JcA8zATN6Tm78UNL72AKk+0O"
+    crossorigin="anonymous"></script>
+  <script src="../dist/MarkdownIME.js"></script>
+  <script>
+    MarkdownIME.Bookmarklet(window)
+    MarkdownIME.setMathRenderer(function (formula, isDisplayMode) {
+      try {
+        var element = MarkdownIME.elt('span', { "data-formula": formula, "title": formula })
+        katex.render(formula, element, { throwOnError: true })
+        return element
+      } catch (er) {
+        console.error("KaTeX failed to render: " + formula)
+        console.error(er)
+      }
+
+      return null
+    })
+  </script>
+</body>
+
+</html>

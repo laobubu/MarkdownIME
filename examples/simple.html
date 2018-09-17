@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Simpliest MarkdownIME editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./simple.css">
+</head>
+
+<body>
+  <div contenteditable="true" id="editor">
+    <p>Input Text Here</p>
+    <p>[We <b>create</b> Links](https://laobubu.net) abc <b>yytytyty</b></p>
+    <p>Try link: [abc](https://picsum.photos/458/354?random) herer</p>
+    <p>Try image: ![](https://picsum.photos/458/354?random) herer</p>
+  </div>
+
+  <script src="../dist/MarkdownIME.js"></script>
+  <script>
+    MarkdownIME.Bookmarklet(window)
+  </script>
+</body>
+
+</html>

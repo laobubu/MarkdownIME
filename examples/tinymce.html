@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>MarkdownIME x TinyMCE</title>
+</head>
+
+<body>
+  <div id="editor"></div>
+
+  <script src="../dist/MarkdownIME.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.8.3/tinymce.min.js"></script>
+  <script>
+    tinymce.init({
+      selector: '#editor',
+      height: 500,
+      menubar: false,
+      plugins: [
+        'advlist autolink lists link image charmap print preview anchor textcolor',
+        'searchreplace visualblocks code fullscreen',
+        'insertdatetime media table contextmenu paste code help wordcount'
+      ],
+      toolbar: 'insert | undo redo |  formatselect | bold italic backcolor  | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+      setup: function (ed) {
+        ed.on('init', function (args) {
+          MarkdownIME.Bookmarklet(window)
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

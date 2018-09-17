@@ -1,0 +1,45 @@
+.highlight {
+  pointer-events: none;
+  z-index: 100;
+  position: absolute;
+  background-color: #FF0;
+  opacity: .3;
+}
+
+#editor {
+  border: 1px solid #333;
+  min-height: 300px;
+}
+
+blockquote {
+  border-left: 5px solid #CCC;
+  margin-left: 0;
+  padding-left: 10px;
+}
+
+pre {
+  background: #EEE;
+}
+
+code {
+  border: 1px solid #999;
+}
+
+table, tr, td, th {
+  border-collapse: collapse;
+  border: 1px solid #999;
+}
+
+td, th {
+  padding: 4px 2px;
+}
+
+[data-formula] {
+  display: inline-block;
+  vertical-align: middle;
+  border: 1px solid transparent;
+}
+
+[data-formula]:hover {
+  border-color: #CCC;
+}

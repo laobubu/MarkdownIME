@@ -1,0 +1,26 @@
+{
+  "name": "markdown-ime",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "unpkg": "dist/MarkdownIME.js",
+  "types": "dist/MarkdownIME.d.ts",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/qunit": "^2.5.3",
+    "connect": "^3.6.6",
+    "puppeteer": "^1.8.0",
+    "qunit": "^2.6.2",
+    "server-static": "^2.0.5",
+    "ts-loader": "^5.1.0",
+    "typescript": "^3.0.3",
+    "webpack": "^4.18.1",
+    "webpack-cli": "^3.1.0"
+  },
+  "scripts": {
+    "build": "webpack --mode production && tsc",
+    "dev": "webpack --watch --mode development",
+    "prepare": "npm run build && node scripts/prepare.js",
+    "test": "node scripts/test-with-puppeteer.js",
+    "prepublishOnly": "echo Please Run npm publish in dist directory && exit 418"
+  }
+}

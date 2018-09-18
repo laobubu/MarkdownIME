@@ -1,10 +1,12 @@
 /** This file provides some util functions for DOM manipulation */
 
+let win = window
 let document = window.document
 
 /** Set the context document. This will affect some DOM operation like `elt`, `findCaret` */
 export function setContextDocument(doc: Document) {
   document = doc || window.document
+  win = document.defaultView
 }
 
 /**
@@ -47,11 +49,13 @@ export function setCaret(anchor: Node, offset?: number) {
   const sel = document.getSelection();
   if (!sel.isCollapsed) sel.collapseToEnd();
   sel.setPosition(anchor, offset || 0);
+  scrollIntoViewIfNeeded((isTextNode(anchor) ? anchor.parentNode : anchor) as HTMLElement)
 }
 
 export function setCaretAfter(anchor: Node) {
   const parent = anchor.parentNode
   setCaret(parent, [].indexOf.call(parent.childNodes, anchor) + 1)
+  scrollIntoViewIfNeeded((isTextNode(anchor) ? parent : anchor) as HTMLElement)
 }
 
 /**
@@ -133,6 +137,7 @@ export function replace(old: Node, newNode: Node) {
   parent.removeChild(old)
 }
 
+/** insert a node after an existsing one */
 export function insertAfter(newNode: Node, refNode: Node) {
   let parent = refNode && refNode.parentNode;
   if (!parent) return
@@ -141,4 +146,81 @@ export function insertAfter(newNode: Node, refNode: Node) {
 
 export function isTextNode(node: any): node is Text {
   return node && node.nodeType === Node.TEXT_NODE
+}
+
+interface ClientRect {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+}
+
+/**
+ * get current viewport rect
+ * 
+ * @returns Non-Standard ClientRect (because IE/Edge not supports DOMRect)
+ */
+export function getViewport(_window?: Window): ClientRect {
+  if (!_window) _window = win || window;
+
+  let left = _window.pageXOffset
+  let top = _window.pageYOffset
+  let height = _window.innerHeight
+  let width = _window.innerWidth
+
+  return {
+    left, top, height, width,
+    right: left + width,
+    bottom: top + height,
+  }
+}
+
+const enum RectContainType {
+  /** subRect is in the container */ CONTAINED = 0,
+  /** subRect is above the container */ ABOVE,
+  /** subRect is below the container */ BELOW,
+  LEFT, RIGHT
+}
+
+function rectContains(container: ClientRect, subRect: ClientRect): RectContainType {
+  if (container.left >= subRect.left) return RectContainType.LEFT
+  if (container.right <= subRect.right) return RectContainType.RIGHT
+  if (container.top >= subRect.top) return RectContainType.ABOVE
+  if (container.bottom <= subRect.bottom) return RectContainType.BELOW
+  return RectContainType.CONTAINED
+}
+
+/**
+ * a much better polyfill for scrollIntoViewIfNeeded
+ */
+export function scrollIntoViewIfNeeded(node: HTMLElement) {
+  if ('scrollIntoViewIfNeeded' in node) { // Chrome only stuff
+    (node as any).scrollIntoViewIfNeeded(false);
+    return;
+  }
+
+  const body = node.ownerDocument.body
+  const window = body.ownerDocument.defaultView
+
+  let scrollArg: (undefined | true | false) = void 0;
+
+  let nodeRect: ClientRect = node.getBoundingClientRect()
+
+  while (scrollArg === void 0) {
+    let container: HTMLElement = node.parentElement
+    let containerRect: ClientRect = (node === body) ? getViewport(window) : container.getBoundingClientRect()
+
+    let rectRelation = rectContains(containerRect, nodeRect)
+    if (rectRelation === RectContainType.LEFT || rectRelation === RectContainType.ABOVE) scrollArg = true
+    if (rectRelation === RectContainType.RIGHT || rectRelation === RectContainType.BELOW) scrollArg = false
+
+    if (node === body) break
+
+    node = container
+    nodeRect = containerRect
+  }
+
+  if (scrollArg !== void 0) node.scrollIntoView(scrollArg)
 }

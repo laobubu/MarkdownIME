@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>MarkdownIME x WangEditor</title>
+</head>
+
+<body>
+  <div id="editor">
+    <p>MarkdownIME works with [WangEditor](http://www.wangeditor.com/)</p>
+    <p>Activate MarkdownIME with one line:</p>
+    <pre><code>MarkdownIME.Enhance(myWangEditor.$textElem);</code></pre>
+    <p>Where <code>myWangEditor</code> is your wangEditor instance.</p>
+  </div>
+
+  <script src="../dist/MarkdownIME.js"></script>
+  <script src="https://unpkg.com/wangeditor/release/wangEditor.min.js"></script>
+  <script>
+    // Init WangEditor
+
+    var myWangEditor = new wangEditor('#editor');
+    myWangEditor.create();
+
+    // Find the input area, then enhance it with MarkdownIME
+
+    MarkdownIME.Enhance(myWangEditor.$textElem);
+  </script>
+</body>
+
+</html>

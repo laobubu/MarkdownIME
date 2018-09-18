@@ -12,14 +12,14 @@
 <body>
   <div contenteditable="true" id="editor">
     <p>Input Text Here</p>
-    <p>[We <b>create</b> Links](https://laobubu.net) abc <b>yytytyty</b></p>
-    <p>Try link: [abc](https://picsum.photos/458/354?random) herer</p>
-    <p>Try image: ![](https://picsum.photos/458/354?random) herer</p>
+    <p>[Link <b>may contains</b> other DOM Nodes](https://laobubu.net)</p>
+    <p>Test link: [abc](https://laobubu.net)← press space key here</p>
+    <p>Try image: ![](https://picsum.photos/458/354?random)</p>
   </div>
 
   <script src="../dist/MarkdownIME.js"></script>
   <script>
-    MarkdownIME.Bookmarklet(window)
+    MarkdownIME.Bookmarklet() // a lazy way to activate MarkdownIME
   </script>
 </body>
 

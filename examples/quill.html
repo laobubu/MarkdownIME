@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>MarkdownIME x Quill</title>
+</head>
+
+<body>
+  <div id="editor">
+    <p>Integrate MarkdownIME to your <a href="https://quilljs.com">Quill Editor</a> in 1 line:</p>
+    <pre>MarkdownIME.Enhance(quill.root);</pre>
+    <p>Where <code>quill</code> is your Quill Instance</p>
+  </div>
+
+  <script src="../dist/MarkdownIME.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.bubble.css">
+  <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+  <script>
+    // Init Quill Editor
+
+    var quill = new Quill('#editor', {
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ['link', 'image', 'code-block'],
+          ['clean'],
+        ]
+      },
+      theme: 'snow'
+    });
+
+    // Find the input area, then enhance it with MarkdownIME
+
+    MarkdownIME.Enhance(quill.root);
+  </script>
+</body>
+
+</html>

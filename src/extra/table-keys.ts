@@ -1,4 +1,4 @@
-import { findUpward, findCaret, setCaret, makeLine, replace, insertAfter, elt, makeBr } from "../dom";
+import { findUpward, setCaret, makeLine, replace, insertAfter, elt, makeBr, getContextDocument } from "../dom";
 
 /**
  * Handle keyboard events for table. Now supports:
@@ -24,10 +24,10 @@ export function handleKeyboardEvent(ev: KeyboardEvent): boolean {
     (keyCode < 37 || keyCode > 40)
   ) return false;
 
-  var caret = findCaret()
-  if (!caret) return false
+  var selection = getContextDocument().getSelection()
+  if (!selection.isCollapsed) return false
 
-  let td = findUpward(caret, el => /^t[dh]$/i.test(el.nodeName)) as HTMLTableCellElement
+  let td = findUpward(selection.focusNode, el => /^t[dh]$/i.test(el.nodeName)) as HTMLTableCellElement
   let tr = findUpward(td, el => /^tr$/i.test(el.nodeName)) as HTMLTableRowElement
   let table = findUpward(tr, el => /^table$/i.test(el.nodeName)) as HTMLTableElement
   if (!td || !tr || !table) return false

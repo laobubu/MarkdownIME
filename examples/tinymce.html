@@ -24,6 +24,8 @@
         'insertdatetime media table contextmenu paste code help wordcount'
       ],
       toolbar: 'insert | undo redo |  formatselect | bold italic backcolor  | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+      
+      /** Init MarkdownIME when TinyMCE is ready: */
       setup: function (ed) {
         ed.on('init', function (args) {
           MarkdownIME.Bookmarklet(window)

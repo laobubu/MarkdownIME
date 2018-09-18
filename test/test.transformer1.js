@@ -1,7 +1,7 @@
 /// <reference path="./typings.d.ts" />
 
-QUnit.module("Transformer");
-QUnit.test("Transformers 1", function (assert) {
+QUnit.module("Transformer 1");
+QUnit.test("Regular Transformers", function (assert) {
   /**
    * @param {string} srcHtml contains "✍" which means caret is there
    * @param {string} expectHtml
@@ -9,14 +9,7 @@ QUnit.test("Transformers 1", function (assert) {
    * @param {boolean} [enterKey]
    */
   function test(message, srcHtml, expectHtml, enterKey) {
-    srcHtml = srcHtml.replace('✍', '<span data-anchor></span>')
-    editor.innerHTML = srcHtml
-
-    let anchor = editor.querySelector('[data-anchor]')
-    let caret = anchor.previousSibling
-    anchor.parentNode.removeChild(anchor)
-    MarkdownIME.DOM.setCaretAfter(caret)
-
+    setEditorContent(srcHtml)
     ime.doTransform(!!enterKey)
 
     assert.equal(editor.innerHTML, expectHtml, message)
@@ -31,6 +24,9 @@ QUnit.test("Transformers 1", function (assert) {
   test("InlineCode -- ", "<p>`Func Lorem`✍ Ipsue</p>", "<p><code>Func Lorem</code> Ipsue</p>")
   test("InlineCode -- ignore backquotes in <code>", "<p>Already <code>is `code`✍</code> now</p>", "<p>Already <code>is `code`</code> now</p>")
 
+  test("Inline Emoji Shortcode", "<p>:joy:✍ Ipsue</p>", "<p>😂 Ipsue</p>")
+  test("Emoticon to Emoji", "<p>Oops 8-)✍ Ipsue</p>", "<p>Oops 😎 Ipsue</p>")
+
   test("Header", "###✍", `<h3><br data-bogus="true"></h3>`)
   test("Header - transform exisiting paragraph", "<p>##✍Hello</p>", `<h2>Hello</h2>`)
 
@@ -42,4 +38,11 @@ QUnit.test("Transformers 1", function (assert) {
 
   test("Blockquote", "<p>>>>✍</p>", "<blockquote><blockquote><blockquote><p><br data-bogus=\"true\"></p></blockquote></blockquote></blockquote>")
   test("Blockquote with content", "<p>>>>✍Wow</p>", "<blockquote><blockquote><blockquote><p>Wow</p></blockquote></blockquote></blockquote>")
+
+  test("Link", "<p>[<b>Ouch</b>](http://123.com)✍</p>", "<p><a href=\"http://123.com\"><b>Ouch</b></a></p>")
+  test("Link with pure text", "<p>[abcdefg](http://123.com)✍</p>", "<p><a href=\"http://123.com\">abcdefg</a></p>")
+
+  test("Image w/o alt", "<p>![](https://laobubu.net/image/cjw.png)✍</p>", `<p><img src="https://laobubu.net/image/cjw.png" alt=""></p>`)
+  test("Image", "<p>![Alt Title](https://laobubu.net/image/cjw.png)✍</p>", `<p><img src="https://laobubu.net/image/cjw.png" alt="Alt Title"></p>`)
+  test("Image whose alt has DOMNodes", "<p>![<i>Title</i>](https://laobubu.net/image/cjw.png)✍</p>", `<p><img src="https://laobubu.net/image/cjw.png" alt="Title"></p>`)
 })

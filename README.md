@@ -26,7 +26,8 @@ More info can be found in [examples](./examples) and [documentation](https://lao
 ### Supported Editor
 
 - **Vanilla _contenteditable_ elements** - a `div[contentEditable]` makes everything.
-- **TinyMCE** - now typing on EverNote and others is easier.
+- Other rich-text editor based on `contentEditable`
+  - [TinyMCE](https://www.tinymce.com/), [Quill](https://quilljs.com/), [WangEditor](http://www.wangeditor.com/) and more, see [examples](./examples)
 
 ### Supported Shorkeys
 

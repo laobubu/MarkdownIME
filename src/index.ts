@@ -47,7 +47,14 @@ export interface EnhanceOption {
 /** Return all content-editable elements inside the window, which could be enhanced by MarkdownIME. */
 export function Scan(window: Window): HTMLElement[] {
   var document = window.document
-  var editors: HTMLElement[] = [].slice.call(document.querySelectorAll('[contenteditable], [designMode]'));
+  var candidates = document.querySelectorAll('[contenteditable], [designMode]')
+  var editors: HTMLElement[] = [];
+
+  for (let i = 0; i < candidates.length; i++) {
+    let candidate = candidates[i] as HTMLElement
+    let rect = candidate.getBoundingClientRect()
+    if (rect.height > 10 && rect.width > 10) editors.push(candidate)
+  }
 
   [].forEach.call(
     document.querySelectorAll('iframe'),
@@ -81,17 +88,22 @@ export function Enhance(editor: HTMLElement | ArrayLike<HTMLElement>, options?: 
 }
 
 /** Scan and enhance all editors, then show a notice. */
-export function Bookmarklet(win?: Window) {
+export function Bookmarklet(win?: Window, options?: Partial<EnhanceOption>) {
+  const opts: Partial<EnhanceOption> = { successToast: true }
+  if (options) { for (let key in options) opts[key] = options[key] }
+
   const editableElements = Scan(win || window)
-  Enhance(editableElements, {
-    successToast: true,
-  })
+  Enhance(editableElements, opts)
 }
 
 function EnhanceOne(editor: HTMLElement, options?: Partial<EnhanceOption>): Editor {
   if (!options) options = {};
 
-  if (!('noShortkey' in options)) options.noShortkey = editor.id === 'tinymce'
+  if (!('noShortkey' in options)) {
+    // by default, disable shortkeys in TinyMCE and Quill
+    options.noShortkey = editor.id === 'tinymce' || /\bql-editor\b/.test(editor.className)
+  }
+
   if (!options.noShortkey) bindShortkeys(editor)
 
   let document = editor.ownerDocument

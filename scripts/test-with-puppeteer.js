@@ -13,11 +13,14 @@ function startWeb() {
   console.log('Server loaded on http://localhost:6041');
 }
 
-startWeb();
-(async () => {
+async function main() {
+  startWeb();
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
+  let browser = await (puppeteer.launch().catch(err => {
+    // All credit goes to the Great FireWall
+    return puppeteer.launch({ executablePath: `C:/Program Files (x86)/Google/Chrome/Application/chrome.exe` })
+  }));
+  let page = await browser.newPage();
 
   // Attach to browser console log events, and log to node console
   await page.on('console', msg => console.log(msg.text()));
@@ -26,10 +29,16 @@ startWeb();
     console.log(`[-] ${details.module} / ${details.name} : ` + "Total: ", details.total, " Failed: ", details.failed, " Passed: ", details.passed, " Runtime: ", details.runtime)
   });
 
-  await page.exposeFunction('harness_done', async details => {
+  await page.exposeFunction('harness_done', details => {
     console.log("Total: ", details.total, " Failed: ", details.failed, " Passed: ", details.passed, " Runtime: ", details.runtime);
-    await browser.close()
-    process.exit(details.failed ? 1 : 0)
+    
+    page.close()
+      .then(() => browser.close())
+      .catch(err => {
+        console.warn("[WARN] Error while closing puppeteer browser")
+        console.warn(err)
+      })
+      .then(() => process.exit(details.failed ? 1 : 0))
   });
 
   await page.goto('http://localhost:6041/test/');
@@ -40,6 +49,9 @@ startWeb();
     QUnit.testDone((details) => { window.harness_testDone(details); });
     console.log("Let's test!")
   });
+}
 
-
-})();
+main().catch(err => {
+  console.error(err)
+  process.exit(2)
+})

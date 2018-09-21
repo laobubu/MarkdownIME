@@ -5,7 +5,7 @@ subtitle: A FRESH WAY TO TYPE & FORMAT
 
 demotext:
  - "# Hello World 8-)"
- - "Just **directly type in** your *Markdown* text like `*this*`, then press Enter or Space."
+ - "Just **directly type in** your *Markdown* text like `*this*` , then press Enter or Space."
 
 github: View on GitHub
 doc: Documentation
@@ -21,7 +21,7 @@ while (ua_lang = ua_langs.shift()) {
     if (/^(zh)$/.test(ua_lang)) {
         window.location.href = "./index." + ua_lang + ".html";
         break;
-    } 
+    }
 }
 </script>
 

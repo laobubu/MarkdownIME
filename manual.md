@@ -3,6 +3,15 @@ layout: post
 title: Manual
 ---
 
+# Install
+
+You can
+
+- **Use the NPM package** → *const MarkdownIME = require("[markdown-ime](https://www.npmjs.com/package/markdown-ime/)");*
+- or directly use the **built bundle file** in browser: <https://build.laobubu.net/MarkdownIME/MarkdownIME.js>
+
+MarkdownIME doesn't require any stylesheet. However, to get best visual experience, please prepare your own gorgeous stylesheet, or copy one from [the example](https://codepen.io/laobubu/pen/ZQqEQo)
+
 # Recipes
 
 ## Enhance all editors inside the window
@@ -18,9 +27,11 @@ MarkdownIME.Enhance(document.getElementById('editor')); // vanilla DOM element.
 MarkdownIME.Enhance($('#editor')); // jQuery's array-like stuff.
 ```
 
-**TinyMCE Notice**: your `<textarea>` element is not supported by MarkdownIME. If you don't know how to get the *real* rich editor, consider the lazy way: [Enhance all editors inside the window](#Enhance%20all%20editors%20inside%20the%20window).
+## With TinyMCE, Quill and more
 
-## Full Example
+To use MarkdownIME with **TinyMCE, Quill, WangEditor** or other rich editors, the best practice is to [follow the examples](https://github.com/laobubu/MarkdownIME/tree/master/examples)!
+
+## (Maybe) Full Example
 
 MarkdownIME has NO dependency, and you can use it with just a content-editable element.
 
@@ -67,11 +78,43 @@ Scan and enhance all editors, then show a notice.
 
 Return nothing.
 
+## Math Renderer API
+
+By default MarkdownIME renders TeX formulas via <https://latex.codecogs.com/> service, which might be kinda bad.
+
+You can integrate other renderer, eg [KaTeX](https://katex.org/), by writing **a custom renderer function**.
+
+Example: <https://codepen.io/laobubu/pen/PdLBra>
+
+The renderer function accepts two arguments: TeX formula string, and a ~~useless~~ boolean. Once rendered, this function returns the Element Node. If failed to renderer, returns `null`.
+
+```js
+function myAmazingMathRenderer(formula, isDisplayMode) {
+    try {
+        var element = MarkdownIME.elt('span', { "data-formula": formula, "title": formula })
+        katex.render(formula, element, { throwOnError: true })
+        element.firstChild.setAttribute('contenteditable', 'false')
+        return element
+    } catch (er) {
+        console.error("KaTeX failed to render: " + formula)
+        console.error(er)
+    }
+    return null
+}
+
+// Use our new renderer
+MarkdownIME.setMathRenderer(myAmazingMathRenderer)
+```
+
 ## Advanced API
 
-Here is a Travis-CI generated document: [http://build.laobubu.net/MarkdownIME/doc/](http://build.laobubu.net/MarkdownIME/doc/)
+- `MarkdownIME.elt(tagName, attrs?, childNodes?)`
+  - Create a DOM element
+  - `attrs` attributes for the new element. eg. `{ src: "xxx.jpg", width: "500" }`
+- `MarkdownIME.DOM.*`
+  - *see [dom.ts](https://github.com/laobubu/MarkdownIME/blob/master/src/dom/index.ts) which provides useful DOM functions.*
 
-However, reading the [source code](https://github.com/laobubu/MarkdownIME) is always the best solution.
+Please read the [source code](https://github.com/laobubu/MarkdownIME).
 
 # Changelog
 
@@ -80,3 +123,4 @@ However, reading the [source code](https://github.com/laobubu/MarkdownIME) is al
 3.  2016-01-04 - laobubu - adding two recipes
 4.  2016-02-05 - laobubu - adding codepen example and style
 5.  2016-04-02 - laobubu - update titles
+6.  2018-09-22 - laobubu - rewrite a lot

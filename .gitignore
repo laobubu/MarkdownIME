@@ -1,0 +1,4 @@
+node_modules/
+dist/
+_site/
+tmp/

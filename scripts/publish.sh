@@ -1,8 +1,10 @@
 #!/bin/bash
 cd $(dirname $0)/..
 
-yarn version || exit 1  # Input new version
-VERSION=$(grep -Po '(?<=version": ")([^"]+)' package.json)
+OLD_VERSION=$(grep -Po '(?<=version": ")([^"]+)' package.json)
+echo -ne "Old version is $OLD_VERSION\nInput new: "
+read VERSION
+yarn version --new-version $VERSION || exit 1  # Input new version
 
 [ -d dist ] && rm -rf dist
 yarn prepare || exit 2

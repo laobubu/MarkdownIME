@@ -11,13 +11,14 @@ MarkdownIME is a fresh and fast way to make text formatted, and a minimal & powe
 
 ## Quickstart / Guide
 
-Make a simpliest editor on webpage:
+[Make a simpliest editor](https://codepen.io/laobubu/pen/ZQqEQo):
 
 1. Include MarkdownIME
    - Via NPM: `const MarkdownIME = require("markdown-ime")`
    - or, via Script Tag: `<script src="https://build.laobubu.net/MarkdownIME/MarkdownIME.js"></script>`
 2. Insert an HTML tag: `<div contentEditable id="editor"><p>Hello World</p></div>`
 3. Activate MarkdownIME in one JavaScript: `MarkdownIME.Enhance(MarkdownIME.Scan(window));`
+   - Using other editor like **TinyMCE** / **Quill**? Please follow [the examples](./examples).
 
 More info can be found in [examples](./examples) and [documentation](https://laobubu.github.io/MarkdownIME/)
 
@@ -81,4 +82,5 @@ MarkdownIME shortkeys are disabled in TinyMCE by default.
 
 #### Tables
 
-Create a table with `| table | column | headers |` and <kbd>Enter</kbd> key
+- Create a table with `| table | column | headers |` and <kbd>Enter</kbd> key
+- Use shortkeys to navigate and master the table (see above)

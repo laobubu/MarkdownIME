@@ -8,10 +8,11 @@ yarn version --new-version $VERSION || exit 1  # Input new version
 
 [ -d dist ] && rm -rf dist
 yarn prepare || exit 2
+yarn test || exit 3
 
 echo ">> Publish to NPM"; (
   cd dist
-  yarn publish
+  npm publish
 )
 
 echo ">> Upload to laobubu.build"; {

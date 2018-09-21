@@ -60,6 +60,7 @@ function playMagic(editor, mdime_editor, lines) {
 
 	nextChar()
 
+	editor.focus()
 	return { stop: function () { playing = false } }
 }
 

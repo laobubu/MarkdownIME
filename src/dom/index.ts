@@ -159,14 +159,14 @@ interface ClientRect {
 
 /**
  * get current viewport rect
- * 
+ *
  * @returns Non-Standard ClientRect (because IE/Edge not supports DOMRect)
  */
-export function getViewport(_window?: Window): ClientRect {
+export function getViewport(_window?: Window, considerScroll?: boolean): ClientRect {
   if (!_window) _window = win || window;
 
-  let left = _window.pageXOffset
-  let top = _window.pageYOffset
+  let left = considerScroll ? _window.pageXOffset : 0
+  let top = considerScroll ? _window.pageYOffset : 0
   let height = _window.innerHeight
   let width = _window.innerWidth
 
@@ -194,6 +194,10 @@ function rectContains(container: ClientRect, subRect: ClientRect): RectContainTy
 
 /**
  * a much better polyfill for scrollIntoViewIfNeeded
+ *
+ * @returns - `true` -- trigged and now node is on the top edge.
+ *          - `false` -- trigged and node is on the bottom edge.
+ *          - `undefined` -- nothing happened
  */
 export function scrollIntoViewIfNeeded(node: HTMLElement) {
   if ('scrollIntoViewIfNeeded' in node) { // Chrome only stuff
@@ -207,20 +211,21 @@ export function scrollIntoViewIfNeeded(node: HTMLElement) {
   let scrollArg: (undefined | true | false) = void 0;
 
   let nodeRect: ClientRect = node.getBoundingClientRect()
+  let node_it = node
 
   while (scrollArg === void 0) {
-    let container: HTMLElement = node.parentElement
-    let containerRect: ClientRect = (node === body) ? getViewport(window) : container.getBoundingClientRect()
+    let container: HTMLElement = node_it.parentElement
+    let containerRect: ClientRect = (node_it === body) ? getViewport(window, false) : container.getBoundingClientRect()
 
     let rectRelation = rectContains(containerRect, nodeRect)
     if (rectRelation === RectContainType.LEFT || rectRelation === RectContainType.ABOVE) scrollArg = true
     if (rectRelation === RectContainType.RIGHT || rectRelation === RectContainType.BELOW) scrollArg = false
 
-    if (node === body) break
+    if (node_it === body) break
 
-    node = container
-    nodeRect = containerRect
+    node_it = container
   }
 
   if (scrollArg !== void 0) node.scrollIntoView(scrollArg)
+  return scrollArg
 }

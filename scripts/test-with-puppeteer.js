@@ -16,7 +16,9 @@ function startWeb() {
 async function main() {
   startWeb();
 
-  let browser = await (puppeteer.launch().catch(err => {
+  let browser = await (puppeteer.launch({ args: ['--no-sandbox'] }).catch(err => {
+    console.warn("Failed to start puppeteer. Trying Windows default Chrome...")
+    console.warn(err)
     // All credit goes to the Great FireWall
     return puppeteer.launch({ executablePath: `C:/Program Files (x86)/Google/Chrome/Application/chrome.exe` })
   }));
@@ -31,7 +33,7 @@ async function main() {
 
   await page.exposeFunction('harness_done', details => {
     console.log("Total: ", details.total, " Failed: ", details.failed, " Passed: ", details.passed, " Runtime: ", details.runtime);
-    
+
     page.close()
       .then(() => browser.close())
       .catch(err => {

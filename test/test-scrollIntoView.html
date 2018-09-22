@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>test: scrollIntoView</title>
+  <style>
+    div {
+      border: 1px solid #999;
+      padding: 10px;
+    }
+
+    .os {
+      border-color: #633;
+      overflow: scroll
+    }
+
+    #target {
+      background-color: yellow;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="os" style="height:800px">
+    <p>Test if <code>MarkdownIME.DOM.scrollIntoViewIfNeeded(element)</code> works well when container's overflow style is <code>scroll</code></p>
+    <p>Scroll manually, then press <b>Space key</b> to test <code>scrollIntoViewIfNeeded</code></p>
+    <div class="os" style="height:400px;margin:400px 0">
+      <div style="height: 600px"></div>
+      <div id="target">TARGET!</div>
+      <div style="height: 600px"></div>
+    </div>
+  </div>
+
+  <script src="../dist/MarkdownIME.js"></script>
+  <script>
+    window.addEventListener('keydown', function (ev) {
+      if (ev.which !== 32) return // only care about space
+
+      var target = document.getElementById('target')
+      var ans = MarkdownIME.DOM.scrollIntoViewIfNeeded(target)
+      console.log("scrollIntoViewIfNeeded returns " + ans)
+      ev.preventDefault()
+    }, false)
+  </script>
+</body>
+
+</html>

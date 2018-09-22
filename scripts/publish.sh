@@ -1,6 +1,11 @@
 #!/bin/bash
 cd $(dirname $0)/..
 
+if git status --porcelain | grep .; then
+  echo "You have uncomitted changes in Git."
+  exit 4
+fi
+
 OLD_VERSION=$(grep -Po '(?<=version": ")([^"]+)' package.json)
 echo -ne "Old version is $OLD_VERSION\nInput new: "
 read VERSION
@@ -28,8 +33,6 @@ echo ">> Upload to laobubu.build"; {
   rm -rf laobubu.build
 }
 
-echo ">> Commit to Git"; (
-  git commit -am "Author version $VERSION"
-  git tag -f "v$VERSION"
+echo ">> Push to GitHub"; (
   git push --follow-tags
 )

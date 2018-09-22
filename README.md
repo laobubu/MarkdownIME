@@ -7,8 +7,10 @@ MarkdownIME is a fresh and fast way to make text formatted, and a minimal & powe
 
 [Try out the demo](https://laobubu.github.io/MarkdownIME/). Works like a charm on desktop and mobile!
 
-![npm](https://img.shields.io/npm/v/markdown-ime.svg)
+[![Build Status](https://travis-ci.org/laobubu/MarkdownIME.svg?branch=master)](https://travis-ci.org/laobubu/MarkdownIME)
+[![npm](https://img.shields.io/npm/v/markdown-ime.svg)](https://www.npmjs.com/package/markdown-ime)
 ![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/markdown-ime.svg)
+![npm bundle size (minified + gzip)](https://img.shields.io/bundlephobia/minzip/markdown-ime.svg)
 
 ![](https://laobubu.github.io/MarkdownIME/demo.gif?cache3)
 
@@ -24,13 +26,13 @@ MarkdownIME is a fresh and fast way to make text formatted, and a minimal & powe
 
 Using other editor like **TinyMCE** / **Quill**? Please follow [the examples](./examples).
 
-More info can be found in [examples](./examples) and [documentation](https://laobubu.github.io/MarkdownIME/)
+More info can be found in [examples](./examples) and [manual](https://laobubu.github.io/MarkdownIME/manual.html)
 
 ## Features
 
 **Notice**
 
-With MarkdownIME, user inputs **Markdown**, you get **HTML Nodes** instantly -- all Markdown markups will be discarded.
+With MarkdownIME, user inputs **Markdown**, you get **HTML Nodes** instantly -- all Markdown markups are discarded.
 
 If you want the intact **Markdown** rather than rendered HTML, maybe [**HyperMD** -- a WYSIWYG Markdown Editor](https://github.com/laobubu/hypermd/) is what you need!
 

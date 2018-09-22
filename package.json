@@ -1,6 +1,6 @@
 {
   "name": "markdown-ime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "unpkg": "dist/MarkdownIME.js",
   "types": "dist/MarkdownIME.d.ts",

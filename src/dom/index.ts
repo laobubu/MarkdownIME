@@ -184,11 +184,11 @@ const enum RectContainType {
   LEFT, RIGHT
 }
 
-function rectContains(container: ClientRect, subRect: ClientRect): RectContainType {
-  if (container.left >= subRect.left) return RectContainType.LEFT
-  if (container.right <= subRect.right) return RectContainType.RIGHT
-  if (container.top >= subRect.top) return RectContainType.ABOVE
-  if (container.bottom <= subRect.bottom) return RectContainType.BELOW
+function rectContains(container: ClientRect, subRect: ClientRect, tolerance: number): RectContainType {
+  if (container.left - subRect.left >= tolerance) return RectContainType.LEFT
+  if (subRect.right - container.right >= tolerance) return RectContainType.RIGHT
+  if (container.top - subRect.top >= tolerance) return RectContainType.ABOVE
+  if (subRect.bottom - container.bottom >= tolerance) return RectContainType.BELOW
   return RectContainType.CONTAINED
 }
 
@@ -217,7 +217,7 @@ export function scrollIntoViewIfNeeded(node: HTMLElement) {
     let container: HTMLElement = node_it.parentElement
     let containerRect: ClientRect = (node_it === body) ? getViewport(window, false) : container.getBoundingClientRect()
 
-    let rectRelation = rectContains(containerRect, nodeRect)
+    let rectRelation = rectContains(containerRect, nodeRect, 5)
     if (rectRelation === RectContainType.LEFT || rectRelation === RectContainType.ABOVE) scrollArg = true
     if (rectRelation === RectContainType.RIGHT || rectRelation === RectContainType.BELOW) scrollArg = false
 

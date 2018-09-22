@@ -21,8 +21,8 @@ fs.copyFileSync("dist/MarkdownIME.js", "dist/MarkdownIME.min.js")
 ///// package.json process
 
 const packageJSON = JSON.parse(fs.readFileSync("package.json", "utf-8"))
-delete packageJSON['scripts']['prepare']
-delete packageJSON['scripts']['prepublishOnly']
+delete packageJSON['devDependencies']
+delete packageJSON['scripts']
 for (let k in packageJSON) {
   let val = packageJSON[k]
   // remove "dist/" prefix

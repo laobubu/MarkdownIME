@@ -35,4 +35,5 @@ echo ">> Upload to laobubu.build"; {
 
 echo ">> Push to GitHub"; (
   git push --follow-tags
+  git push --tags
 )

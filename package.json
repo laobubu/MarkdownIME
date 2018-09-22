@@ -4,7 +4,20 @@
   "main": "dist/index.js",
   "unpkg": "dist/MarkdownIME.js",
   "types": "dist/MarkdownIME.d.ts",
-  "license": "MIT",
+  "author": {
+    "name": "laobubu",
+    "email": "laobubu@gmail.com",
+    "url": "https://laobubu.net"
+  },
+  "homepage": "https://github.com/laobubu/MarkdownIME#readme",
+  "bugs": {
+    "url": "https://github.com/laobubu/MarkdownIME/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/laobubu/MarkdownIME.git"
+  },
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/qunit": "^2.5.3",
     "connect": "^3.6.6",
